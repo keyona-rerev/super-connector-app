@@ -235,35 +235,52 @@
 
     /* ── Modal Body ── */
     .imodal-body {
-      flex: 1; overflow: hidden; display: flex; flex-direction: column;
+      flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;
     }
 
-    /* ── Pipeline Header ── */
-    .pipeline-header {
-      padding: 20px 36px 0;
+    /* ── Pipeline Section (collapsible) ── */
+    .pipeline-section {
       flex-shrink: 0;
+      border-bottom: 1px solid var(--border-soft);
     }
+    .pipeline-header {
+      padding: 14px 36px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .pipeline-header:hover { background: rgba(26,25,22,0.02); }
     .pipeline-label {
       font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text3); margin-bottom: 16px;
+      color: var(--text3);
     }
+    .pipeline-toggle {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text3);
+      background: none; border: none; cursor: pointer; font-family: var(--font-sans);
+      padding: 3px 8px; border-radius: 6px; transition: background 0.12s, color 0.12s;
+    }
+    .pipeline-toggle:hover { background: var(--surface2); color: var(--text2); }
+    .pipeline-toggle-icon { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+    .pipeline-section.collapsed .pipeline-toggle-icon { transform: rotate(-90deg); }
 
     /* ── Pipeline Track (Layer 2) ── */
     .pipeline-track {
       display: flex; align-items: flex-start; gap: 0;
-      overflow-x: auto; padding: 0 36px 20px;
+      overflow-x: auto; overflow-y: hidden;
+      padding: 4px 36px 16px;
       flex-shrink: 0;
       scrollbar-width: thin;
+      max-height: 280px;
+      transition: max-height 0.25s ease, opacity 0.2s, padding 0.2s;
+    }
+    .pipeline-section.collapsed .pipeline-track {
+      max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; pointer-events: none; overflow: hidden;
     }
     .pipeline-track::-webkit-scrollbar { height: 4px; }
     .pipeline-track::-webkit-scrollbar-track { background: transparent; }
     .pipeline-track::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
     /* ── Pipeline Node ── */
-    .pipeline-node-wrap {
-      display: flex; align-items: center; flex-shrink: 0;
-    }
-
     .pipeline-node {
       width: 156px; flex-shrink: 0;
       background: var(--surface);
@@ -284,9 +301,7 @@
       background: var(--accent-dim);
       box-shadow: 0 2px 12px rgba(217,119,87,0.2);
     }
-    .pipeline-node.parallel-child {
-      border-style: dashed;
-    }
+    .pipeline-node.parallel-child { border-style: dashed; }
 
     .node-number {
       width: 22px; height: 22px; border-radius: 50%;
@@ -295,131 +310,66 @@
       display: flex; align-items: center; justify-content: center;
       margin-bottom: 8px; transition: background 0.15s, color 0.15s;
     }
-    .pipeline-node.active .node-number {
-      background: var(--accent); color: #fff; border-color: var(--accent);
-    }
-    .node-name {
-      font-size: 12.5px; font-weight: 500; color: var(--text);
-      line-height: 1.35; margin-bottom: 6px;
-    }
-    .node-status {
-      font-size: 10px; color: var(--text3);
-      display: flex; align-items: center; gap: 4px;
-    }
+    .pipeline-node.active .node-number { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .node-name { font-size: 12.5px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
+    .node-status { font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
     .node-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); }
     .node-status-dot.ns-active   { background: var(--active-border); }
     .node-status-dot.ns-planning { background: var(--planning-border); }
     .node-status-dot.ns-complete { background: var(--complete-border); }
 
-    /* Connectors between nodes */
     .pipeline-arrow {
       display: flex; align-items: center; flex-shrink: 0;
       padding: 0 6px; margin-top: 22px;
     }
-    .arrow-line {
-      height: 1.5px; background: var(--border); flex: 1;
-    }
-    .arrow-head {
-      width: 0; height: 0;
-      border-top: 4px solid transparent;
-      border-bottom: 4px solid transparent;
-      border-left: 6px solid var(--border);
-    }
+    .arrow-line { height: 1.5px; background: var(--border); flex: 1; }
+    .arrow-head { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid var(--border); }
 
-    /* Parallel group */
-    .parallel-group-wrap {
-      display: flex; flex-direction: column; flex-shrink: 0;
-    }
-    .parallel-label {
-      font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--text3); text-align: center; margin-bottom: 6px;
-    }
-    .parallel-group {
-      display: flex; flex-direction: column; gap: 8px;
-    }
+    .parallel-group-wrap { display: flex; flex-direction: column; flex-shrink: 0; }
+    .parallel-label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); text-align: center; margin-bottom: 6px; }
+    .parallel-group { display: flex; flex-direction: column; gap: 8px; }
 
     /* ── Module Detail Panel (Layer 3 + 4) ── */
     .module-detail {
-      flex: 1; overflow-y: auto;
-      border-top: 1px solid var(--border-soft);
+      flex: 1; min-height: 0; overflow: hidden;
       background: var(--bg);
-      transition: opacity 0.18s;
     }
     .module-detail.empty {
       display: flex; align-items: center; justify-content: center;
       color: var(--text3); font-size: 13px; font-style: italic;
     }
-
     .module-detail-inner {
       display: grid; grid-template-columns: 300px 1fr; height: 100%;
     }
-
     .module-info-panel {
-      padding: 24px 28px;
-      border-right: 1px solid var(--border-soft);
-      overflow-y: auto;
+      padding: 24px 28px; border-right: 1px solid var(--border-soft); overflow-y: auto;
     }
     .module-info-title {
       font-family: var(--font-serif); font-size: 20px; font-weight: 400;
       letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; line-height: 1.3;
     }
     .module-info-section { margin-bottom: 20px; }
-    .module-info-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text3); margin-bottom: 6px;
-    }
+    .module-info-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
     .module-info-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
 
-    .stakeholder-profile {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 12px 14px; margin-top: 8px;
-    }
+    .stakeholder-profile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-top: 8px; }
     .stakeholder-profile-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
 
-    .module-actions {
-      padding: 24px 28px;
-      overflow-y: auto;
-    }
-    .module-actions-header {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
-    }
-    .module-actions-title {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3);
-    }
+    .module-actions { padding: 24px 28px; overflow-y: auto; }
+    .module-actions-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .module-actions-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
 
-    /* Contact match card (Layer 3+4) */
-    .match-result-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px;
-      transition: border-color 0.15s, box-shadow 0.12s;
-    }
+    .match-result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.15s, box-shadow 0.12s; }
     .match-result-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
-
-    .match-result-top {
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px;
-    }
+    .match-result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
     .match-result-identity { flex: 1; min-width: 0; }
-    .match-result-name {
-      font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px;
-    }
+    .match-result-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
     .match-result-role { font-size: 12px; color: var(--text2); }
-    .match-result-score {
-      font-size: 11px; font-weight: 600; color: var(--accent);
-      background: var(--accent-dim); padding: 2px 8px; border-radius: 20px;
-      flex-shrink: 0;
-    }
-    .match-result-why {
-      font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 10px;
-    }
+    .match-result-score { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+    .match-result-why { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
 
-    /* Action chip (Layer 4) */
     .action-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-    .action-chip {
-      font-size: 11px; font-weight: 500; padding: 4px 10px;
-      border-radius: 20px; border: 1px solid; cursor: pointer;
-      transition: all 0.12s; background: transparent;
-      font-family: var(--font-sans);
-    }
+    .action-chip { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; border: 1px solid; cursor: pointer; transition: all 0.12s; background: transparent; font-family: var(--font-sans); }
     .action-chip.outreach  { color: var(--accent);   border-color: var(--accent);   }
     .action-chip.interview { color: var(--medium);   border-color: var(--medium);   }
     .action-chip.followup  { color: var(--complete-border); border-color: var(--complete-border); }
@@ -645,14 +595,18 @@
     <!-- Layer 2 + 3 + 4 -->
     <div class="imodal-body">
 
-      <!-- Pipeline track header -->
-      <div class="pipeline-header">
-        <div class="pipeline-label">Sub-project pipeline</div>
-      </div>
-
-      <!-- Pipeline track -->
-      <div class="pipeline-track" id="pipeline-track">
-        <div class="loading-state" style="padding:20px"><div class="spinner"></div></div>
+      <!-- Pipeline section (collapsible) -->
+      <div class="pipeline-section" id="pipeline-section">
+        <div class="pipeline-header" onclick="togglePipeline()">
+          <div class="pipeline-label">Sub-project pipeline</div>
+          <button class="pipeline-toggle" onclick="togglePipeline(); event.stopPropagation()">
+            <span class="pipeline-toggle-icon">▾</span>
+            <span id="pipeline-toggle-label">Collapse</span>
+          </button>
+        </div>
+        <div class="pipeline-track" id="pipeline-track">
+          <div class="loading-state" style="padding:20px"><div class="spinner"></div></div>
+        </div>
       </div>
 
       <!-- Module detail panel -->
@@ -974,6 +928,11 @@ async function openInitiative(id) {
   activeModuleIndex = null;
   currentInitiativeData = null;
 
+  // Reset pipeline collapsed state
+  const pSection = document.getElementById('pipeline-section');
+  pSection.classList.remove('collapsed');
+  document.getElementById('pipeline-toggle-label').textContent = 'Collapse';
+
   const overlay = document.getElementById('imodal-overlay');
   overlay.classList.add('open');
 
@@ -1086,6 +1045,14 @@ function nodeHtml(sp, allSps) {
         ${statusLabel}
       </div>
     </div>`;
+}
+
+// ── PIPELINE COLLAPSE TOGGLE ──────────────────────────────────────────────
+function togglePipeline() {
+  const section = document.getElementById('pipeline-section');
+  const label = document.getElementById('pipeline-toggle-label');
+  const collapsed = section.classList.toggle('collapsed');
+  label.textContent = collapsed ? 'Expand' : 'Collapse';
 }
 
 // ── MODULE SELECTION (Layer 3 + 4) ────────────────────────────────────────

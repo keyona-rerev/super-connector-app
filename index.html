@@ -14,15 +14,12 @@
       --surface2:    #F0EFE9;
       --border:      #E5E3DA;
       --border-soft: #EDEBE4;
-
       --text:        #1A1916;
       --text2:       #6B6860;
       --text3:       #9C9A93;
-
       --accent:      #D97757;
       --accent-dim:  #FAF0EB;
       --accent2:     #8B7355;
-
       --critical:    #C0392B;
       --critical-bg: #FDF2F2;
       --high:        #D97757;
@@ -31,127 +28,78 @@
       --medium-bg:   #EEF2F6;
       --low:         #9C9A93;
       --low-bg:      #F5F4EF;
-
       --active-border:   #D97757;
       --planning-border: #7B8FA1;
       --blocked-border:  #C0392B;
       --complete-border: #5A8A5A;
       --dump-border:     #B0ADA4;
-
       --radius:    10px;
       --radius-lg: 14px;
       --shadow:    0 1px 3px rgba(26,25,22,0.07), 0 4px 12px rgba(26,25,22,0.04);
       --shadow-md: 0 2px 8px rgba(26,25,22,0.09), 0 8px 24px rgba(26,25,22,0.06);
       --shadow-lg: 0 8px 32px rgba(26,25,22,0.14), 0 24px 64px rgba(26,25,22,0.08);
-
       --font-serif: 'Instrument Serif', Georgia, serif;
       --font-sans:  'DM Sans', -apple-system, sans-serif;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 14px;
-      line-height: 1.6;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ── LAYOUT ──────────────────────────────────────────────────── */
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
     .shell { display: flex; height: 100vh; overflow: hidden; }
-
-    .sidebar {
-      width: 220px; flex-shrink: 0;
-      background: var(--surface); border-right: 1px solid var(--border);
-      display: flex; flex-direction: column; overflow-y: auto;
-    }
+    .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
     .sidebar-logo { padding: 22px 20px 18px; border-bottom: 1px solid var(--border-soft); }
     .sidebar-logo h1 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; color: var(--text); letter-spacing: -0.01em; }
     .sidebar-logo span { color: var(--accent); }
     .sidebar-logo p { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 0.03em; }
-
     .nav-section { padding: 16px 12px 8px; }
     .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 0 8px; margin-bottom: 6px; }
-    .nav-item {
-      display: flex; align-items: center; gap: 9px; padding: 8px 10px;
-      border-radius: var(--radius); cursor: pointer; font-size: 13.5px; font-weight: 400;
-      color: var(--text2); transition: background 0.12s, color 0.12s;
-      border: none; background: none; width: 100%; text-align: left;
-    }
+    .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; font-size: 13.5px; font-weight: 400; color: var(--text2); transition: background 0.12s, color 0.12s; border: none; background: none; width: 100%; text-align: left; }
     .nav-item:hover { background: var(--surface2); color: var(--text); }
     .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
     .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
     .sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid var(--border-soft); }
-
     .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); }
-    .topbar {
-      height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0;
-    }
+    .topbar { height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; }
     .topbar-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; letter-spacing: -0.02em; }
     .topbar-actions { display: flex; gap: 8px; align-items: center; }
     .page { flex: 1; overflow-y: auto; padding: 28px; }
-
-    /* ── BUTTONS ─────────────────────────────────────────────────── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-family: var(--font-sans); font-size: 13px; font-weight: 500;
-      padding: 7px 14px; border-radius: var(--radius); border: none;
-      cursor: pointer; transition: all 0.12s; white-space: nowrap;
-    }
+    .btn { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius); border: none; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { opacity: 0.88; }
     .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
     .btn-ghost:hover { background: var(--surface2); color: var(--text); }
     .btn-sm { font-size: 12px; padding: 5px 10px; }
     .btn-xs { font-size: 11px; padding: 4px 9px; border-radius: 8px; }
-
-    /* ── BADGES ──────────────────────────────────────────────────── */
     .badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
     .badge-critical { background: var(--critical-bg); color: var(--critical); }
     .badge-high     { background: var(--high-bg);     color: var(--high); }
     .badge-medium   { background: var(--medium-bg);   color: var(--medium); }
     .badge-low      { background: var(--low-bg);      color: var(--low); }
     .badge-parked   { background: var(--low-bg);      color: var(--low); }
-
     .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .dot-active   { background: var(--active-border); }
     .dot-planning { background: var(--planning-border); }
     .dot-blocked  { background: var(--critical); }
     .dot-complete { background: var(--complete-border); }
     .dot-dump     { background: var(--dump-border); }
-
-    /* ── SPINNER ─────────────────────────────────────────────────── */
     .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.65s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-state { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 80px 20px; color: var(--text3); font-size: 13px; }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
     .empty-state h3 { font-family: var(--font-serif); font-size: 20px; font-weight: 400; color: var(--text2); margin-bottom: 6px; }
     .empty-state p { font-size: 13px; }
-
-    /* ── TOAST ───────────────────────────────────────────────────── */
     .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: var(--bg); font-size: 13px; padding: 10px 16px; border-radius: var(--radius); z-index: 9999; transform: translateY(8px); opacity: 0; transition: all 0.2s; box-shadow: var(--shadow-md); pointer-events: none; }
     .toast.show { transform: translateY(0); opacity: 1; }
 
-    /* ══════════════════════════════════════════════════════════════
-       INITIATIVES BOARD
-    ══════════════════════════════════════════════════════════════ */
+    /* ══ INITIATIVES BOARD ══ */
     .board-filters { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
     .filter-input { flex: 1; min-width: 200px; max-width: 320px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 13px; padding: 7px 12px; border-radius: var(--radius); outline: none; transition: border-color 0.15s; }
     .filter-input::placeholder { color: var(--text3); }
     .filter-input:focus { border-color: var(--accent); }
     .filter-select { background: var(--surface); border: 1px solid var(--border); color: var(--text2); font-family: var(--font-sans); font-size: 13px; padding: 7px 10px; border-radius: var(--radius); outline: none; cursor: pointer; }
     .filter-select:focus { border-color: var(--accent); }
-
     .board-columns { display: grid; grid-template-columns: repeat(5, minmax(220px, 1fr)); gap: 16px; align-items: start; overflow-x: auto; padding-bottom: 20px; }
-
     .board-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 2px; }
     .board-col-title { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text2); }
     .board-col-count { font-size: 11px; font-weight: 600; background: var(--surface2); color: var(--text3); padding: 1px 7px; border-radius: 20px; }
-
     .initiative-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; position: relative; overflow: hidden; }
     .initiative-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
     .initiative-card.col-active::before    { background: var(--active-border); }
@@ -160,156 +108,46 @@
     .initiative-card.col-complete::before  { background: var(--complete-border); }
     .initiative-card.col-dump::before      { background: var(--dump-border); }
     .initiative-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
-
     .card-venture { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
     .card-name { font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--text); margin-bottom: 6px; line-height: 1.35; }
     .card-goal { font-size: 12px; color: var(--text2); margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 
-    /* ══════════════════════════════════════════════════════════════
-       INITIATIVE FULL-SCREEN MODAL
-    ══════════════════════════════════════════════════════════════ */
-    .imodal-overlay {
-      position: fixed; inset: 0; background: rgba(26,25,22,0.55);
-      backdrop-filter: blur(4px); z-index: 200;
-      display: flex; align-items: center; justify-content: center; padding: 32px 24px;
-      opacity: 0; pointer-events: none; transition: opacity 0.22s;
-    }
+    /* ══ INITIATIVE MODAL ══ */
+    .imodal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.55); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 32px 24px; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
     .imodal-overlay.open { opacity: 1; pointer-events: all; }
-
-    .imodal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      width: 100%; max-width: 1100px;
-      height: 88vh;
-      display: flex; flex-direction: column;
-      box-shadow: var(--shadow-lg);
-      overflow: hidden;
-      transform: translateY(20px) scale(0.98);
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
+    .imodal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 1100px; height: 88vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); overflow: hidden; transform: translateY(20px) scale(0.98); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .imodal-overlay.open .imodal { transform: translateY(0) scale(1); }
-
-    /* ── Modal Header (Layer 1) ── */
-    .imodal-header {
-      padding: 28px 36px 24px;
-      border-bottom: 1px solid var(--border-soft);
-      flex-shrink: 0;
-      background: var(--surface);
-    }
-    .imodal-header-top {
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px;
-    }
+    .imodal-header { padding: 28px 36px 24px; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; background: var(--surface); }
+    .imodal-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
     .imodal-title-group { flex: 1; min-width: 0; }
-    .imodal-venture {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 6px;
-    }
-    .imodal-title {
-      font-family: var(--font-serif); font-size: 28px; font-weight: 400;
-      letter-spacing: -0.02em; line-height: 1.2; color: var(--text);
-      margin-bottom: 10px;
-    }
-    .imodal-goal {
-      font-size: 14px; color: var(--text2); line-height: 1.55; max-width: 680px;
-    }
-    .imodal-close {
-      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
-      width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center;
-      justify-content: center; font-size: 18px; color: var(--text2); flex-shrink: 0;
-      transition: background 0.12s, color 0.12s;
-    }
+    .imodal-venture { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .imodal-title { font-family: var(--font-serif); font-size: 28px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.2; color: var(--text); margin-bottom: 10px; }
+    .imodal-goal { font-size: 14px; color: var(--text2); line-height: 1.55; max-width: 680px; }
+    .imodal-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text2); flex-shrink: 0; transition: background 0.12s, color 0.12s; }
     .imodal-close:hover { background: var(--border); color: var(--text); }
-
-    .imodal-meta {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    }
-    .imodal-meta-chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 12px; color: var(--text2);
-      background: var(--surface2); border: 1px solid var(--border-soft);
-      padding: 4px 10px; border-radius: 20px;
-    }
+    .imodal-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .imodal-meta-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border-soft); padding: 4px 10px; border-radius: 20px; }
     .imodal-meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
-
-    /* ── Modal Body ── */
-    .imodal-body {
-      flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;
-    }
-
-    /* ── Pipeline Section (collapsible) ── */
-    .pipeline-section {
-      flex-shrink: 0;
-      border-bottom: 1px solid var(--border-soft);
-    }
-    .pipeline-header {
-      padding: 14px 36px;
-      display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer; user-select: none;
-    }
+    .imodal-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .pipeline-section { flex-shrink: 0; border-bottom: 1px solid var(--border-soft); }
+    .pipeline-header { padding: 14px 36px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
     .pipeline-header:hover { background: rgba(26,25,22,0.02); }
-    .pipeline-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text3);
-    }
-    .pipeline-toggle {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; color: var(--text3);
-      background: none; border: none; cursor: pointer; font-family: var(--font-sans);
-      padding: 3px 8px; border-radius: 6px; transition: background 0.12s, color 0.12s;
-    }
+    .pipeline-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
+    .pipeline-toggle { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font-sans); padding: 3px 8px; border-radius: 6px; transition: background 0.12s, color 0.12s; }
     .pipeline-toggle:hover { background: var(--surface2); color: var(--text2); }
     .pipeline-toggle-icon { font-size: 10px; transition: transform 0.2s; display: inline-block; }
     .pipeline-section.collapsed .pipeline-toggle-icon { transform: rotate(-90deg); }
-
-    /* ── Pipeline Track (Layer 2) ── */
-    .pipeline-track {
-      display: flex; align-items: flex-start; gap: 0;
-      overflow-x: auto; overflow-y: hidden;
-      padding: 4px 36px 16px;
-      flex-shrink: 0;
-      scrollbar-width: thin;
-      max-height: 280px;
-      transition: max-height 0.25s ease, opacity 0.2s, padding 0.2s;
-    }
-    .pipeline-section.collapsed .pipeline-track {
-      max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; pointer-events: none; overflow: hidden;
-    }
+    .pipeline-track { display: flex; align-items: flex-start; gap: 0; overflow-x: auto; overflow-y: hidden; padding: 4px 36px 16px; flex-shrink: 0; scrollbar-width: thin; max-height: 280px; transition: max-height 0.25s ease, opacity 0.2s, padding 0.2s; }
+    .pipeline-section.collapsed .pipeline-track { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; pointer-events: none; overflow: hidden; }
     .pipeline-track::-webkit-scrollbar { height: 4px; }
     .pipeline-track::-webkit-scrollbar-track { background: transparent; }
     .pipeline-track::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    /* ── Pipeline Node ── */
-    .pipeline-node {
-      width: 156px; flex-shrink: 0;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 14px 12px;
-      cursor: pointer;
-      transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
-      position: relative;
-    }
-    .pipeline-node:hover {
-      border-color: var(--accent);
-      box-shadow: 0 2px 12px rgba(217,119,87,0.15);
-      transform: translateY(-2px);
-    }
-    .pipeline-node.active {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-      box-shadow: 0 2px 12px rgba(217,119,87,0.2);
-    }
+    .pipeline-node { width: 156px; flex-shrink: 0; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 14px 12px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s; position: relative; }
+    .pipeline-node:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(217,119,87,0.15); transform: translateY(-2px); }
+    .pipeline-node.active { border-color: var(--accent); background: var(--accent-dim); box-shadow: 0 2px 12px rgba(217,119,87,0.2); }
     .pipeline-node.parallel-child { border-style: dashed; }
-
-    .node-number {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text3); font-size: 10px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 8px; transition: background 0.15s, color 0.15s;
-    }
+    .node-number { width: 22px; height: 22px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); color: var(--text3); font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; transition: background 0.15s, color 0.15s; }
     .pipeline-node.active .node-number { background: var(--accent); color: #fff; border-color: var(--accent); }
     .node-name { font-size: 12.5px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
     .node-status { font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
@@ -317,48 +155,25 @@
     .node-status-dot.ns-active   { background: var(--active-border); }
     .node-status-dot.ns-planning { background: var(--planning-border); }
     .node-status-dot.ns-complete { background: var(--complete-border); }
-
-    .pipeline-arrow {
-      display: flex; align-items: center; flex-shrink: 0;
-      padding: 0 6px; margin-top: 22px;
-    }
+    .pipeline-arrow { display: flex; align-items: center; flex-shrink: 0; padding: 0 6px; margin-top: 22px; }
     .arrow-line { height: 1.5px; background: var(--border); flex: 1; }
     .arrow-head { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid var(--border); }
-
     .parallel-group-wrap { display: flex; flex-direction: column; flex-shrink: 0; }
     .parallel-label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); text-align: center; margin-bottom: 6px; }
     .parallel-group { display: flex; flex-direction: column; gap: 8px; }
-
-    /* ── Module Detail Panel (Layer 3 + 4) ── */
-    .module-detail {
-      flex: 1; min-height: 0; overflow: hidden;
-      background: var(--bg);
-    }
-    .module-detail.empty {
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text3); font-size: 13px; font-style: italic;
-    }
-    .module-detail-inner {
-      display: grid; grid-template-columns: 300px 1fr; height: 100%;
-    }
-    .module-info-panel {
-      padding: 24px 28px; border-right: 1px solid var(--border-soft); overflow-y: auto;
-    }
-    .module-info-title {
-      font-family: var(--font-serif); font-size: 20px; font-weight: 400;
-      letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; line-height: 1.3;
-    }
+    .module-detail { flex: 1; min-height: 0; overflow: hidden; background: var(--bg); }
+    .module-detail.empty { display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 13px; font-style: italic; }
+    .module-detail-inner { display: grid; grid-template-columns: 300px 1fr; height: 100%; }
+    .module-info-panel { padding: 24px 28px; border-right: 1px solid var(--border-soft); overflow-y: auto; }
+    .module-info-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
     .module-info-section { margin-bottom: 20px; }
     .module-info-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
     .module-info-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
-
     .stakeholder-profile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-top: 8px; }
     .stakeholder-profile-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
-
     .module-actions { padding: 24px 28px; overflow-y: auto; }
     .module-actions-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
     .module-actions-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
-
     .match-result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.15s, box-shadow 0.12s; }
     .match-result-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
     .match-result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
@@ -367,7 +182,6 @@
     .match-result-role { font-size: 12px; color: var(--text2); }
     .match-result-score { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
     .match-result-why { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
-
     .action-chips { display: flex; gap: 6px; flex-wrap: wrap; }
     .action-chip { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; border: 1px solid; cursor: pointer; transition: all 0.12s; background: transparent; font-family: var(--font-sans); }
     .action-chip.outreach  { color: var(--accent);   border-color: var(--accent);   }
@@ -375,13 +189,10 @@
     .action-chip.followup  { color: var(--complete-border); border-color: var(--complete-border); }
     .action-chip.advisor   { color: var(--accent2);  border-color: var(--accent2);  }
     .action-chip:hover { opacity: 0.75; transform: translateY(-1px); }
-
     .contacts-loading { display: flex; align-items: center; gap: 10px; padding: 20px 0; color: var(--text3); font-size: 13px; }
     .contacts-empty { padding: 30px 0; text-align: center; color: var(--text3); font-size: 13px; font-style: italic; }
 
-    /* ══════════════════════════════════════════════════════════════
-       SEARCH PAGE
-    ══════════════════════════════════════════════════════════════ */
+    /* ══ SEARCH PAGE ══ */
     .search-hero { max-width: 620px; margin: 0 auto 32px; text-align: center; padding-top: 8px; }
     .search-hero h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; }
     .search-hero p { font-size: 13px; color: var(--text2); }
@@ -390,7 +201,6 @@
     .search-box::placeholder { color: var(--text3); }
     .search-box:focus { border-color: var(--accent); }
     .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-
     .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; }
     .contact-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
     .contact-name { font-family: var(--font-serif); font-size: 16px; font-weight: 400; color: var(--text); margin-bottom: 2px; }
@@ -399,9 +209,7 @@
     .contact-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
     .tag { font-size: 11px; padding: 2px 8px; background: var(--surface2); color: var(--text2); border-radius: 20px; border: 1px solid var(--border); }
 
-    /* ══════════════════════════════════════════════════════════════
-       CONTACT DETAIL DRAWER
-    ══════════════════════════════════════════════════════════════ */
+    /* ══ DRAWER ══ */
     .drawer-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.3); backdrop-filter: blur(2px); z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .drawer-overlay.open { opacity: 1; pointer-events: all; }
     .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 480px; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -4px 0 24px rgba(26,25,22,0.12); z-index: 301; overflow-y: auto; transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
@@ -419,11 +227,9 @@
     .detail-field p { font-size: 13.5px; color: var(--text); line-height: 1.5; }
     .field-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
     .initiative-link { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border-soft); margin-bottom: 8px; }
     .initiative-link-name { font-size: 13px; font-weight: 500; color: var(--text); }
     .initiative-link-role { font-size: 11px; color: var(--text2); margin-top: 1px; }
-
     .match-card { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; transition: border-color 0.12s; }
     .match-card:hover { border-color: var(--accent); }
     .match-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-size: 15px; flex-shrink: 0; }
@@ -432,9 +238,7 @@
     .match-org  { font-size: 11px; color: var(--text2); }
     .match-score { font-size: 11px; font-weight: 600; color: var(--accent); }
 
-    /* ══════════════════════════════════════════════════════════════
-       ACTIVATION QUEUE
-    ══════════════════════════════════════════════════════════════ */
+    /* ══ ACTIVATION QUEUE ══ */
     .queue-item { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
     .queue-item:hover { box-shadow: var(--shadow-md); border-color: var(--accent); }
     .queue-urgency { width: 3px; border-radius: 3px; align-self: stretch; flex-shrink: 0; }
@@ -445,9 +249,7 @@
     .queue-meta { font-size: 12px; color: var(--text2); }
     .queue-action { font-size: 12px; color: var(--accent); margin-top: 2px; }
 
-    /* ══════════════════════════════════════════════════════════════
-       MODALS (Add initiative / Add angle)
-    ══════════════════════════════════════════════════════════════ */
+    /* ══ MODALS ══ */
     .modal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.45); backdrop-filter: blur(3px); z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-md); transform: translateY(12px); transition: transform 0.2s; }
@@ -460,6 +262,40 @@
     .field-group textarea { resize: vertical; min-height: 80px; }
     .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
+    /* ══ CONTENT REGISTRY ══ */
+    .content-filters { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .content-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; position: relative; overflow: hidden; }
+    .content-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--border); }
+    .content-card.prismm-sync-pending::before    { background: var(--high); }
+    .content-card.prismm-sync-synced::before     { background: var(--complete-border); }
+    .content-card.prismm-sync-needs-update::before { background: var(--critical); }
+    .content-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+    .content-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .content-card-meta { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+    .content-card-name { font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--text); line-height: 1.35; }
+    .content-card-angle { font-size: 12px; color: var(--text2); margin: 8px 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+    .content-card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .sync-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.03em; }
+    .sync-pending      { background: var(--high-bg);     color: var(--high); }
+    .sync-synced       { background: #EDF7ED;             color: var(--complete-border); }
+    .sync-needs-update { background: var(--critical-bg); color: var(--critical); }
+    .sync-none         { background: var(--surface2);    color: var(--text3); }
+    .type-badge { display: inline-flex; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border-soft); }
+    .content-status-badge { display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .cs-active      { background: var(--accent-dim); color: var(--accent); }
+    .cs-draft       { background: var(--medium-bg);  color: var(--medium); }
+    .cs-idea        { background: var(--surface2);   color: var(--text3); }
+    .cs-in-progress { background: #EEF6FF;            color: #4A7FB5; }
+    .cs-published   { background: #EDF7ED;            color: var(--complete-border); }
+    .cs-archived    { background: var(--low-bg);      color: var(--low); }
+    .content-detail-section { margin-bottom: 22px; }
+    .content-detail-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-soft); }
+    .content-detail-value { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+    .content-detail-value a { color: var(--accent); text-decoration: none; }
+    .content-detail-value a:hover { text-decoration: underline; }
+    .content-tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -468,7 +304,6 @@
 <body>
 
 <div class="shell">
-  <!-- ── SIDEBAR ── -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <h1>Super<span>Connector</span></h1>
@@ -476,42 +311,24 @@
     </div>
     <nav class="nav-section">
       <div class="nav-label">Workspace</div>
-      <button class="nav-item active" onclick="showPage('board')" id="nav-board">
-        <span class="icon">◈</span> Initiatives
-      </button>
-      <button class="nav-item" onclick="showPage('search')" id="nav-search">
-        <span class="icon">⊹</span> Search Contacts
-      </button>
-      <button class="nav-item" onclick="showPage('queue')" id="nav-queue">
-        <span class="icon">◎</span> Activation Queue
-      </button>
-      <button class="nav-item" onclick="showPage('angles')" id="nav-angles">
-        <span class="icon">◇</span> Activation Angles
-      </button>
+      <button class="nav-item active" onclick="showPage('board')" id="nav-board"><span class="icon">◈</span> Initiatives</button>
+      <button class="nav-item" onclick="showPage('search')" id="nav-search"><span class="icon">⊹</span> Search Contacts</button>
+      <button class="nav-item" onclick="showPage('queue')" id="nav-queue"><span class="icon">◎</span> Activation Queue</button>
+      <button class="nav-item" onclick="showPage('angles')" id="nav-angles"><span class="icon">◇</span> Activation Angles</button>
+      <button class="nav-item" onclick="showPage('content')" id="nav-content"><span class="icon">◫</span> Content Registry</button>
     </nav>
     <div class="nav-section">
       <div class="nav-label">Ventures</div>
-      <button class="nav-item" onclick="filterVenture('ReRev Labs')" id="nav-rerev">
-        <span class="icon" style="color:#D97757">●</span> ReRev Labs
-      </button>
-      <button class="nav-item" onclick="filterVenture('Prismm')" id="nav-prismm">
-        <span class="icon" style="color:#7B8FA1">●</span> Prismm
-      </button>
-      <button class="nav-item" onclick="filterVenture('Black Tech Capital')" id="nav-btc">
-        <span class="icon" style="color:#5A8A5A">●</span> Black Tech Capital
-      </button>
-      <button class="nav-item" onclick="filterVenture('Sekhmetic')" id="nav-sekh">
-        <span class="icon" style="color:#8B7355">●</span> Sekhmetic
-      </button>
+      <button class="nav-item" onclick="filterVenture('ReRev Labs')" id="nav-rerev"><span class="icon" style="color:#D97757">●</span> ReRev Labs</button>
+      <button class="nav-item" onclick="filterVenture('Prismm')" id="nav-prismm"><span class="icon" style="color:#7B8FA1">●</span> Prismm</button>
+      <button class="nav-item" onclick="filterVenture('Black Tech Capital')" id="nav-btc"><span class="icon" style="color:#5A8A5A">●</span> Black Tech Capital</button>
+      <button class="nav-item" onclick="filterVenture('Sekhmetic')" id="nav-sekh"><span class="icon" style="color:#8B7355">●</span> Sekhmetic</button>
     </div>
     <div class="sidebar-bottom">
-      <button class="nav-item" onclick="showPage('board'); filterVenture('')">
-        <span class="icon">↺</span> Clear Filter
-      </button>
+      <button class="nav-item" onclick="showPage('board'); filterVenture('')"><span class="icon">↺</span> Clear Filter</button>
     </div>
   </aside>
 
-  <!-- ── MAIN ── -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-title" id="page-title">Initiatives Board</div>
@@ -527,14 +344,11 @@
         <input class="filter-input" type="text" id="board-search" placeholder="Search initiatives…" oninput="renderBoard()">
         <select class="filter-select" id="board-priority" onchange="renderBoard()">
           <option value="">All Priorities</option>
-          <option>Critical</option><option>High</option>
-          <option>Medium</option><option>Low</option><option>Parked</option>
+          <option>Critical</option><option>High</option><option>Medium</option><option>Low</option><option>Parked</option>
         </select>
       </div>
       <div class="board-columns" id="board-columns">
-        <div class="loading-state" style="grid-column:1/-1">
-          <div class="spinner"></div>Loading initiatives…
-        </div>
+        <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading initiatives…</div>
       </div>
     </div>
 
@@ -545,9 +359,7 @@
         <p>Describe who you're looking for — the vector database finds the closest matches.</p>
       </div>
       <div class="search-box-wrap">
-        <input class="search-box" id="search-input" type="text"
-          placeholder="e.g. climate tech founder who has exited, looking for capital…"
-          onkeydown="if(event.key==='Enter') runSearch()">
+        <input class="search-box" id="search-input" type="text" placeholder="e.g. climate tech founder who has exited, looking for capital…" onkeydown="if(event.key==='Enter') runSearch()">
         <button class="btn btn-primary" onclick="runSearch()">Search</button>
       </div>
       <div id="search-results"></div>
@@ -555,9 +367,7 @@
 
     <!-- ACTIVATION QUEUE -->
     <div class="page" id="page-queue" style="display:none">
-      <div id="queue-list">
-        <div class="loading-state"><div class="spinner"></div>Loading queue…</div>
-      </div>
+      <div id="queue-list"><div class="loading-state"><div class="spinner"></div>Loading queue…</div></div>
     </div>
 
     <!-- ACTIVATION ANGLES -->
@@ -566,20 +376,40 @@
         <div></div>
         <button class="btn btn-primary btn-sm" onclick="openAngleModal()">+ New Angle</button>
       </div>
-      <div id="angles-list">
-        <div class="loading-state"><div class="spinner"></div>Loading angles…</div>
+      <div id="angles-list"><div class="loading-state"><div class="spinner"></div>Loading angles…</div></div>
+    </div>
+
+    <!-- CONTENT REGISTRY -->
+    <div class="page" id="page-content" style="display:none">
+      <div class="content-filters">
+        <input class="filter-input" type="text" id="content-search" placeholder="Search content…" oninput="renderContent()">
+        <select class="filter-select" id="content-venture" onchange="renderContent()">
+          <option value="">All Ventures</option>
+          <option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option>
+        </select>
+        <select class="filter-select" id="content-type" onchange="renderContent()">
+          <option value="">All Types</option>
+          <option>Article</option><option>Campaign Concept</option><option>Gifting Moment</option>
+          <option>Sequence Variant</option><option>Data Drop</option><option>Collab Hook</option>
+          <option>Case Study</option><option>Demo</option><option>Newsletter Issue</option><option>Event Recap</option>
+        </select>
+        <select class="filter-select" id="content-sync" onchange="renderContent()">
+          <option value="">All Sync Status</option>
+          <option value="Pending">Prismm Pending</option>
+          <option value="Synced">Synced</option>
+          <option value="Needs Update">Needs Update</option>
+        </select>
+      </div>
+      <div class="content-grid" id="content-grid">
+        <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading content…</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════════
-     INITIATIVE FULL-SCREEN MODAL
-══════════════════════════════════════════════════════════════ -->
+<!-- INITIATIVE MODAL -->
 <div class="imodal-overlay" id="imodal-overlay" onclick="handleIModalOverlayClick(event)">
   <div class="imodal" id="imodal">
-
-    <!-- Layer 1: Header -->
     <div class="imodal-header">
       <div class="imodal-header-top">
         <div class="imodal-title-group">
@@ -591,11 +421,7 @@
       </div>
       <div class="imodal-meta" id="imodal-meta"></div>
     </div>
-
-    <!-- Layer 2 + 3 + 4 -->
     <div class="imodal-body">
-
-      <!-- Pipeline section (collapsible) -->
       <div class="pipeline-section" id="pipeline-section">
         <div class="pipeline-header" onclick="togglePipeline()">
           <div class="pipeline-label">Sub-project pipeline</div>
@@ -608,17 +434,14 @@
           <div class="loading-state" style="padding:20px"><div class="spinner"></div></div>
         </div>
       </div>
-
-      <!-- Module detail panel -->
       <div class="module-detail empty" id="module-detail">
         <span>Select a module to see details and matched contacts</span>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- ── CONTACT DRAWER (z-index above imodal) ── -->
+<!-- CONTACT DRAWER -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeContactDrawer()"></div>
 <div class="drawer" id="contact-drawer">
   <div class="drawer-header">
@@ -631,53 +454,31 @@
   <div class="drawer-body" id="contact-drawer-body"></div>
 </div>
 
-<!-- ── ADD INITIATIVE MODAL ── -->
+<!-- CONTENT DETAIL DRAWER -->
+<div class="drawer-overlay" id="content-drawer-overlay" onclick="closeContentDrawer()"></div>
+<div class="drawer" id="content-drawer" style="z-index:302">
+  <div class="drawer-header">
+    <div class="drawer-header-top">
+      <div class="drawer-title" id="content-drawer-title">Content</div>
+      <button class="drawer-close" onclick="closeContentDrawer()">×</button>
+    </div>
+    <div id="content-drawer-sub" style="font-size:12px;color:var(--text2);display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+  </div>
+  <div class="drawer-body" id="content-drawer-body"></div>
+</div>
+
+<!-- ADD INITIATIVE MODAL -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <h3>New Initiative</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div class="field-group" style="grid-column:1/-1">
-        <label>Initiative Name *</label>
-        <input type="text" id="new-name" placeholder="BTC Climate Tech Exit Lab">
-      </div>
-      <div class="field-group">
-        <label>Venture</label>
-        <select id="new-venture">
-          <option value="">Select…</option>
-          <option>ReRev Labs</option><option>Prismm</option>
-          <option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label>Priority</label>
-        <select id="new-priority">
-          <option>Medium</option><option>Critical</option>
-          <option>High</option><option>Low</option><option>Parked</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label>Status</label>
-        <select id="new-status">
-          <option>Brain Dump</option><option>Planning</option>
-          <option>Active</option><option>Paused</option><option>Complete</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label>Phoebe Cadence</label>
-        <select id="new-cadence">
-          <option>Weekly</option><option>Daily</option>
-          <option>Every 2-3 days</option><option>Biweekly</option>
-          <option>Monthly</option><option>None</option>
-        </select>
-      </div>
-      <div class="field-group" style="grid-column:1/-1">
-        <label>Goal</label>
-        <input type="text" id="new-goal" placeholder="What does success look like?">
-      </div>
-      <div class="field-group" style="grid-column:1/-1">
-        <label>Brain Dump</label>
-        <textarea id="new-braindump" placeholder="Raw thinking, context, ideas…"></textarea>
-      </div>
+      <div class="field-group" style="grid-column:1/-1"><label>Initiative Name *</label><input type="text" id="new-name" placeholder="BTC Climate Tech Exit Lab"></div>
+      <div class="field-group"><label>Venture</label><select id="new-venture"><option value="">Select…</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
+      <div class="field-group"><label>Priority</label><select id="new-priority"><option>Medium</option><option>Critical</option><option>High</option><option>Low</option><option>Parked</option></select></div>
+      <div class="field-group"><label>Status</label><select id="new-status"><option>Brain Dump</option><option>Planning</option><option>Active</option><option>Paused</option><option>Complete</option></select></div>
+      <div class="field-group"><label>Phoebe Cadence</label><select id="new-cadence"><option>Weekly</option><option>Daily</option><option>Every 2-3 days</option><option>Biweekly</option><option>Monthly</option><option>None</option></select></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Goal</label><input type="text" id="new-goal" placeholder="What does success look like?"></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Brain Dump</label><textarea id="new-braindump" placeholder="Raw thinking, context, ideas…"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
@@ -686,26 +487,37 @@
   </div>
 </div>
 
-<!-- ── ADD ANGLE MODAL ── -->
+<!-- ADD CONTENT MODAL -->
+<div class="modal-overlay" id="content-modal">
+  <div class="modal">
+    <h3>New Content Asset</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="field-group" style="grid-column:1/-1"><label>Content Name *</label><input type="text" id="cnt-name" placeholder="Silent Deposit Drain Article"></div>
+      <div class="field-group"><label>Type</label><select id="cnt-type"><option>Article</option><option>Campaign Concept</option><option>Gifting Moment</option><option>Sequence Variant</option><option>Data Drop</option><option>Collab Hook</option><option>Case Study</option><option>Demo</option><option>Newsletter Issue</option><option>Event Recap</option></select></div>
+      <div class="field-group"><label>Venture</label><select id="cnt-venture"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option></select></div>
+      <div class="field-group"><label>Status</label><select id="cnt-status"><option>Idea</option><option>Draft</option><option>In Progress</option><option>Active</option><option>Published</option><option>Archived</option></select></div>
+      <div class="field-group"><label>Prismm Sync</label><select id="cnt-sync"><option value="">None</option><option value="Pending">Pending</option><option value="Synced">Synced</option><option value="Needs Update">Needs Update</option></select></div>
+      <div class="field-group"><label>Approval Required</label><select id="cnt-approval"><option>No</option><option>Yes</option></select></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Initiative Tags (e.g. P008, P017)</label><input type="text" id="cnt-tags" placeholder="P008, P017"></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Activation Angle</label><textarea id="cnt-angle" placeholder="What this content is meant to do and for whom..." style="min-height:64px"></textarea></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Asset Link</label><input type="text" id="cnt-link" placeholder="https://docs.google.com/..."></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Notes</label><textarea id="cnt-notes" placeholder="Any additional context..." style="min-height:60px"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeContentModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContent()">Save Content</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ANGLE MODAL -->
 <div class="modal-overlay" id="angle-modal">
   <div class="modal">
     <h3>New Activation Angle</h3>
-    <div class="field-group">
-      <label>Angle Name *</label>
-      <input type="text" id="ang-name" placeholder="Free Value Exchange Cold Email">
-    </div>
-    <div class="field-group">
-      <label>Description</label>
-      <textarea id="ang-desc" placeholder="How this approach works…"></textarea>
-    </div>
-    <div class="field-group">
-      <label>Template / Script</label>
-      <textarea id="ang-template" rows="5" placeholder="The actual outreach template or framework…"></textarea>
-    </div>
-    <div class="field-group">
-      <label>Best For</label>
-      <input type="text" id="ang-best" placeholder="What kinds of initiatives this works well for">
-    </div>
+    <div class="field-group"><label>Angle Name *</label><input type="text" id="ang-name" placeholder="Free Value Exchange Cold Email"></div>
+    <div class="field-group"><label>Description</label><textarea id="ang-desc" placeholder="How this approach works…"></textarea></div>
+    <div class="field-group"><label>Template / Script</label><textarea id="ang-template" rows="5" placeholder="The actual outreach template or framework…"></textarea></div>
+    <div class="field-group"><label>Best For</label><input type="text" id="ang-best" placeholder="What kinds of initiatives this works well for"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeAngleModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveAngle()">Save Angle</button>
@@ -721,11 +533,7 @@
 async function api(path, opts = {}) {
   const res = await fetch(CONFIG.API_BASE + path, {
     ...opts,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': CONFIG.API_KEY,
-      ...(opts.headers || {}),
-    },
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': CONFIG.API_KEY, ...(opts.headers || {}) },
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -752,102 +560,34 @@ let currentPage = 'board';
 let activeModuleIndex = null;
 let currentInitiativeData = null;
 
-// ── BTC CLIMATE TECH EXIT LAB — SUB-PROJECT DEFINITIONS ───────────────────
+// ── BTC SUBPROJECTS ────────────────────────────────────────────────────────
 const BTC_SUBPROJECTS = [
-  {
-    id: 'sp1',
-    name: 'Structure & Scope',
-    status: 'planning',
-    description: 'Define the content series format, publishing cadence, topic pillars, and overall framing for the Climate Tech Exit Lab.',
-    stakeholderProfile: 'A content strategist or media operator with experience building interview-based editorial series. Ideally has worked in climate tech or deep tech adjacent spaces and understands what resonates with institutional audiences.',
-    searchQuery: 'content strategist media editorial interview series climate tech',
-    actionType: 'outreach',
-    actionLabel: 'Content strategy outreach',
-    parallel: false,
-    dependsOn: [],
-  },
-  {
-    id: 'sp2',
-    name: 'Advisory Input Interviews',
-    status: 'planning',
-    description: '5–10 interviews with late-stage climate tech investors and founders who have exited. Goal: validate the series structure and surface the right questions to ask.',
-    stakeholderProfile: 'Late-stage climate tech investor or founder who has successfully exited. Should have strong opinions about what the ecosystem needs and be willing to share candidly. Warm intros preferred.',
-    searchQuery: 'climate tech investor founder exit late stage',
-    actionType: 'interview',
-    actionLabel: 'Schedule validation interview',
-    parallel: false,
-    dependsOn: ['sp1'],
-  },
-  {
-    id: 'sp3',
-    name: 'Interview Series — Episodes',
-    status: 'planning',
-    description: 'Recurring engine of 3–5 individual interviews per issue, featuring climate tech founders and investors. Each episode feeds the newsletter, LinkedIn, and website.',
-    stakeholderProfile: 'Climate tech founder, investor, or operator at any stage who has a compelling story — fundraise, exit, pivot, or market insight. Must be willing to go on record. Diversity of background strongly preferred.',
-    searchQuery: 'climate tech founder operator compelling story fundraise',
-    actionType: 'outreach',
-    actionLabel: 'Pitch interview participation',
-    parallel: true,
-    parallelGroup: 'A',
-    dependsOn: ['sp2'],
-  },
-  {
-    id: 'sp4',
-    name: 'Advisory Committee',
-    status: 'planning',
-    description: '3–5 senior advisors who lend credibility and fact-checking to the series. Ongoing relationship — they review content before publish and provide light institutional backing.',
-    stakeholderProfile: 'Highly credible climate tech investor or academic with a track record. Has an existing platform or institutional affiliation. Looking for ways to contribute to ecosystem knowledge-sharing without heavy time commitment.',
-    searchQuery: 'climate tech investor academic credibility advisor ecosystem',
-    actionType: 'advisor',
-    actionLabel: 'Advisory committee ask',
-    parallel: true,
-    parallelGroup: 'A',
-    dependsOn: ['sp2'],
-  },
-  {
-    id: 'sp5',
-    name: 'Sponsorship Pipeline',
-    status: 'planning',
-    description: 'Info calls and proposal outreach with potential sponsors — climate-adjacent funds, law firms, accounting firms, and tech platforms that want access to climate tech dealmakers.',
-    stakeholderProfile: 'Business development or marketing lead at a climate-adjacent financial services firm, legal firm, or B2B SaaS platform. Budget holder or strong internal champion for sponsorships/media buys.',
-    searchQuery: 'business development marketing climate finance sponsor media',
-    actionType: 'outreach',
-    actionLabel: 'Sponsorship info call',
-    parallel: true,
-    parallelGroup: 'B',
-    dependsOn: ['sp3', 'sp4'],
-  },
-  {
-    id: 'sp6',
-    name: 'Distribution & Publishing',
-    status: 'planning',
-    description: 'Build and operate the publishing motion: newsletter platform, LinkedIn content cadence, website, and any distribution partnerships.',
-    stakeholderProfile: 'Newsletter operator, content distribution specialist, or growth marketer with B2B audience-building experience. Familiar with Substack, Beehiiv, or LinkedIn newsletter infrastructure.',
-    searchQuery: 'newsletter operator content distribution B2B Substack LinkedIn',
-    actionType: 'outreach',
-    actionLabel: 'Distribution partner outreach',
-    parallel: true,
-    parallelGroup: 'B',
-    dependsOn: ['sp3', 'sp4'],
-  },
+  { id:'sp1', name:'Structure & Scope', status:'planning', description:'Define the content series format, publishing cadence, topic pillars, and overall framing for the Climate Tech Exit Lab.', stakeholderProfile:'A content strategist or media operator with experience building interview-based editorial series. Ideally has worked in climate tech or deep tech adjacent spaces and understands what resonates with institutional audiences.', searchQuery:'content strategist media editorial interview series climate tech', actionType:'outreach', actionLabel:'Content strategy outreach', parallel:false, dependsOn:[] },
+  { id:'sp2', name:'Advisory Input Interviews', status:'planning', description:'5–10 interviews with late-stage climate tech investors and founders who have exited. Goal: validate the series structure and surface the right questions to ask.', stakeholderProfile:'Late-stage climate tech investor or founder who has successfully exited. Should have strong opinions about what the ecosystem needs and be willing to share candidly. Warm intros preferred.', searchQuery:'climate tech investor founder exit late stage', actionType:'interview', actionLabel:'Schedule validation interview', parallel:false, dependsOn:['sp1'] },
+  { id:'sp3', name:'Interview Series — Episodes', status:'planning', description:'Recurring engine of 3–5 individual interviews per issue, featuring climate tech founders and investors. Each episode feeds the newsletter, LinkedIn, and website.', stakeholderProfile:'Climate tech founder, investor, or operator at any stage who has a compelling story — fundraise, exit, pivot, or market insight. Must be willing to go on record. Diversity of background strongly preferred.', searchQuery:'climate tech founder operator compelling story fundraise', actionType:'outreach', actionLabel:'Pitch interview participation', parallel:true, parallelGroup:'A', dependsOn:['sp2'] },
+  { id:'sp4', name:'Advisory Committee', status:'planning', description:'3–5 senior advisors who lend credibility and fact-checking to the series. Ongoing relationship — they review content before publish and provide light institutional backing.', stakeholderProfile:'Highly credible climate tech investor or academic with a track record. Has an existing platform or institutional affiliation. Looking for ways to contribute to ecosystem knowledge-sharing without heavy time commitment.', searchQuery:'climate tech investor academic credibility advisor ecosystem', actionType:'advisor', actionLabel:'Advisory committee ask', parallel:true, parallelGroup:'A', dependsOn:['sp2'] },
+  { id:'sp5', name:'Sponsorship Pipeline', status:'planning', description:'Info calls and proposal outreach with potential sponsors — climate-adjacent funds, law firms, accounting firms, and tech platforms that want access to climate tech dealmakers.', stakeholderProfile:'Business development or marketing lead at a climate-adjacent financial services firm, legal firm, or B2B SaaS platform. Budget holder or strong internal champion for sponsorships/media buys.', searchQuery:'business development marketing climate finance sponsor media', actionType:'outreach', actionLabel:'Sponsorship info call', parallel:true, parallelGroup:'B', dependsOn:['sp3','sp4'] },
+  { id:'sp6', name:'Distribution & Publishing', status:'planning', description:'Build and operate the publishing motion: newsletter platform, LinkedIn content cadence, website, and any distribution partnerships.', stakeholderProfile:'Newsletter operator, content distribution specialist, or growth marketer with B2B audience-building experience. Familiar with Substack, Beehiiv, or LinkedIn newsletter infrastructure.', searchQuery:'newsletter operator content distribution B2B Substack LinkedIn', actionType:'outreach', actionLabel:'Distribution partner outreach', parallel:true, parallelGroup:'B', dependsOn:['sp3','sp4'] },
 ];
 
-const INITIATIVE_SUBPROJECTS = {
-  'BTC Climate Tech Exit Lab': BTC_SUBPROJECTS,
-};
+const INITIATIVE_SUBPROJECTS = { 'BTC Climate Tech Exit Lab': BTC_SUBPROJECTS };
 
 // ── NAV ────────────────────────────────────────────────────────────────────
 function showPage(page) {
-  ['board','search','queue','angles'].forEach(p => {
+  ['board','search','queue','angles','content'].forEach(p => {
     document.getElementById('page-' + p).style.display = p === page ? '' : 'none';
     document.getElementById('nav-' + p)?.classList.toggle('active', p === page);
   });
-  const titles = { board:'Initiatives Board', search:'Search Contacts', queue:'Activation Queue', angles:'Activation Angles' };
+  const titles = { board:'Initiatives Board', search:'Search Contacts', queue:'Activation Queue', angles:'Activation Angles', content:'Content Registry' };
   document.getElementById('page-title').textContent = titles[page] || '';
-  document.getElementById('topbar-add-btn').style.display = page === 'board' ? '' : 'none';
+  const addBtn = document.getElementById('topbar-add-btn');
+  if (page === 'board') { addBtn.style.display = ''; addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
+  else if (page === 'content') { addBtn.style.display = ''; addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; }
+  else { addBtn.style.display = 'none'; }
   currentPage = page;
-  if (page === 'queue')  loadQueue();
-  if (page === 'angles') loadAngles();
+  if (page === 'queue')   loadQueue();
+  if (page === 'angles')  loadAngles();
+  if (page === 'content') loadContent();
 }
 
 function filterVenture(v) {
@@ -867,17 +607,16 @@ async function loadBoard() {
     renderBoard();
     document.getElementById('topbar-meta').textContent = `${allInitiatives.length} initiatives`;
   } catch (e) {
-    document.getElementById('board-columns').innerHTML =
-      `<div class="empty-state" style="grid-column:1/-1"><h3>Could not load initiatives</h3><p>${e.message}</p></div>`;
+    document.getElementById('board-columns').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Could not load initiatives</h3><p>${e.message}</p></div>`;
   }
 }
 
 const COLUMNS = [
-  { key: 'Active',     label: 'Active',     cls: 'col-active'   },
-  { key: 'Planning',   label: 'Planning',   cls: 'col-planning' },
-  { key: 'Brain Dump', label: 'Brain Dump', cls: 'col-dump'     },
-  { key: 'Blocked',    label: 'Blocked',    cls: 'col-blocked'  },
-  { key: 'Complete',   label: 'Complete',   cls: 'col-complete' },
+  { key:'Active', label:'Active', cls:'col-active' },
+  { key:'Planning', label:'Planning', cls:'col-planning' },
+  { key:'Brain Dump', label:'Brain Dump', cls:'col-dump' },
+  { key:'Blocked', label:'Blocked', cls:'col-blocked' },
+  { key:'Complete', label:'Complete', cls:'col-complete' },
 ];
 const DOT_CLASS = { 'Active':'dot-active','Planning':'dot-planning','Brain Dump':'dot-dump','Blocked':'dot-blocked','Complete':'dot-complete' };
 
@@ -887,55 +626,29 @@ function renderBoard() {
   let items = allInitiatives.filter(i => {
     if (activeVentureFilter && i.venture !== activeVentureFilter) return false;
     if (priFilter && i.priority !== priFilter) return false;
-    if (q) {
-      const hay = [i.initiative_name, i.goal, i.venture, i.notes, i.brain_dump].join(' ').toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
+    if (q) { const hay = [i.initiative_name,i.goal,i.venture,i.notes,i.brain_dump].join(' ').toLowerCase(); if (!hay.includes(q)) return false; }
     return true;
   });
   const grid = document.getElementById('board-columns');
   grid.innerHTML = COLUMNS.map(col => {
     const cards = items.filter(i => (i.status || 'Brain Dump') === col.key);
-    return `
-      <div class="board-col">
-        <div class="board-col-header">
-          <div class="board-col-title"><span class="status-dot ${DOT_CLASS[col.key]}"></span>${col.label}</div>
-          <span class="board-col-count">${cards.length}</span>
-        </div>
-        ${cards.length === 0
-          ? `<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px">No initiatives</div>`
-          : cards.map(c => initiativeCard(c, col.cls)).join('')}
-      </div>`;
+    return `<div class="board-col"><div class="board-col-header"><div class="board-col-title"><span class="status-dot ${DOT_CLASS[col.key]}"></span>${col.label}</div><span class="board-col-count">${cards.length}</span></div>${cards.length === 0 ? `<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px">No initiatives</div>` : cards.map(c => initiativeCard(c, col.cls)).join('')}</div>`;
   }).join('');
 }
 
 function initiativeCard(i, cls) {
   const priClass = { Critical:'badge-critical', High:'badge-high', Medium:'badge-medium', Low:'badge-low', Parked:'badge-low' };
-  return `
-    <div class="initiative-card ${cls}" onclick="openInitiative('${i.initiative_id}')">
-      <div class="card-venture">${esc(i.venture || '—')}</div>
-      <div class="card-name">${esc(i.initiative_name || 'Untitled')}</div>
-      ${i.goal ? `<div class="card-goal">${esc(i.goal)}</div>` : ''}
-      <div class="card-footer">
-        <span class="badge ${priClass[i.priority] || 'badge-low'}">${i.priority || 'No priority'}</span>
-        ${i.phoebe_cadence && i.phoebe_cadence !== 'None' ? `<span style="font-size:11px;color:var(--text3)">⊛ ${i.phoebe_cadence}</span>` : ''}
-      </div>
-    </div>`;
+  return `<div class="initiative-card ${cls}" onclick="openInitiative('${i.initiative_id}')"><div class="card-venture">${esc(i.venture||'—')}</div><div class="card-name">${esc(i.initiative_name||'Untitled')}</div>${i.goal?`<div class="card-goal">${esc(i.goal)}</div>`:''}<div class="card-footer"><span class="badge ${priClass[i.priority]||'badge-low'}">${i.priority||'No priority'}</span>${i.phoebe_cadence&&i.phoebe_cadence!=='None'?`<span style="font-size:11px;color:var(--text3)">⊛ ${i.phoebe_cadence}</span>`:''}</div></div>`;
 }
 
 // ── INITIATIVE MODAL ───────────────────────────────────────────────────────
 async function openInitiative(id) {
-  activeModuleIndex = null;
-  currentInitiativeData = null;
-
-  // Reset pipeline collapsed state
+  activeModuleIndex = null; currentInitiativeData = null;
   const pSection = document.getElementById('pipeline-section');
   pSection.classList.remove('collapsed');
   document.getElementById('pipeline-toggle-label').textContent = 'Collapse';
-
   const overlay = document.getElementById('imodal-overlay');
   overlay.classList.add('open');
-
   document.getElementById('imodal-venture').textContent = '';
   document.getElementById('imodal-title').textContent = 'Loading…';
   document.getElementById('imodal-goal').textContent = '';
@@ -943,488 +656,412 @@ async function openInitiative(id) {
   document.getElementById('pipeline-track').innerHTML = '<div class="loading-state" style="padding:20px"><div class="spinner"></div></div>';
   document.getElementById('module-detail').className = 'module-detail empty';
   document.getElementById('module-detail').innerHTML = '<span>Select a module to see details and matched contacts</span>';
-
   try {
     const res = await api(`/initiative/${id}`);
-    const d = res.data;
-    currentInitiativeData = d;
-
+    const d = res.data; currentInitiativeData = d;
     document.getElementById('imodal-venture').textContent = d.venture || '';
     document.getElementById('imodal-title').textContent = d.initiative_name || 'Initiative';
     document.getElementById('imodal-goal').textContent = d.goal || '';
-
-    const priClass = { Critical:'badge-critical', High:'badge-high', Medium:'badge-medium', Low:'badge-low', Parked:'badge-low' };
-    const statusColors = { Active:'#D97757', Planning:'#7B8FA1', 'Brain Dump':'#B0ADA4', Blocked:'#C0392B', Complete:'#5A8A5A' };
-    const sc = statusColors[d.status] || '#9C9A93';
-    document.getElementById('imodal-meta').innerHTML = [
-      d.status   ? `<span class="imodal-meta-chip"><span class="dot" style="background:${sc}"></span>${esc(d.status)}</span>` : '',
-      d.priority ? `<span class="badge ${priClass[d.priority] || 'badge-low'}">${esc(d.priority)}</span>` : '',
-      d.phoebe_cadence && d.phoebe_cadence !== 'None' ? `<span class="imodal-meta-chip">⊛ Phoebe ${esc(d.phoebe_cadence)}</span>` : '',
-      d.timeline ? `<span class="imodal-meta-chip">◷ ${esc(d.timeline)}</span>` : '',
-    ].join('');
-
-    const subProjects = INITIATIVE_SUBPROJECTS[d.initiative_name] || buildGenericSubprojects(res.sub_projects || []);
-    renderPipeline(subProjects);
-
-  } catch (e) {
-    document.getElementById('imodal-title').textContent = 'Error';
-    document.getElementById('pipeline-track').innerHTML = `<p style="color:var(--critical);padding:20px">${e.message}</p>`;
+    const priClass = { Critical:'badge-critical', High:'badge-high', Medium:'badge-medium', Low:'badge-low', Parked:'badge-parked' };
+    const dotCls = { Active:'dot-active', Planning:'dot-planning', 'Brain Dump':'dot-dump', Blocked:'dot-blocked', Complete:'dot-complete' };
+    document.getElementById('imodal-meta').innerHTML = `
+      <div class="imodal-meta-chip"><span class="dot" style="background:var(--${d.status==='Active'?'active':'planning'}-border)"></span>${d.status||''}</div>
+      <div class="imodal-meta-chip"><span class="badge ${priClass[d.priority]||'badge-low'}" style="padding:1px 6px">${d.priority||''}</span></div>
+      ${d.phoebe_cadence&&d.phoebe_cadence!=='None'?`<div class="imodal-meta-chip">⊛ ${d.phoebe_cadence}</div>`:''}`;
+    renderPipeline(d);
+  } catch(e) {
+    document.getElementById('imodal-title').textContent = 'Error loading initiative';
+    document.getElementById('pipeline-track').innerHTML = `<div class="contacts-empty">${e.message}</div>`;
   }
 }
 
-function buildGenericSubprojects(rawSubs) {
-  return rawSubs.map((s, i) => ({
-    id: s.sub_project_id || `sp${i}`,
-    name: s.sub_project_name || 'Sub-project',
-    status: (s.status || 'planning').toLowerCase(),
-    description: s.description || '',
-    stakeholderProfile: '',
-    searchQuery: s.sub_project_name || '',
-    actionType: 'outreach',
-    actionLabel: 'Reach out',
-    parallel: false,
-    dependsOn: [],
-  }));
-}
-
-// ── PIPELINE RENDERER ──────────────────────────────────────────────────────
-function renderPipeline(subProjects) {
-  const track = document.getElementById('pipeline-track');
-  const segments = buildSegments(subProjects);
+function renderPipeline(d) {
+  const subprojects = INITIATIVE_SUBPROJECTS[d.initiative_name];
+  if (!subprojects || subprojects.length === 0) {
+    document.getElementById('pipeline-track').innerHTML = '<div class="contacts-empty" style="padding:20px 0">No pipeline defined for this initiative</div>';
+    return;
+  }
   let html = '';
-
-  segments.forEach((seg, si) => {
-    if (si > 0) {
-      html += `<div class="pipeline-arrow"><div class="arrow-line" style="width:20px"></div><div class="arrow-head"></div></div>`;
-    }
-    if (seg.type === 'single') {
-      html += nodeHtml(seg.node, subProjects);
-    } else if (seg.type === 'parallel') {
-      html += `
-        <div class="parallel-group-wrap">
-          <div class="parallel-label">parallel</div>
-          <div class="parallel-group">
-            ${seg.nodes.map(n => nodeHtml(n, subProjects)).join('')}
-          </div>
-        </div>`;
-    }
-  });
-
-  track.innerHTML = html;
-}
-
-function buildSegments(subProjects) {
-  const seen = new Set();
-  const segments = [];
-  for (const sp of subProjects) {
-    if (seen.has(sp.id)) continue;
-    if (sp.parallel && sp.parallelGroup) {
-      const group = subProjects.filter(x => x.parallel && x.parallelGroup === sp.parallelGroup);
-      group.forEach(x => seen.add(x.id));
-      segments.push({ type: 'parallel', nodes: group });
+  let i = 0;
+  while (i < subprojects.length) {
+    const sp = subprojects[i];
+    if (i > 0) html += `<div class="pipeline-arrow"><div class="arrow-line" style="width:24px"></div><div class="arrow-head"></div></div>`;
+    if (sp.parallel && i + 1 < subprojects.length && subprojects[i+1].parallel && subprojects[i+1].parallelGroup === sp.parallelGroup) {
+      const group = [];
+      const pg = sp.parallelGroup;
+      while (i < subprojects.length && subprojects[i].parallel && subprojects[i].parallelGroup === pg) { group.push(subprojects[i]); i++; }
+      html += `<div class="parallel-group-wrap"><div class="parallel-label">Parallel · Group ${pg}</div><div class="parallel-group">${group.map((gsp,gi) => pipelineNode(gsp, false)).join('')}</div></div>`;
     } else {
-      seen.add(sp.id);
-      segments.push({ type: 'single', node: sp });
+      html += pipelineNode(sp, false);
+      i++;
     }
   }
-  return segments;
+  document.getElementById('pipeline-track').innerHTML = html;
 }
 
-function nodeHtml(sp, allSps) {
-  const statusDotClass = { planning: 'ns-planning', active: 'ns-active', complete: 'ns-complete' };
-  const statusLabel = sp.status.charAt(0).toUpperCase() + sp.status.slice(1);
-  const allList = allSps || BTC_SUBPROJECTS;
-  const idx = allList.findIndex(x => x.id === sp.id);
-  const num = idx >= 0 ? idx + 1 : '·';
-  return `
-    <div class="pipeline-node${sp.parallel ? ' parallel-child' : ''}" id="node-${sp.id}" onclick="selectModule('${sp.id}')">
-      <div class="node-number">${num}</div>
-      <div class="node-name">${esc(sp.name)}</div>
-      <div class="node-status">
-        <div class="node-status-dot ${statusDotClass[sp.status] || ''}"></div>
-        ${statusLabel}
-      </div>
-    </div>`;
+function pipelineNode(sp, isActive) {
+  const statusDot = { planning:'ns-planning', active:'ns-active', complete:'ns-complete' };
+  return `<div class="pipeline-node${isActive?' active':''}${sp.parallel?' parallel-child':''}" onclick="selectModule('${sp.id}')">
+    <div class="node-number">${sp.id.replace('sp','')}</div>
+    <div class="node-name">${esc(sp.name)}</div>
+    <div class="node-status"><div class="node-status-dot ${statusDot[sp.status]||''}"></div>${sp.status}</div>
+  </div>`;
 }
 
-// ── PIPELINE COLLAPSE TOGGLE ──────────────────────────────────────────────
-function togglePipeline() {
-  const section = document.getElementById('pipeline-section');
-  const label = document.getElementById('pipeline-toggle-label');
-  const collapsed = section.classList.toggle('collapsed');
-  label.textContent = collapsed ? 'Expand' : 'Collapse';
-}
-
-// ── MODULE SELECTION (Layer 3 + 4) ────────────────────────────────────────
-async function selectModule(spId) {
-  let sp = BTC_SUBPROJECTS.find(x => x.id === spId);
+function selectModule(spId) {
+  if (!currentInitiativeData) return;
+  const subprojects = INITIATIVE_SUBPROJECTS[currentInitiativeData.initiative_name];
+  if (!subprojects) return;
+  const sp = subprojects.find(s => s.id === spId);
   if (!sp) return;
-
-  document.querySelectorAll('.pipeline-node').forEach(el => el.classList.remove('active'));
-  const nodeEl = document.getElementById(`node-${spId}`);
-  if (nodeEl) nodeEl.classList.add('active');
-  activeModuleIndex = spId;
-
+  document.querySelectorAll('.pipeline-node').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
   const detail = document.getElementById('module-detail');
   detail.className = 'module-detail';
-  detail.innerHTML = `
-    <div class="module-detail-inner">
-      <div class="module-info-panel">
-        <div class="module-info-section">
-          <div class="module-info-title">${esc(sp.name)}</div>
-        </div>
-        ${sp.description ? `
-          <div class="module-info-section">
-            <div class="module-info-label">Goal</div>
-            <div class="module-info-text">${esc(sp.description)}</div>
-          </div>` : ''}
-        ${sp.stakeholderProfile ? `
-          <div class="module-info-section">
-            <div class="module-info-label">Stakeholder Profile</div>
-            <div class="stakeholder-profile">
-              <div class="stakeholder-profile-desc">${esc(sp.stakeholderProfile)}</div>
-            </div>
-          </div>` : ''}
-        ${sp.dependsOn && sp.dependsOn.length ? `
-          <div class="module-info-section">
-            <div class="module-info-label">Depends on</div>
-            <div class="module-info-text">${sp.dependsOn.map(d => {
-              const dep = BTC_SUBPROJECTS.find(x => x.id === d);
-              return dep ? esc(dep.name) : d;
-            }).join(', ')}</div>
-          </div>` : ''}
-      </div>
-      <div class="module-actions">
-        <div class="module-actions-header">
-          <div class="module-actions-title">Matched contacts</div>
-          <button class="btn btn-ghost btn-xs" onclick="searchForModule('${spId}')">↻ Refresh</button>
-        </div>
-        <div id="module-contacts-${spId}">
-          <div class="contacts-loading"><div class="spinner"></div>Searching contacts…</div>
-        </div>
-      </div>
-    </div>`;
-
+  detail.innerHTML = `<div class="module-detail-inner">
+    <div class="module-info-panel">
+      <div class="module-info-title">${esc(sp.name)}</div>
+      <div class="module-info-section"><div class="module-info-label">What we're doing</div><div class="module-info-text">${esc(sp.description)}</div></div>
+      <div class="module-info-section"><div class="module-info-label">Who we need</div><div class="stakeholder-profile"><div class="stakeholder-profile-desc">${esc(sp.stakeholderProfile)}</div></div></div>
+    </div>
+    <div class="module-actions">
+      <div class="module-actions-header"><div class="module-actions-title">Matched Contacts</div></div>
+      <div id="module-contacts-${sp.id}"><div class="contacts-loading"><div class="spinner"></div>Finding matches…</div></div>
+    </div>
+  </div>`;
   loadModuleContacts(sp);
 }
 
 async function loadModuleContacts(sp) {
   const container = document.getElementById(`module-contacts-${sp.id}`);
-  if (!container) return;
   try {
-    const res = await api('/search', {
-      method: 'POST',
-      body: JSON.stringify({ query: sp.searchQuery, top_k: 5 }),
-    });
+    const res = await api(`/search?q=${encodeURIComponent(sp.searchQuery)}&limit=5`);
     const results = res.results || [];
-    if (!results.length) {
-      container.innerHTML = '<div class="contacts-empty">No close matches found — try a different search.</div>';
-      return;
-    }
-    container.innerHTML = results.map(c => {
-      const score = c.similarity ? Math.round(c.similarity * 100) : null;
-      const roleOrg = [c.title_role, c.organization].filter(Boolean).join(' · ');
-      return `
-        <div class="match-result-card">
-          <div class="match-result-top">
-            <div class="match-result-identity">
-              <div class="match-result-name">${esc(c.full_name || 'Unknown')}</div>
-              <div class="match-result-role">${esc(roleOrg || '—')}</div>
-            </div>
-            ${score !== null ? `<span class="match-result-score">${score}%</span>` : ''}
+    if (results.length === 0) { container.innerHTML = '<div class="contacts-empty">No strong matches found</div>'; return; }
+    container.innerHTML = results.map(r => `
+      <div class="match-result-card" onclick="openContactDrawer('${r.contact_id||r.id}')">
+        <div class="match-result-top">
+          <div class="match-result-identity">
+            <div class="match-result-name">${esc(r.name||r.full_name||'Unknown')}</div>
+            <div class="match-result-role">${esc(r.title||'')}${r.organization?` · ${esc(r.organization)}`:''}</div>
           </div>
-          ${c.what_building || c.notes ? `<div class="match-result-why">${esc((c.what_building || c.notes || '').substring(0,120))}${(c.what_building||c.notes||'').length>120?'…':''}</div>` : ''}
-          <div class="action-chips">
-            <button class="action-chip ${sp.actionType}" onclick="openContact('${c.contact_id}')">${sp.actionLabel}</button>
-            <button class="action-chip followup" onclick="openContact('${c.contact_id}')">View contact</button>
-          </div>
-        </div>`;
-    }).join('');
-  } catch (e) {
-    if (container) container.innerHTML = `<div class="contacts-empty" style="color:var(--critical)">${e.message}</div>`;
+          <span class="match-result-score">${r.score?Math.round(r.score*100)+'%':''}</span>
+        </div>
+        ${r.why||r.summary?`<div class="match-result-why">${esc(r.why||r.summary)}</div>`:''}
+        <div class="action-chips">
+          <button class="action-chip ${sp.actionType}" onclick="event.stopPropagation();toast('${sp.actionLabel} queued')">${sp.actionLabel}</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    container.innerHTML = `<div class="contacts-empty">${e.message}</div>`;
   }
 }
 
-async function searchForModule(spId) {
-  const sp = BTC_SUBPROJECTS.find(x => x.id === spId);
-  if (!sp) return;
-  const container = document.getElementById(`module-contacts-${spId}`);
-  if (container) container.innerHTML = '<div class="contacts-loading"><div class="spinner"></div>Searching contacts…</div>';
-  await loadModuleContacts(sp);
+function handleIModalOverlayClick(e) { if (e.target === document.getElementById('imodal-overlay')) closeIModal(); }
+function closeIModal() { document.getElementById('imodal-overlay').classList.remove('open'); }
+function togglePipeline() {
+  const s = document.getElementById('pipeline-section');
+  s.classList.toggle('collapsed');
+  document.getElementById('pipeline-toggle-label').textContent = s.classList.contains('collapsed') ? 'Expand' : 'Collapse';
 }
 
-function closeIModal() {
-  document.getElementById('imodal-overlay').classList.remove('open');
-  activeModuleIndex = null;
-  currentInitiativeData = null;
+// ── CONTACT DRAWER ─────────────────────────────────────────────────────────
+async function openContactDrawer(id) {
+  document.getElementById('contact-drawer-title').textContent = 'Loading…';
+  document.getElementById('contact-drawer-sub').textContent = '';
+  document.getElementById('contact-drawer-body').innerHTML = '<div class="loading-state" style="padding:30px 0"><div class="spinner"></div></div>';
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('contact-drawer').classList.add('open');
+  try {
+    const res = await api(`/contact/${id}`);
+    const c = res.data;
+    document.getElementById('contact-drawer-title').textContent = c.full_name || c.name || 'Contact';
+    document.getElementById('contact-drawer-sub').textContent = [c.title, c.organization].filter(Boolean).join(' · ');
+    document.getElementById('contact-drawer-body').innerHTML = `
+      <div class="detail-section">
+        <div class="detail-section-label">Profile</div>
+        <div class="field-grid-2">
+          ${c.email?`<div class="detail-field"><label>Email</label><p>${esc(c.email)}</p></div>`:''}
+          ${c.phone?`<div class="detail-field"><label>Phone</label><p>${esc(c.phone)}</p></div>`:''}
+          ${c.location?`<div class="detail-field"><label>Location</label><p>${esc(c.location)}</p></div>`:''}
+          ${c.relationship_health?`<div class="detail-field"><label>Rel. Health</label><p>${esc(c.relationship_health)}</p></div>`:''}
+        </div>
+      </div>
+      ${c.notes?`<div class="detail-section"><div class="detail-section-label">Notes</div><p style="font-size:13px;color:var(--text2);line-height:1.6">${esc(c.notes)}</p></div>`:''}
+      <div class="detail-section">
+        <div class="detail-section-label">Quick Actions</div>
+        <div class="quick-actions">
+          <button class="btn btn-ghost btn-sm" onclick="toast('Follow-up logged')">Log Follow-Up</button>
+          <button class="btn btn-ghost btn-sm" onclick="toast('Email drafted')">Draft Email</button>
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('contact-drawer-body').innerHTML = `<div class="contacts-empty">${e.message}</div>`;
+  }
 }
 
-function handleIModalOverlayClick(e) {
-  if (e.target === document.getElementById('imodal-overlay')) closeIModal();
+function closeContactDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('contact-drawer').classList.remove('open');
 }
 
 // ── SEARCH ─────────────────────────────────────────────────────────────────
 async function runSearch() {
   const q = document.getElementById('search-input').value.trim();
   if (!q) return;
-  const el = document.getElementById('search-results');
-  el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Searching…</div>';
+  const results = document.getElementById('search-results');
+  results.innerHTML = '<div class="loading-state"><div class="spinner"></div>Searching…</div>';
   try {
-    const res = await api('/search', { method: 'POST', body: JSON.stringify({ query: q, top_k: 12 }) });
-    const results = res.results || [];
-    if (!results.length) {
-      el.innerHTML = '<div class="empty-state"><h3>No matches</h3><p>Try a different description.</p></div>';
-      return;
-    }
-    el.innerHTML = `<div class="results-grid">${results.map(contactCard).join('')}</div>`;
-  } catch (e) {
-    el.innerHTML = `<div class="empty-state"><h3>Search failed</h3><p>${e.message}</p></div>`;
+    const res = await api(`/search?q=${encodeURIComponent(q)}&limit=12`);
+    const items = res.results || [];
+    if (items.length === 0) { results.innerHTML = '<div class="empty-state"><h3>No matches found</h3><p>Try different keywords.</p></div>'; return; }
+    results.innerHTML = `<div class="results-grid">${items.map(r => `
+      <div class="contact-card" onclick="openContactDrawer('${r.contact_id||r.id}')">
+        <div class="contact-name">${esc(r.name||r.full_name||'Unknown')}</div>
+        <div class="contact-role">${esc(r.title||'')}${r.organization?` · ${esc(r.organization)}`:''}</div>
+        ${r.score?`<span class="contact-score">⊹ ${Math.round(r.score*100)}% match</span>`:''}
+        ${r.tags&&r.tags.length?`<div class="contact-tags">${r.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+      </div>`).join('')}</div>`;
+  } catch(e) {
+    results.innerHTML = `<div class="empty-state"><h3>Search failed</h3><p>${e.message}</p></div>`;
   }
 }
 
-function contactCard(c) {
-  const score = c.similarity ? Math.round(c.similarity * 100) : null;
-  const roleOrg = [c.title_role, c.organization].filter(Boolean).join(' · ');
-  return `
-    <div class="contact-card" onclick="openContact('${c.contact_id}')">
-      <div class="contact-name">${esc(c.full_name || 'Unknown')}</div>
-      <div class="contact-role">${esc(roleOrg || '—')}</div>
-      ${score !== null ? `<span class="contact-score">⊹ ${score}% match</span>` : ''}
-      <div class="contact-tags">
-        ${c.venture ? `<span class="tag">${esc(c.venture)}</span>` : ''}
-        ${c.relationship_health  ? `<span class="tag">${esc(c.relationship_health)}</span>`  : ''}
-        ${c.activation_potential ? `<span class="tag">${esc(c.activation_potential)}</span>` : ''}
-      </div>
-    </div>`;
-}
-
-// ── CONTACT DRAWER ────────────────────────────────────────────────────────
-async function openContact(id) {
-  const drawer = document.getElementById('contact-drawer');
-  document.getElementById('drawer-overlay').classList.add('open');
-  drawer.classList.add('open');
-  document.getElementById('contact-drawer-title').textContent = 'Loading…';
-  document.getElementById('contact-drawer-sub').textContent = '';
-  document.getElementById('contact-drawer-body').innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
-
-  try {
-    const res = await api(`/contact/${id}`);
-    const c   = res.data;
-    const links = res.initiative_links || [];
-
-    document.getElementById('contact-drawer-title').textContent = c.full_name || 'Contact';
-    document.getElementById('contact-drawer-sub').textContent = [c.title_role, c.organization].filter(Boolean).join(' · ');
-
-    let matchesHtml = '';
-    try {
-      const mRes = await api(`/match/${id}?limit=4`);
-      const matches = mRes.matches || [];
-      if (matches.length) {
-        matchesHtml = `
-          <div class="detail-section">
-            <div class="detail-section-label">Similar Contacts</div>
-            ${matches.map(m => `
-              <div class="match-card" onclick="openContact('${m.contact_id}')">
-                <div class="match-avatar">${(m.full_name||'?')[0]}</div>
-                <div class="match-info">
-                  <div class="match-name">${esc(m.full_name||'—')}</div>
-                  <div class="match-org">${esc([m.title_role,m.organization].filter(Boolean).join(' · ') || '—')}</div>
-                </div>
-                <span class="match-score">${Math.round((m.similarity||0)*100)}%</span>
-              </div>`).join('')}
-          </div>`;
-      }
-    } catch (_) {}
-
-    document.getElementById('contact-drawer-body').innerHTML = `
-      <div class="detail-section">
-        <div class="detail-section-label">Profile</div>
-        <div class="field-grid-2">
-          ${detailField('Email', c.email)}
-          ${detailField('How We Met', c.how_we_met)}
-          ${detailField('Relationship Health', c.relationship_health)}
-          ${detailField('Activation Potential', c.activation_potential)}
-          ${detailField('Venture', c.venture)}
-        </div>
-      </div>
-      ${c.what_building || c.what_need || c.what_offer ? `
-        <div class="detail-section">
-          <div class="detail-section-label">Context</div>
-          ${detailField("What They're Building", c.what_building)}
-          ${detailField("What They Need", c.what_need)}
-          ${detailField("What They Offer", c.what_offer)}
-        </div>` : ''}
-      ${c.notes ? `
-        <div class="detail-section">
-          <div class="detail-section-label">Notes</div>
-          <p style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${esc(c.notes)}</p>
-        </div>` : ''}
-      ${links.length ? `
-        <div class="detail-section">
-          <div class="detail-section-label">In ${links.length} Initiative${links.length>1?'s':''}</div>
-          ${links.map(l => `
-            <div class="initiative-link" style="cursor:pointer" onclick="closeContactDrawer();openInitiative('${l.initiative_id}')">
-              <div>
-                <div class="initiative-link-name">${esc(l.initiative_id)}</div>
-                <div class="initiative-link-role">${esc(l.role||'')} · ${esc(l.engagement_status||'')}</div>
-              </div>
-            </div>`).join('')}
-        </div>` : ''}
-      ${matchesHtml}
-      <div class="detail-section">
-        <div class="detail-section-label">Actions</div>
-        <div class="quick-actions">
-          <button class="btn btn-primary btn-sm" onclick="draftIntroPrompt('${id}')">✉ Draft Intro</button>
-        </div>
-      </div>`;
-  } catch (e) {
-    document.getElementById('contact-drawer-body').innerHTML = `<p style="color:var(--critical);padding:16px">${e.message}</p>`;
-  }
-}
-
-function closeContactDrawer() {
-  document.getElementById('contact-drawer').classList.remove('open');
-  document.getElementById('drawer-overlay').classList.remove('open');
-}
-
-function draftIntroPrompt(idA) {
-  const idB = prompt('Enter the Contact ID of the second person for the intro:');
-  if (!idB) return;
-  draftIntro(idA, idB.trim());
-}
-
-async function draftIntro(idA, idB) {
-  toast('Drafting intro email…');
-  try {
-    const res = await api('/draft', { method: 'POST', body: JSON.stringify({ contact_a_id: idA, contact_b_id: idB }) });
-    alert(res.draft || 'Draft generated.');
-  } catch (e) { toast('Error: ' + e.message); }
-}
-
-function detailField(label, val) {
-  if (!val) return '';
-  return `<div class="detail-field"><label>${label}</label><p>${esc(val)}</p></div>`;
-}
-
-// ── ACTIVATION QUEUE ──────────────────────────────────────────────────────
+// ── QUEUE ──────────────────────────────────────────────────────────────────
 async function loadQueue() {
-  const el = document.getElementById('queue-list');
+  const list = document.getElementById('queue-list');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading queue…</div>';
   try {
-    const today = new Date().toISOString().substring(0,10);
-    const res = await api(`/action-items?due_before=${today}`);
+    const res = await api('/follow-ups?status=Open&limit=50');
     const items = res.data || [];
-    if (!items.length) {
-      el.innerHTML = '<div class="empty-state"><h3>Queue is clear ✓</h3><p>No overdue or due-today action items.</p></div>';
-      return;
-    }
-    const now = new Date(); now.setHours(0,0,0,0);
-    el.innerHTML = items.map(a => {
-      const d = a.due_date ? new Date(a.due_date) : null;
-      const overdue = d && d < now;
-      return `
-        <div class="queue-item">
-          <div class="queue-urgency ${overdue ? 'urgency-overdue' : 'urgency-today'}"></div>
-          <div class="queue-info">
-            <div class="queue-name">${esc(a.description || '—')}</div>
-            <div class="queue-meta">${esc(a.initiative_id || '')}${a.action_type ? ' · ' + a.action_type : ''}</div>
-            ${a.due_date ? `<div class="queue-action">Due ${a.due_date.substring(0,10)}</div>` : ''}
-          </div>
-          <span class="badge badge-${(a.priority||'medium').toLowerCase()}">${a.priority||'Medium'}</span>
-        </div>`;
-    }).join('');
-  } catch (e) {
-    el.innerHTML = `<div class="empty-state"><h3>Could not load</h3><p>${e.message}</p></div>`;
-  }
-}
-
-// ── ACTIVATION ANGLES ──────────────────────────────────────────────────────
-async function loadAngles() {
-  const el = document.getElementById('angles-list');
-  try {
-    const res = await api('/activation-angles');
-    const angles = res.data || [];
-    if (!angles.length) {
-      el.innerHTML = '<div class="empty-state"><h3>No activation angles yet</h3><p>Add reusable outreach templates and strategies.</p></div>';
-      return;
-    }
-    el.innerHTML = angles.map(a => `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">
-          <div style="font-family:var(--font-serif);font-size:17px;font-weight:400">${esc(a.angle_name||'—')}</div>
-          <span style="font-size:11px;color:var(--text3);flex-shrink:0">${esc(a.best_for||'')}</span>
+    if (items.length === 0) { list.innerHTML = '<div class="empty-state"><h3>All clear</h3><p>No open follow-ups right now.</p></div>'; return; }
+    const today = new Date().toDateString();
+    list.innerHTML = items.map(f => {
+      const due = f.next_action_date ? new Date(f.next_action_date) : null;
+      const isOverdue = due && due < new Date() && due.toDateString() !== today;
+      const isToday = due && due.toDateString() === today;
+      const urgencyCls = isOverdue ? 'urgency-overdue' : isToday ? 'urgency-today' : '';
+      return `<div class="queue-item" onclick="openContactDrawer('${f.contact_id||''}')">
+        ${urgencyCls?`<div class="queue-urgency ${urgencyCls}"></div>`:''}
+        <div class="queue-info">
+          <div class="queue-name">${esc(f.contact_name||'Unknown')}</div>
+          <div class="queue-meta">${esc(f.venture||'')}${f.meeting_name?` · ${esc(f.meeting_name)}`:''}</div>
+          <div class="queue-action">${esc(f.next_action||'')}</div>
         </div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:${a.template?'12px':'0'}">${esc(a.description||'')}</p>
-        ${a.template ? `
-          <div style="background:var(--surface2);border:1px solid var(--border-soft);border-radius:8px;padding:12px 14px">
-            <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Template</div>
-            <p style="font-size:12.5px;color:var(--text);line-height:1.6;white-space:pre-wrap">${esc(a.template)}</p>
-          </div>` : ''}
-        ${a.effectiveness_notes ? `<p style="font-size:12px;color:var(--accent);margin-top:10px">⊹ ${esc(a.effectiveness_notes)}</p>` : ''}
-      </div>`).join('');
-  } catch (e) {
-    el.innerHTML = `<div class="empty-state"><h3>Could not load</h3><p>${e.message}</p></div>`;
+        ${due?`<div style="font-size:11px;color:${isOverdue?'var(--critical)':'var(--text3)'};">${due.toLocaleDateString()}</div>`:''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<div class="empty-state"><h3>Could not load queue</h3><p>${e.message}</p></div>`;
   }
 }
 
-// ── ADD INITIATIVE ────────────────────────────────────────────────────────
-function openAddModal()  { document.getElementById('add-modal').classList.add('open'); }
+// ── ANGLES ─────────────────────────────────────────────────────────────────
+async function loadAngles() {
+  const list = document.getElementById('angles-list');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading angles…</div>';
+  try {
+    const res = await api('/angles');
+    const items = res.data || [];
+    if (items.length === 0) { list.innerHTML = '<div class="empty-state"><h3>No angles yet</h3><p>Add your first activation angle.</p></div>'; return; }
+    list.innerHTML = items.map(a => `
+      <div class="queue-item">
+        <div class="queue-info">
+          <div class="queue-name">${esc(a.angle_name||a.name||'Angle')}</div>
+          <div class="queue-meta">${esc(a.best_for||'')}</div>
+          ${a.description?`<div class="queue-action">${esc(a.description)}</div>`:''}
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = `<div class="empty-state"><h3>Could not load angles</h3><p>${e.message}</p></div>`;
+  }
+}
+
+// ── ADD INITIATIVE ─────────────────────────────────────────────────────────
+function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
 function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
 
 async function saveInitiative() {
   const name = document.getElementById('new-name').value.trim();
   if (!name) { toast('Name is required'); return; }
-  const payload = {
-    initiative_name: name,
-    venture:        document.getElementById('new-venture').value,
-    priority:       document.getElementById('new-priority').value,
-    status:         document.getElementById('new-status').value,
-    phoebe_cadence: document.getElementById('new-cadence').value,
-    goal:           document.getElementById('new-goal').value,
-    brain_dump:     document.getElementById('new-braindump').value,
-  };
   try {
-    const res = await api('/initiative', { method: 'POST', body: JSON.stringify(payload) });
-    toast('Initiative created');
+    await api('/initiative', { method:'POST', body: JSON.stringify({
+      initiative_name: name,
+      venture: document.getElementById('new-venture').value,
+      priority: document.getElementById('new-priority').value,
+      status: document.getElementById('new-status').value,
+      phoebe_cadence: document.getElementById('new-cadence').value,
+      goal: document.getElementById('new-goal').value,
+      brain_dump: document.getElementById('new-braindump').value,
+    })});
     closeAddModal();
-    allInitiatives.unshift(res.data || { ...payload, initiative_id: res.initiative_id || Date.now() });
-    renderBoard();
-  } catch (e) { toast('Error: ' + e.message); }
+    toast('Initiative created');
+    await loadBoard();
+  } catch(e) { toast('Error: ' + e.message); }
 }
 
-// ── ADD ANGLE ─────────────────────────────────────────────────────────────
-function openAngleModal()  { document.getElementById('angle-modal').classList.add('open'); }
+// ── ADD ANGLE ──────────────────────────────────────────────────────────────
+function openAngleModal() { document.getElementById('angle-modal').classList.add('open'); }
 function closeAngleModal() { document.getElementById('angle-modal').classList.remove('open'); }
 
 async function saveAngle() {
   const name = document.getElementById('ang-name').value.trim();
-  if (!name) { toast('Name is required'); return; }
+  if (!name) { toast('Angle name is required'); return; }
   try {
-    await api('/activation-angle', {
-      method: 'POST',
-      body: JSON.stringify({
-        angle_name: name,
-        description: document.getElementById('ang-desc').value,
-        template:    document.getElementById('ang-template').value,
-        best_for:    document.getElementById('ang-best').value,
-      }),
-    });
-    toast('Angle saved');
+    await api('/angle', { method:'POST', body: JSON.stringify({
+      angle_name: name,
+      description: document.getElementById('ang-desc').value,
+      template: document.getElementById('ang-template').value,
+      best_for: document.getElementById('ang-best').value,
+    })});
     closeAngleModal();
-    loadAngles();
-  } catch (e) { toast('Error: ' + e.message); }
+    toast('Angle saved');
+    await loadAngles();
+  } catch(e) { toast('Error: ' + e.message); }
 }
 
-// ── KEYBOARD ──────────────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    if (document.getElementById('contact-drawer').classList.contains('open')) { closeContactDrawer(); return; }
-    if (document.getElementById('imodal-overlay').classList.contains('open')) { closeIModal(); return; }
-    if (document.getElementById('add-modal').classList.contains('open')) { closeAddModal(); return; }
-    if (document.getElementById('angle-modal').classList.contains('open')) { closeAngleModal(); return; }
-  }
-});
+// ══════════════════════════════════════════════════════════════
+// CONTENT REGISTRY
+// ══════════════════════════════════════════════════════════════
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+let allContent = [];
+
+const CONTENT_SEED = [
+  { 'Content ID':'C001', 'Content Name':'Kaleidoscope', 'Type':'Campaign Concept', 'Venture':'Prismm', 'Initiative Tags':'P017', 'Status':'In Progress', 'Activation Angle':"Visual identity + narrative framework for Prismm's community bank positioning", 'Asset Link':'', 'Approval Required':'Yes', 'Prismm Sync':'Pending', 'Notes':'Content asset, not a standalone initiative. Sub-assets get their own rows when discrete.', 'Last Updated':'2026-03-30' },
+  { 'Content ID':'C002', 'Content Name':'Silent Deposit Drain Article', 'Type':'Article', 'Venture':'Prismm', 'Initiative Tags':'P008', 'Status':'Draft', 'Activation Angle':'Educates community bank execs on dormant account risk; warms MoFu leads', 'Asset Link':'', 'Approval Required':'Yes', 'Prismm Sync':'Pending', 'Notes':'MoFu content asset. Martha to review before publishing.', 'Last Updated':'2026-03-30' },
+  { 'Content ID':'C003', 'Content Name':'AOBA Earned Media Piece', 'Type':'Article', 'Venture':'Prismm', 'Initiative Tags':'P008', 'Status':'Draft', 'Activation Angle':'Thought leadership play targeting AOBA audience; association credibility build', 'Asset Link':'', 'Approval Required':'Yes', 'Prismm Sync':'Needs Update', 'Notes':'Earned media target: AOBA publication. Confirm submission window.', 'Last Updated':'2026-03-30' },
+  { 'Content ID':'C004', 'Content Name':'Post-Conference Follow-Up Sequences', 'Type':'Sequence Variant', 'Venture':'Prismm', 'Initiative Tags':'P008', 'Status':'Active', 'Activation Angle':'Converts warm conference contacts to discovery calls; MoFu engine core', 'Asset Link':'', 'Approval Required':'No', 'Prismm Sync':'Synced', 'Notes':'These ARE the MoFu engine. P008 effectively complete via these sequences.', 'Last Updated':'2026-03-30' },
+  { 'Content ID':'C005', 'Content Name':'Climate Tech Exit Lab Introduction', 'Type':'Campaign Concept', 'Venture':'Black Tech Capital', 'Initiative Tags':'', 'Status':'Idea', 'Activation Angle':'Positions BTC as the operator-to-exit bridge for climate tech founders', 'Asset Link':'', 'Approval Required':'No', 'Prismm Sync':'', 'Notes':'Placeholder - build out when Climate Tech Exit Lab initiative is formalized.', 'Last Updated':'2026-03-30' },
+  { 'Content ID':'C006', 'Content Name':'ReRev Labs AI Education Newsletter', 'Type':'Newsletter Issue', 'Venture':'ReRev Labs', 'Initiative Tags':'', 'Status':'Idea', 'Activation Angle':'Thought leadership + top-of-funnel for consulting and automation sales', 'Asset Link':'', 'Approval Required':'No', 'Prismm Sync':'', 'Notes':'Recurring asset - each issue will get its own row when drafted.', 'Last Updated':'2026-03-30' },
+];
+
+async function loadContent() {
+  const grid = document.getElementById('content-grid');
+  grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading content...</div>';
+  try {
+    let rows;
+    try { const res = await api('/content'); rows = res.data || []; }
+    catch(e) { rows = CONTENT_SEED; }
+    allContent = rows;
+    document.getElementById('topbar-meta').textContent = allContent.length + ' assets';
+    renderContent();
+  } catch(e) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>Could not load content</h3><p>' + esc(e.message) + '</p></div>';
+  }
+}
+
+function renderContent() {
+  const q       = (document.getElementById('content-search')?.value || '').toLowerCase();
+  const venture = document.getElementById('content-venture')?.value || '';
+  const type    = document.getElementById('content-type')?.value || '';
+  const sync    = document.getElementById('content-sync')?.value || '';
+  const items = allContent.filter(c => {
+    if (venture && c['Venture'] !== venture) return false;
+    if (type    && c['Type']    !== type)    return false;
+    if (sync    && c['Prismm Sync'] !== sync) return false;
+    if (q) { const hay = [c['Content Name'],c['Activation Angle'],c['Notes'],c['Type'],c['Venture']].join(' ').toLowerCase(); if (!hay.includes(q)) return false; }
+    return true;
+  });
+  const grid = document.getElementById('content-grid');
+  if (items.length === 0) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No content found</h3><p>Try adjusting your filters.</p></div>'; return; }
+  grid.innerHTML = items.map(c => contentCard(c)).join('');
+}
+
+function syncCls(s) {
+  const m = { 'Pending':'sync-pending', 'Synced':'sync-synced', 'Needs Update':'sync-needs-update' };
+  return m[s] || 'sync-none';
+}
+function syncCardCls(s) {
+  const m = { 'Pending':'prismm-sync-pending', 'Synced':'prismm-sync-synced', 'Needs Update':'prismm-sync-needs-update' };
+  return m[s] || '';
+}
+function statusCls(s) {
+  const m = { 'Active':'cs-active','Draft':'cs-draft','Idea':'cs-idea','In Progress':'cs-in-progress','Published':'cs-published','Archived':'cs-archived' };
+  return m[s] || 'cs-idea';
+}
+
+function contentCard(c) {
+  const sync   = c['Prismm Sync'] || '';
+  const status = c['Status'] || '';
+  const tags   = (c['Initiative Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
+  const safeC  = encodeURIComponent(JSON.stringify(c));
+  const syncIcon = sync === 'Needs Update' ? '&#9888; ' : sync === 'Synced' ? '&#10003; ' : sync === 'Pending' ? '&#8679; ' : '';
+  return '<div class="content-card ' + syncCardCls(sync) + '" onclick="openContentDrawerEncoded(\'' + safeC + '\')">' +
+    '<div class="content-card-top"><div>' +
+    '<div class="content-card-meta">' + esc(c['Venture']||'') + ' &middot; ' + esc(c['Content ID']||'') + '</div>' +
+    '<div class="content-card-name">' + esc(c['Content Name']||'Untitled') + '</div></div>' +
+    (sync ? '<span class="sync-badge ' + syncCls(sync) + '">' + syncIcon + esc(sync) + '</span>' : '') +
+    '</div>' +
+    (c['Activation Angle'] ? '<div class="content-card-angle">' + esc(c['Activation Angle']) + '</div>' : '') +
+    '<div class="content-card-footer">' +
+    '<span class="content-status-badge ' + statusCls(status) + '">' + esc(status) + '</span>' +
+    '<span class="type-badge">' + esc(c['Type']||'') + '</span>' +
+    tags.map(t => '<span class="tag">' + esc(t) + '</span>').join('') +
+    '</div></div>';
+}
+
+function openContentDrawerEncoded(encoded) {
+  try { openContentDrawer(JSON.parse(decodeURIComponent(encoded))); } catch(e) { console.error(e); }
+}
+
+function openContentDrawer(c) {
+  const sync   = c['Prismm Sync'] || '';
+  const status = c['Status'] || '';
+  const tags   = (c['Initiative Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
+  const link   = c['Asset Link'] || '';
+  const syncIcon = sync === 'Needs Update' ? '&#9888; ' : sync === 'Synced' ? '&#10003; ' : sync === 'Pending' ? '&#8679; ' : '';
+  document.getElementById('content-drawer-title').textContent = c['Content Name'] || 'Content';
+  document.getElementById('content-drawer-sub').innerHTML =
+    '<span class="type-badge">' + esc(c['Type']||'') + '</span>' +
+    '<span class="content-status-badge ' + statusCls(status) + '">' + esc(status) + '</span>' +
+    (sync ? '<span class="sync-badge ' + syncCls(sync) + '">' + syncIcon + esc(sync) + '</span>' : '');
+  document.getElementById('content-drawer-body').innerHTML =
+    '<div class="content-detail-section"><div class="content-detail-label">Venture</div><div class="content-detail-value">' + esc(c['Venture']||'--') + '</div></div>' +
+    '<div class="content-detail-section"><div class="content-detail-label">Activation Angle</div><div class="content-detail-value">' + esc(c['Activation Angle']||'--') + '</div></div>' +
+    (tags.length ? '<div class="content-detail-section"><div class="content-detail-label">Initiative Tags</div><div class="content-tags-row">' + tags.map(t => '<span class="tag">' + esc(t) + '</span>').join('') + '</div></div>' : '') +
+    '<div class="content-detail-section"><div class="content-detail-label">Asset Link</div><div class="content-detail-value">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">Open asset &#8599;</a>' : '<em style="color:var(--text3)">Not linked yet</em>') + '</div></div>' +
+    '<div class="content-detail-section"><div class="content-detail-label">Approval Required</div><div class="content-detail-value">' + esc(c['Approval Required']||'--') + '</div></div>' +
+    (c['Notes'] ? '<div class="content-detail-section"><div class="content-detail-label">Notes</div><div class="content-detail-value">' + esc(c['Notes']) + '</div></div>' : '') +
+    '<div class="content-detail-section"><div class="content-detail-label">Last Updated</div><div class="content-detail-value" style="color:var(--text3)">' + esc(c['Last Updated']||'--') + '</div></div>';
+  document.getElementById('content-drawer-overlay').classList.add('open');
+  document.getElementById('content-drawer').classList.add('open');
+}
+
+function closeContentDrawer() {
+  document.getElementById('content-drawer-overlay').classList.remove('open');
+  document.getElementById('content-drawer').classList.remove('open');
+}
+
+function openContentModal() { document.getElementById('content-modal').classList.add('open'); }
+function closeContentModal() { document.getElementById('content-modal').classList.remove('open'); }
+
+async function saveContent() {
+  const name = document.getElementById('cnt-name').value.trim();
+  if (!name) { toast('Content name is required'); return; }
+  const today = new Date().toISOString().slice(0,10);
+  const nextId = 'C' + String(allContent.length + 1).padStart(3,'0');
+  const row = {
+    'Content ID': nextId, 'Content Name': name,
+    'Type': document.getElementById('cnt-type').value,
+    'Venture': document.getElementById('cnt-venture').value,
+    'Initiative Tags': document.getElementById('cnt-tags').value.trim(),
+    'Status': document.getElementById('cnt-status').value,
+    'Activation Angle': document.getElementById('cnt-angle').value.trim(),
+    'Asset Link': document.getElementById('cnt-link').value.trim(),
+    'Approval Required': document.getElementById('cnt-approval').value,
+    'Prismm Sync': document.getElementById('cnt-sync').value,
+    'Notes': document.getElementById('cnt-notes').value.trim(),
+    'Last Updated': today,
+  };
+  allContent.push(row);
+  renderContent();
+  closeContentModal();
+  toast(name + ' added to Content Registry');
+  ['cnt-name','cnt-tags','cnt-angle','cnt-link','cnt-notes'].forEach(id => document.getElementById(id).value = '');
+  try { await api('/content', { method:'POST', body: JSON.stringify(row) }); } catch(e) { /* endpoint TBD */ }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
 loadBoard();
 </script>
 </body>

@@ -1,7 +1,14 @@
 /**
  * Contacts CRM Extension — Super Connector App
- * Loaded by config.js after main app scripts run.
- * Injects: Contacts nav item, page-contacts div, add/edit modal, Edit button in drawer.
+ * Replaces the old "Search Contacts" tab with a full Contacts page:
+ *   - Browse grid (50/page, paginated) loaded from Railway on open
+ *   - Type 1-3 chars → client-side filter of current page
+ *   - Press Enter (or 4+ chars on Enter) → vector search via POST /search
+ *   - Venture / Health / Activation dropdowns
+ *   - + New Contact modal (all fields including source)
+ *   - Edit Contact from drawer
+ *
+ * Loaded by config.js after window load.
  */
 (function () {
   const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) ||
@@ -14,11 +21,11 @@
 
   let crmContacts = [];
   let crmOffset   = 0;
-  let crmMode     = 'browse';
-  let crmEditing  = null;
-  let crmLoaded   = false;
+  let crmMode     = 'browse';   // 'browse' | 'search'
+  let crmEditing  = null;       // contact being edited, null = new
+  let crmLoaded   = false;      // whether first load has run
 
-  /* ── CSS ─────────────────────────────────────────────────── */
+  /* ── CSS ────────────────────────────────────────────────── */
   const css = document.createElement('style');
   css.textContent = `
     .crm-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
@@ -26,10 +33,10 @@
     .crm-search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:13px;padding:8px 36px 8px 12px;border-radius:var(--radius-lg);outline:none;transition:border-color .15s}
     .crm-search-input::placeholder{color:var(--text3)}
     .crm-search-input:focus{border-color:var(--accent)}
-    .crm-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0;display:none}
+    .crm-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0;line-height:1;display:none}
     .crm-clear.vis{display:block}
-    .crm-mode-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--accent-dim);color:var(--accent);display:none}
-    .crm-mode-badge.vis{display:inline-flex}
+    .crm-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--accent-dim);color:var(--accent);display:none}
+    .crm-badge.vis{display:inline-flex;align-items:center;gap:5px}
     .crm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
     .crm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px 17px;cursor:pointer;transition:box-shadow .15s,transform .1s,border-color .15s}
     .crm-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--accent)}
@@ -53,25 +60,27 @@
   `;
   document.head.appendChild(css);
 
-  /* ── DOM Injection ───────────────────────────────────────── */
+  /* ── DOM Injection ──────────────────────────────────────── */
   function injectDOM() {
-    // Nav item
-    if (!document.getElementById('nav-contacts')) {
-      const ref = document.getElementById('nav-search');
-      if (ref) {
-        const btn = document.createElement('button');
-        btn.className = 'nav-item';
-        btn.id = 'nav-contacts';
-        btn.innerHTML = '<span class="icon">⊞</span> Contacts';
-        btn.onclick = () => goContacts();
-        ref.parentNode.insertBefore(btn, ref);
-      }
+    const navSearch = document.getElementById('nav-search');
+
+    // 1. Replace "Search Contacts" nav item with "Contacts"
+    //    Hide the old nav-search item; insert our new one in its place.
+    if (navSearch && !document.getElementById('nav-contacts')) {
+      const btn = document.createElement('button');
+      btn.className = 'nav-item';
+      btn.id = 'nav-contacts';
+      btn.innerHTML = '<span class="icon">⊞</span> Contacts';
+      btn.onclick = () => goContacts();
+      navSearch.parentNode.insertBefore(btn, navSearch);
+      // Hide the old Search Contacts item — it now lives inside Contacts
+      navSearch.style.display = 'none';
     }
 
-    // Page div
+    // 2. Build the Contacts page — insert before the (now-hidden) Search page
     if (!document.getElementById('page-contacts')) {
-      const ref = document.getElementById('page-search');
-      if (ref) {
+      const pageSearch = document.getElementById('page-search');
+      if (pageSearch) {
         const div = document.createElement('div');
         div.className = 'page';
         div.id = 'page-contacts';
@@ -80,12 +89,12 @@
           <div class="crm-toolbar">
             <div class="crm-search-wrap">
               <input class="crm-search-input" id="crm-q" type="text"
-                placeholder="Type to filter · Enter for vector search…"
+                placeholder="Filter by name · Enter to vector search…"
                 oninput="crmInput(this.value)"
                 onkeydown="if(event.key==='Enter')crmSearch(this.value)">
-              <button class="crm-clear" id="crm-clear" onclick="crmReset()">×</button>
+              <button class="crm-clear" id="crm-clear" onclick="crmReset()" title="Clear search">×</button>
             </div>
-            <span class="crm-mode-badge" id="crm-badge">Vector results</span>
+            <span class="crm-badge" id="crm-badge">⊹ Vector results</span>
             <select class="filter-select" id="crm-fv" onchange="crmFilter()">
               <option value="">All Ventures</option>
               <option>ReRev Labs</option><option>Prismm</option>
@@ -103,7 +112,9 @@
             </select>
           </div>
           <div class="crm-grid" id="crm-grid">
-            <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>
+            <div class="loading-state" style="grid-column:1/-1">
+              <div class="spinner"></div>Loading contacts…
+            </div>
           </div>
           <div class="crm-pag" id="crm-pag" style="display:none">
             <span class="crm-pag-info" id="crm-pag-info"></span>
@@ -112,35 +123,77 @@
               <button class="btn btn-ghost btn-sm" id="crm-next" onclick="crmPage(1)">Next →</button>
             </div>
           </div>`;
-        ref.parentNode.insertBefore(div, ref);
+        pageSearch.parentNode.insertBefore(div, pageSearch);
       }
     }
 
-    // Modal
+    // 3. Contact add/edit modal
     if (!document.getElementById('crm-modal')) {
       document.body.insertAdjacentHTML('beforeend', `
 <div class="modal-overlay" id="crm-modal">
   <div class="modal" style="max-width:600px">
     <h3 id="crm-modal-title">New Contact</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div class="field-group" style="grid-column:1/-1"><label>Full Name *</label><input id="cm-name" type="text" placeholder="Jane Smith"></div>
-      <div class="field-group"><label>Title / Role</label><input id="cm-role" type="text" placeholder="Co-founder &amp; CEO"></div>
-      <div class="field-group"><label>Organization</label><input id="cm-org" type="text" placeholder="Acme Inc."></div>
-      <div class="field-group"><label>Venture</label>
-        <select id="cm-ven"><option value="">None</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>DO GOOD X</option><option>NYC PIVOT</option><option>Personal</option></select>
+      <div class="field-group" style="grid-column:1/-1">
+        <label>Full Name *</label>
+        <input id="cm-name" type="text" placeholder="Jane Smith">
       </div>
-      <div class="field-group"><label>Source (where we met)</label><input id="cm-src" type="text" placeholder="SXSW 2026, BTC Summit…"></div>
-      <div class="field-group"><label>How We Met</label><input id="cm-hwm" type="text" placeholder="Panel intro, warm referral…"></div>
-      <div class="field-group"><label>Relationship Health</label>
-        <select id="cm-hlth"><option value="">Unknown</option><option>Strong</option><option>Good</option><option>Neutral</option><option>Dormant</option><option>Cold</option></select>
+      <div class="field-group">
+        <label>Title / Role</label>
+        <input id="cm-role" type="text" placeholder="Co-founder &amp; CEO">
       </div>
-      <div class="field-group"><label>Activation Potential</label>
-        <select id="cm-act"><option value="">Unknown</option><option>High</option><option>Medium</option><option>Low</option><option>None</option></select>
+      <div class="field-group">
+        <label>Organization</label>
+        <input id="cm-org" type="text" placeholder="Acme Inc.">
       </div>
-      <div class="field-group" style="grid-column:1/-1"><label>What They're Building</label><input id="cm-bld" type="text"></div>
-      <div class="field-group" style="grid-column:1/-1"><label>What They Need</label><input id="cm-need" type="text"></div>
-      <div class="field-group" style="grid-column:1/-1"><label>What They Offer</label><input id="cm-offer" type="text"></div>
-      <div class="field-group" style="grid-column:1/-1"><label>Notes</label><textarea id="cm-notes" style="min-height:72px"></textarea></div>
+      <div class="field-group">
+        <label>Venture</label>
+        <select id="cm-ven">
+          <option value="">None</option>
+          <option>ReRev Labs</option><option>Prismm</option>
+          <option>Black Tech Capital</option><option>Sekhmetic</option>
+          <option>DO GOOD X</option><option>NYC PIVOT</option><option>Personal</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Source — where we met</label>
+        <input id="cm-src" type="text" placeholder="SXSW 2026, BTC Summit…">
+      </div>
+      <div class="field-group">
+        <label>How We Met</label>
+        <input id="cm-hwm" type="text" placeholder="Panel intro, warm referral…">
+      </div>
+      <div class="field-group">
+        <label>Relationship Health</label>
+        <select id="cm-hlth">
+          <option value="">Unknown</option>
+          <option>Strong</option><option>Good</option>
+          <option>Neutral</option><option>Dormant</option><option>Cold</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Activation Potential</label>
+        <select id="cm-act">
+          <option value="">Unknown</option>
+          <option>High</option><option>Medium</option><option>Low</option><option>None</option>
+        </select>
+      </div>
+      <div class="field-group" style="grid-column:1/-1">
+        <label>What They're Building</label>
+        <input id="cm-bld" type="text">
+      </div>
+      <div class="field-group" style="grid-column:1/-1">
+        <label>What They Need</label>
+        <input id="cm-need" type="text">
+      </div>
+      <div class="field-group" style="grid-column:1/-1">
+        <label>What They Offer</label>
+        <input id="cm-offer" type="text">
+      </div>
+      <div class="field-group" style="grid-column:1/-1">
+        <label>Notes</label>
+        <textarea id="cm-notes" style="min-height:72px"></textarea>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="crmCloseModal()">Cancel</button>
@@ -150,7 +203,7 @@
 </div>`);
     }
 
-    // Edit button in drawer
+    // 4. Edit button inside the contact drawer header
     if (!document.getElementById('drawer-edit-btn')) {
       const dh = document.querySelector('#contact-drawer .drawer-header');
       if (dh) {
@@ -158,96 +211,137 @@
         b.className = 'drawer-edit-btn';
         b.id = 'drawer-edit-btn';
         b.innerHTML = '✎ Edit Contact';
-        b.onclick = () => { if (window._crmDrawerContact) crmOpenModal(window._crmDrawerContact); };
+        b.onclick = () => {
+          if (window._crmDrawerContact) crmOpenModal(window._crmDrawerContact);
+        };
         dh.appendChild(b);
       }
     }
   }
 
-  /* ── Navigation helper ───────────────────────────────────── */
+  /* ── Navigation ─────────────────────────────────────────── */
   function goContacts() {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    // Hide all pages, show ours
+    document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
     const pg = document.getElementById('page-contacts');
     if (pg) pg.style.display = '';
 
-    // Update nav active state
+    // Nav active state
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const nc = document.getElementById('nav-contacts');
     if (nc) nc.classList.add('active');
 
-    // Update topbar
-    const t = document.getElementById('page-title');
-    if (t) t.textContent = 'Contacts';
-    const ab = document.getElementById('topbar-add-btn');
-    if (ab) { ab.textContent = '+ New Contact'; ab.onclick = () => crmOpenModal(null); }
+    // Topbar
+    const title = document.getElementById('page-title');
+    if (title) title.textContent = 'Contacts';
+    const addBtn = document.getElementById('topbar-add-btn');
+    if (addBtn) {
+      addBtn.textContent = '+ New Contact';
+      addBtn.onclick = () => crmOpenModal(null);
+    }
 
+    // Load on first visit
     if (!crmLoaded) { crmLoaded = true; crmLoad(0); }
   }
 
-  /* ── Patch window.showPage ───────────────────────────────── */
+  /* ── Patch showPage ─────────────────────────────────────── */
   function patchShowPage() {
     const orig = window.showPage;
-    window.showPage = function(page) {
-      if (page === 'contacts') { goContacts(); return; }
-      orig && orig(page);
+    window.showPage = function (page) {
+      // 'search' now redirects into Contacts
+      if (page === 'contacts' || page === 'search') {
+        goContacts();
+        return;
+      }
+      if (orig) orig(page);
     };
   }
 
-  /* ── Load ────────────────────────────────────────────────── */
+  /* ── Patch openContactDrawer ────────────────────────────── */
+  function patchDrawer() {
+    const orig = window.openContactDrawer;
+    window.openContactDrawer = function (c) {
+      window._crmDrawerContact = c;
+      if (orig) orig(c);
+    };
+  }
+
+  /* ── Load from Railway ──────────────────────────────────── */
   async function crmLoad(offset) {
     offset = offset || 0;
     crmOffset = offset;
     crmMode = 'browse';
-    badge(false);
+    showBadge(false);
+
     const grid = document.getElementById('crm-grid');
     if (!grid) return;
-    const fv = val('crm-fv'), fh = val('crm-fh'), fa = val('crm-fa');
-    grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading…</div>`;
+
+    const fv = gv('crm-fv'), fh = gv('crm-fh'), fa = gv('crm-fa');
+
+    grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>`;
+
     try {
-      const r = await fetch(`${API_BASE}/contacts?limit=${PAGE_SIZE}&offset=${offset}`, { headers: hdrs() });
-      const d = await r.json();
-      let cx = d.data || [];
+      const resp = await fetch(
+        `${API_BASE}/contacts?limit=${PAGE_SIZE}&offset=${offset}`,
+        { headers: hdrs() }
+      );
+      const data = await resp.json();
+      let cx = data.data || [];
+
+      // Client-side filter by dropdowns
       if (fv) cx = cx.filter(c => (c.venture||'').toLowerCase().includes(fv.toLowerCase()));
       if (fh) cx = cx.filter(c => (c.relationship_health||'') === fh);
       if (fa) cx = cx.filter(c => (c.activation_potential||'') === fa);
+
       crmContacts = cx;
       renderGrid(cx, false);
-      updatePag(offset, d.count);
-    } catch(e) {
-      grid.innerHTML = `<div class="empty-state"><h3>Error</h3><p>${e.message}</p></div>`;
+      updatePag(offset, data.count);
+    } catch (e) {
+      grid.innerHTML = `<div class="empty-state"><h3>Could not load contacts</h3><p>${e.message}</p></div>`;
     }
   }
   window.crmLoad = crmLoad;
 
-  /* ── Render ──────────────────────────────────────────────── */
+  /* ── Render grid ────────────────────────────────────────── */
   function renderGrid(cx, isSearch) {
     const grid = document.getElementById('crm-grid');
     if (!grid) return;
+
     if (!cx.length) {
-      grid.innerHTML = `<div class="empty-state"><h3>${isSearch?'No matches':'No contacts'}</h3><p>${isSearch?'Try a different query.':'Use + New Contact to add one.'}</p></div>`;
+      grid.innerHTML = `<div class="empty-state">
+        <h3>${isSearch ? 'No matches' : 'No contacts yet'}</h3>
+        <p>${isSearch ? 'Try a different query.' : 'Hit + New Contact to add your first one.'}</p>
+      </div>`;
+      grid._contacts = [];
       return;
     }
-    const hcls = {Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
-    grid.innerHTML = cx.map(c => {
-      const hb = c.relationship_health ? `<span class="crm-hb ${hcls[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>` : '';
-      const ab = c.activation_potential ? `<span class="crm-ab">${esc(c.activation_potential)}</span>` : '';
-      const sb = c.source ? `<span class="crm-sb">${esc(c.source)}</span>` : '';
-      const sc = (isSearch && c.score) ? `<span class="crm-score">${Math.round(c.score*100)}%</span>` : '';
+
+    const hMap = {
+      Strong: 'crm-hb-strong', Good: 'crm-hb-good', Neutral: 'crm-hb-neutral',
+      Dormant: 'crm-hb-dormant', Cold: 'crm-hb-cold'
+    };
+
+    grid.innerHTML = cx.map((c, i) => {
+      const hb = c.relationship_health
+        ? `<span class="crm-hb ${hMap[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>` : '';
+      const ab = c.activation_potential
+        ? `<span class="crm-ab">${esc(c.activation_potential)}</span>` : '';
+      const sb = c.source
+        ? `<span class="crm-sb">${esc(c.source)}</span>` : '';
+      const sc = (isSearch && c.score)
+        ? `<span class="crm-score">${Math.round(c.score * 100)}%</span>` : '';
       const role = [c.title_role, c.organization].filter(Boolean).join(' · ');
-      // Use data attribute to avoid inline JSON quoting issues
-      const idx = cx.indexOf(c);
-      return `<div class="crm-card" data-cidx="${idx}" onclick="crmCardClick(this)">
+      return `<div class="crm-card" data-cidx="${i}" onclick="crmCardClick(this)">
         <div class="crm-card-name">${esc(c.full_name)}</div>
         <div class="crm-card-role">${esc(role)}</div>
         <div class="crm-card-footer">${hb}${ab}${sb}${sc}</div>
       </div>`;
     }).join('');
-    // Store contact data on grid for card clicks
+
     grid._contacts = cx;
   }
 
-  window.crmCardClick = function(el) {
+  window.crmCardClick = function (el) {
     const grid = document.getElementById('crm-grid');
     if (!grid || !grid._contacts) return;
     const c = grid._contacts[parseInt(el.dataset.cidx, 10)];
@@ -256,170 +350,185 @@
     if (window.openContactDrawer) window.openContactDrawer(c);
   };
 
-  /* ── Search ──────────────────────────────────────────────── */
-  window.crmInput = function(v) {
+  /* ── Search / filter ────────────────────────────────────── */
+  window.crmInput = function (v) {
     const cl = document.getElementById('crm-clear');
     if (cl) cl.classList.toggle('vis', v.length > 0);
+
     if (!v) { crmLoad(crmOffset); return; }
+
+    // Short: client-side filter on current page
     if (v.length < 4) {
       const q = v.toLowerCase();
       const fx = crmContacts.filter(c =>
         (c.full_name||'').toLowerCase().includes(q) ||
         (c.organization||'').toLowerCase().includes(q) ||
-        (c.title_role||'').toLowerCase().includes(q));
+        (c.title_role||'').toLowerCase().includes(q)
+      );
       renderGrid(fx, false);
       const p = document.getElementById('crm-pag');
       if (p) p.style.display = 'none';
     }
+    // 4+ chars typed without Enter → do nothing extra (user can press Enter)
   };
 
-  window.crmSearch = async function(q) {
+  window.crmSearch = async function (q) {
     if (!q || !q.trim()) { crmLoad(0); return; }
     crmMode = 'search';
-    badge(true);
+    showBadge(true);
+
     const grid = document.getElementById('crm-grid');
     if (grid) grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
     const p = document.getElementById('crm-pag');
     if (p) p.style.display = 'none';
+
     try {
-      const r = await fetch(`${API_BASE}/search`, {
-        method:'POST', headers:hdrs(),
-        body: JSON.stringify({query:q.trim(), top_k:30})
+      const resp = await fetch(`${API_BASE}/search`, {
+        method: 'POST',
+        headers: hdrs(),
+        body: JSON.stringify({ query: q.trim(), top_k: 30 }),
       });
-      const d = await r.json();
-      renderGrid(d.results||[], true);
-    } catch(e) {
+      const data = await resp.json();
+      renderGrid(data.results || [], true);
+    } catch (e) {
       if (grid) grid.innerHTML = `<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`;
     }
   };
 
-  window.crmReset = function() {
+  window.crmReset = function () {
     const inp = document.getElementById('crm-q');
     if (inp) inp.value = '';
     const cl = document.getElementById('crm-clear');
     if (cl) cl.classList.remove('vis');
-    crmMode = 'browse'; badge(false);
+    crmMode = 'browse';
+    showBadge(false);
     crmLoad(0);
   };
 
-  window.crmFilter = function() { if (crmMode==='browse') crmLoad(0); };
+  window.crmFilter = function () {
+    if (crmMode === 'browse') crmLoad(0);
+  };
 
-  /* ── Pagination ──────────────────────────────────────────── */
+  /* ── Pagination ─────────────────────────────────────────── */
   function updatePag(offset, total) {
-    const p = document.getElementById('crm-pag');
-    const pi = document.getElementById('crm-pag-info');
+    const p    = document.getElementById('crm-pag');
+    const info = document.getElementById('crm-pag-info');
     const prev = document.getElementById('crm-prev');
     const next = document.getElementById('crm-next');
     if (!p) return;
     p.style.display = 'flex';
-    if (pi) pi.textContent = `${offset+1}–${offset+crmContacts.length}${total?' of ~'+total:''}`;
+    const end = offset + crmContacts.length;
+    if (info) info.textContent = `${offset + 1}–${end}${total ? ' of ~' + total : ''}`;
     if (prev) prev.disabled = offset === 0;
     if (next) next.disabled = crmContacts.length < PAGE_SIZE;
   }
 
-  window.crmPage = function(dir) {
+  window.crmPage = function (dir) {
     const n = crmOffset + dir * PAGE_SIZE;
     if (n < 0) return;
     crmLoad(n);
     const g = document.getElementById('crm-grid');
-    if (g) g.scrollIntoView({behavior:'smooth',block:'start'});
+    if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  /* ── Modal ───────────────────────────────────────────────── */
+  /* ── Modal ──────────────────────────────────────────────── */
   function crmOpenModal(c) {
     crmEditing = c || null;
-    const t = document.getElementById('crm-modal-title');
-    const sb = document.getElementById('crm-save-btn');
-    if (t)  t.textContent  = c ? 'Edit Contact' : 'New Contact';
-    if (sb) sb.textContent = c ? 'Save Changes' : 'Save Contact';
-    setVal('cm-name',  c?.full_name||'');
-    setVal('cm-role',  c?.title_role||'');
-    setVal('cm-org',   c?.organization||'');
-    setVal('cm-ven',   c?.venture||'');
-    setVal('cm-src',   c?.source||'');
-    setVal('cm-hwm',   c?.how_we_met||'');
-    setVal('cm-hlth',  c?.relationship_health||'');
-    setVal('cm-act',   c?.activation_potential||'');
-    setVal('cm-bld',   c?.what_building||'');
-    setVal('cm-need',  c?.what_need||'');
-    setVal('cm-offer', c?.what_offer||'');
-    setVal('cm-notes', c?.notes||'');
+    sv('crm-modal-title', c ? 'Edit Contact' : 'New Contact');
+    sv('crm-save-btn',    c ? 'Save Changes'  : 'Save Contact');
+    sv2('cm-name',  c?.full_name||'');
+    sv2('cm-role',  c?.title_role||'');
+    sv2('cm-org',   c?.organization||'');
+    sv2('cm-ven',   c?.venture||'');
+    sv2('cm-src',   c?.source||'');
+    sv2('cm-hwm',   c?.how_we_met||'');
+    sv2('cm-hlth',  c?.relationship_health||'');
+    sv2('cm-act',   c?.activation_potential||'');
+    sv2('cm-bld',   c?.what_building||'');
+    sv2('cm-need',  c?.what_need||'');
+    sv2('cm-offer', c?.what_offer||'');
+    sv2('cm-notes', c?.notes||'');
     const m = document.getElementById('crm-modal');
     if (m) m.classList.add('open');
   }
   window.crmOpenModal = crmOpenModal;
 
-  window.crmCloseModal = function() {
+  window.crmCloseModal = function () {
     const m = document.getElementById('crm-modal');
     if (m) m.classList.remove('open');
     crmEditing = null;
   };
 
-  window.crmSave = async function() {
-    const name = (val('cm-name')||'').trim();
+  window.crmSave = async function () {
+    const name = (gv('cm-name') || '').trim();
     if (!name) { toast('Full name is required'); return; }
+
     const sb = document.getElementById('crm-save-btn');
-    if (sb) { sb.disabled=true; sb.textContent='Saving…'; }
+    if (sb) { sb.disabled = true; sb.textContent = 'Saving…'; }
+
     const isEdit = !!crmEditing;
-    const id = isEdit ? crmEditing.contact_id : 'C'+Date.now();
+    const id = isEdit ? crmEditing.contact_id : 'C' + Date.now();
+
     const payload = {
-      contact_id:id, full_name:name,
-      title_role:val('cm-role'), organization:val('cm-org'),
-      venture:val('cm-ven'), source:val('cm-src'),
-      how_we_met:val('cm-hwm'), relationship_health:val('cm-hlth'),
-      activation_potential:val('cm-act'), what_building:val('cm-bld'),
-      what_need:val('cm-need'), what_offer:val('cm-offer'), notes:val('cm-notes')
+      contact_id: id,
+      full_name:            name,
+      title_role:           gv('cm-role'),
+      organization:         gv('cm-org'),
+      venture:              gv('cm-ven'),
+      source:               gv('cm-src'),
+      how_we_met:           gv('cm-hwm'),
+      relationship_health:  gv('cm-hlth'),
+      activation_potential: gv('cm-act'),
+      what_building:        gv('cm-bld'),
+      what_need:            gv('cm-need'),
+      what_offer:           gv('cm-offer'),
+      notes:                gv('cm-notes'),
     };
+
     try {
-      const r = await fetch(
+      const resp = await fetch(
         isEdit ? `${API_BASE}/contact/${id}` : `${API_BASE}/contact`,
-        {method:isEdit?'PUT':'POST', headers:hdrs(), body:JSON.stringify(payload)}
+        { method: isEdit ? 'PUT' : 'POST', headers: hdrs(), body: JSON.stringify(payload) }
       );
-      const d = await r.json();
-      if (d.success) {
-        toast(`Contact ${isEdit?'updated':'saved'} ✓`);
+      const data = await resp.json();
+      if (data.success) {
+        toast(`Contact ${isEdit ? 'updated' : 'saved'} ✓`);
         window.crmCloseModal();
         if (window.closeContactDrawer) window.closeContactDrawer();
         crmLoad(isEdit ? crmOffset : 0);
-      } else { toast('Error saving'); }
-    } catch(e) { toast('Save failed: '+e.message); }
-    finally { if(sb){sb.disabled=false; sb.textContent=isEdit?'Save Changes':'Save Contact';} }
+      } else {
+        toast('Error saving contact');
+      }
+    } catch (e) {
+      toast('Save failed: ' + e.message);
+    } finally {
+      if (sb) { sb.disabled = false; sb.textContent = isEdit ? 'Save Changes' : 'Save Contact'; }
+    }
   };
 
-  /* ── Helpers ─────────────────────────────────────────────── */
-  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function val(id){ const e=document.getElementById(id); return e?e.value:''; }
-  function setVal(id,v){ const e=document.getElementById(id); if(e) e.value=v; }
-  function badge(on){ const b=document.getElementById('crm-badge'); if(b) b.classList.toggle('vis',on); }
-  function toast(msg){ if(window.showToast) window.showToast(msg); else console.log(msg); }
+  /* ── Helpers ────────────────────────────────────────────── */
+  function esc(s)      { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function gv(id)      { const e = document.getElementById(id); return e ? e.value : ''; }
+  function sv(id, t)   { const e = document.getElementById(id); if (e) e.textContent = t; }
+  function sv2(id, v)  { const e = document.getElementById(id); if (e) e.value = v; }
+  function showBadge(on) { const b = document.getElementById('crm-badge'); if (b) b.classList.toggle('vis', on); }
+  function toast(msg)  { if (window.showToast) window.showToast(msg); else console.log('[CRM]', msg); }
 
-  /* ── Patch openContactDrawer to track current ────────────── */
-  function patchDrawer() {
-    const orig = window.openContactDrawer;
-    window.openContactDrawer = function(c) {
-      window._crmDrawerContact = c;
-      orig && orig(c);
-    };
-  }
-
-  /* ── Init — wait for showPage to exist ──────────────────── */
+  /* ── Initialise — poll until showPage exists ────────────── */
   function init() {
     injectDOM();
     patchShowPage();
     patchDrawer();
   }
 
-  // showPage is defined in the main <script> block of index.html.
-  // We wait up to 3s for it to exist before giving up.
-  var attempts = 0;
-  function tryInit() {
+  let attempts = 0;
+  (function tryInit() {
     if (window.showPage || attempts > 30) {
       init();
     } else {
       attempts++;
       setTimeout(tryInit, 100);
     }
-  }
-  tryInit();
+  })();
 
 })();

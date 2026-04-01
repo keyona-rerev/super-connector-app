@@ -1,21 +1,14 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App v20260401f
- * Reads API key from window.SC_API_KEY (set by config.js as a plain global).
+ * Contacts CRM + Activation Hub — Super Connector App v20260401g
+ * API key hardcoded as a module-level constant — bypasses all window variable timing issues.
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
-
-  // config.js sets window.SC_API_KEY = "sc_live_k3y_2026_scak" as a plain global.
-  // Plain window assignments survive const redeclarations in other scripts.
-  const getKey = () =>
-    window.SC_API_KEY ||
-    window.API_KEY ||
-    (window.CONFIG && window.CONFIG.API_KEY) ||
-    '';
+  const _KEY     = 'sc_live_k3y_2026_scak'; // update here if key ever rotates
 
   const hdrs = () => ({
     'Content-Type': 'application/json',
-    'X-API-Key': getKey(),
+    'X-API-Key': _KEY,
   });
 
   const PAGE_SIZE = 50;
@@ -65,9 +58,7 @@
   `;
   document.head.appendChild(css);
 
-  /* ── DOM Injection ──────────────────────────────────────── */
   function injectDOM() {
-    /* 1. Contacts nav — replace "Search Contacts" */
     const navSearch = document.getElementById('nav-search');
     if (navSearch && !document.getElementById('nav-contacts')) {
       const btn = document.createElement('button');
@@ -79,7 +70,6 @@
       navSearch.style.display = 'none';
     }
 
-    /* 2. Contacts page */
     if (!document.getElementById('page-contacts')) {
       const ref = document.getElementById('page-search');
       if (ref) {
@@ -114,9 +104,7 @@
             </select>
           </div>
           <div class="crm-grid" id="crm-grid">
-            <div class="loading-state" style="grid-column:1/-1">
-              <div class="spinner"></div>Loading contacts…
-            </div>
+            <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>
           </div>
           <div class="crm-pag" id="crm-pag" style="display:none">
             <span class="crm-pag-info" id="crm-pag-info"></span>
@@ -129,10 +117,8 @@
       }
     }
 
-    /* 3. Activation Hub — merge Angles into Queue as sub-tab */
     const navAngles = document.getElementById('nav-angles');
     if (navAngles) navAngles.style.display = 'none';
-
     const pageQueue  = document.getElementById('page-queue');
     const pageAngles = document.getElementById('page-angles');
     if (pageQueue && !document.getElementById('activ-tab-bar')) {
@@ -142,29 +128,19 @@
       tabBar.innerHTML = `
         <button class="activ-tab active" id="activ-tab-queue"  onclick="activTab('queue')">Activation Queue</button>
         <button class="activ-tab"        id="activ-tab-angles" onclick="activTab('angles')">Activation Angles</button>`;
-
       const queuePanel = document.createElement('div');
       queuePanel.className = 'activ-panel active';
       queuePanel.id = 'activ-panel-queue';
       const queueInner = document.getElementById('queue-list');
-      if (queueInner) {
-        queueInner.parentNode.insertBefore(queuePanel, queueInner);
-        queuePanel.appendChild(queueInner);
-      }
-
+      if (queueInner) { queueInner.parentNode.insertBefore(queuePanel, queueInner); queuePanel.appendChild(queueInner); }
       const anglesPanel = document.createElement('div');
       anglesPanel.className = 'activ-panel';
       anglesPanel.id = 'activ-panel-angles';
-      if (pageAngles) {
-        while (pageAngles.firstChild) anglesPanel.appendChild(pageAngles.firstChild);
-        pageAngles.style.display = 'none';
-      }
-
+      if (pageAngles) { while (pageAngles.firstChild) anglesPanel.appendChild(pageAngles.firstChild); pageAngles.style.display = 'none'; }
       pageQueue.insertBefore(tabBar, pageQueue.firstChild);
       pageQueue.appendChild(anglesPanel);
     }
 
-    /* 4. Contact modal */
     if (!document.getElementById('crm-modal')) {
       document.body.insertAdjacentHTML('beforeend', `
 <div class="modal-overlay" id="crm-modal">
@@ -174,17 +150,11 @@
       <div class="field-group" style="grid-column:1/-1"><label>Full Name *</label><input id="cm-name" type="text" placeholder="Jane Smith"></div>
       <div class="field-group"><label>Title / Role</label><input id="cm-role" type="text" placeholder="Co-founder &amp; CEO"></div>
       <div class="field-group"><label>Organization</label><input id="cm-org" type="text" placeholder="Acme Inc."></div>
-      <div class="field-group"><label>Venture</label>
-        <select id="cm-ven"><option value="">None</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>DO GOOD X</option><option>NYC PIVOT</option><option>Personal</option></select>
-      </div>
+      <div class="field-group"><label>Venture</label><select id="cm-ven"><option value="">None</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>DO GOOD X</option><option>NYC PIVOT</option><option>Personal</option></select></div>
       <div class="field-group"><label>Source — where we met</label><input id="cm-src" type="text" placeholder="SXSW 2026, BTC Summit…"></div>
       <div class="field-group"><label>How We Met</label><input id="cm-hwm" type="text" placeholder="Panel intro, warm referral…"></div>
-      <div class="field-group"><label>Relationship Health</label>
-        <select id="cm-hlth"><option value="">Unknown</option><option>Strong</option><option>Good</option><option>Neutral</option><option>Dormant</option><option>Cold</option></select>
-      </div>
-      <div class="field-group"><label>Activation Potential</label>
-        <select id="cm-act"><option value="">Unknown</option><option>High</option><option>Medium</option><option>Low</option><option>None</option></select>
-      </div>
+      <div class="field-group"><label>Relationship Health</label><select id="cm-hlth"><option value="">Unknown</option><option>Strong</option><option>Good</option><option>Neutral</option><option>Dormant</option><option>Cold</option></select></div>
+      <div class="field-group"><label>Activation Potential</label><select id="cm-act"><option value="">Unknown</option><option>High</option><option>Medium</option><option>Low</option><option>None</option></select></div>
       <div class="field-group" style="grid-column:1/-1"><label>What They're Building</label><input id="cm-bld" type="text"></div>
       <div class="field-group" style="grid-column:1/-1"><label>What They Need</label><input id="cm-need" type="text"></div>
       <div class="field-group" style="grid-column:1/-1"><label>What They Offer</label><input id="cm-offer" type="text"></div>
@@ -198,45 +168,37 @@
 </div>`);
     }
 
-    /* 5. Edit button in drawer */
     if (!document.getElementById('drawer-edit-btn')) {
       const dh = document.querySelector('#contact-drawer .drawer-header');
       if (dh) {
         const b = document.createElement('button');
-        b.className = 'drawer-edit-btn';
-        b.id = 'drawer-edit-btn';
+        b.className = 'drawer-edit-btn'; b.id = 'drawer-edit-btn';
         b.innerHTML = '✎ Edit Contact';
         b.onclick = () => { if (window._crmDrawerContact) crmOpenModal(window._crmDrawerContact); };
         dh.appendChild(b);
       }
     }
 
-    /* 6. Kick off background load */
     crmLoad(0);
   }
 
-  /* ── Activation sub-tabs ────────────────────────────────── */
   window.activTab = function (which) {
-    ['queue', 'angles'].forEach(t => {
+    ['queue','angles'].forEach(t => {
       const isActive = t === which;
-      const tab   = document.getElementById('activ-tab-' + t);
-      const panel = document.getElementById('activ-panel-' + t);
-      if (tab)   tab.classList.toggle('active', isActive);
+      const tab = document.getElementById('activ-tab-'+t);
+      const panel = document.getElementById('activ-panel-'+t);
+      if (tab) tab.classList.toggle('active', isActive);
       if (panel) panel.classList.toggle('active', isActive);
     });
     if (which === 'angles' && window.loadAngles) window.loadAngles();
   };
 
-  /* ── Navigation ─────────────────────────────────────────── */
   function goContacts() {
     document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
-    const pg = document.getElementById('page-contacts');
-    if (pg) pg.style.display = '';
+    const pg = document.getElementById('page-contacts'); if (pg) pg.style.display = '';
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const nc = document.getElementById('nav-contacts');
-    if (nc) nc.classList.add('active');
-    const title = document.getElementById('page-title');
-    if (title) title.textContent = 'Contacts';
+    const nc = document.getElementById('nav-contacts'); if (nc) nc.classList.add('active');
+    const title = document.getElementById('page-title'); if (title) title.textContent = 'Contacts';
     const addBtn = document.getElementById('topbar-add-btn');
     if (addBtn) { addBtn.textContent = '+ New Contact'; addBtn.onclick = () => crmOpenModal(null); }
     if (crmContacts.length === 0) crmLoad(0);
@@ -245,8 +207,7 @@
   function patchShowPage() {
     const orig = window.showPage;
     window.showPage = function (page) {
-      const pg = document.getElementById('page-contacts');
-      if (pg) pg.style.display = 'none';
+      const pg = document.getElementById('page-contacts'); if (pg) pg.style.display = 'none';
       if (page === 'contacts' || page === 'search') { goContacts(); return; }
       if (page === 'angles') { if (orig) orig('queue'); activTab('angles'); return; }
       if (orig) orig(page);
@@ -255,41 +216,24 @@
 
   function patchDrawer() {
     const orig = window.openContactDrawer;
-    window.openContactDrawer = function (c) {
-      window._crmDrawerContact = c;
-      if (orig) orig(c);
-    };
+    window.openContactDrawer = function (c) { window._crmDrawerContact = c; if (orig) orig(c); };
   }
 
-  /* ── Load ───────────────────────────────────────────────── */
   async function crmLoad(offset) {
     offset = offset || 0;
-    crmOffset = offset;
-    crmMode = 'browse';
-    showBadge(false);
-    const grid = document.getElementById('crm-grid');
-    if (!grid) return;
+    crmOffset = offset; crmMode = 'browse'; showBadge(false);
+    const grid = document.getElementById('crm-grid'); if (!grid) return;
     const fv = gv('crm-fv'), fh = gv('crm-fh'), fa = gv('crm-fa');
     grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>`;
-    const key = getKey();
-    console.log('[CRM] SC_API_KEY='+!!window.SC_API_KEY+' key[:12]='+key.slice(0,12));
     try {
-      const resp = await fetch(
-        `${API_BASE}/contacts?limit=${PAGE_SIZE}&offset=${offset}`,
-        { headers: hdrs() }
-      );
-      if (!resp.ok) {
-        const body = await resp.text();
-        throw new Error(`HTTP ${resp.status}: ${body}`);
-      }
+      const resp = await fetch(`${API_BASE}/contacts?limit=${PAGE_SIZE}&offset=${offset}`, { headers: hdrs() });
+      if (!resp.ok) { const b = await resp.text(); throw new Error(`HTTP ${resp.status}: ${b}`); }
       const data = await resp.json();
       let cx = data.data || [];
       if (fv) cx = cx.filter(c => (c.venture||'').toLowerCase().includes(fv.toLowerCase()));
       if (fh) cx = cx.filter(c => (c.relationship_health||'') === fh);
       if (fa) cx = cx.filter(c => (c.activation_potential||'') === fa);
-      crmContacts = cx;
-      renderGrid(cx, false);
-      updatePag(offset, data.count);
+      crmContacts = cx; renderGrid(cx, false); updatePag(offset, data.count);
     } catch (e) {
       if (grid) grid.innerHTML = `<div class="empty-state"><h3>Could not load contacts</h3><p>${e.message}</p></div>`;
     }
@@ -297,169 +241,99 @@
   window.crmLoad = crmLoad;
 
   function renderGrid(cx, isSearch) {
-    const grid = document.getElementById('crm-grid');
-    if (!grid) return;
-    if (!cx.length) {
-      grid.innerHTML = `<div class="empty-state"><h3>${isSearch?'No matches':'No contacts'}</h3><p>${isSearch?'Try a different query.':'Use + New Contact to add one.'}</p></div>`;
-      grid._contacts = []; return;
-    }
+    const grid = document.getElementById('crm-grid'); if (!grid) return;
+    if (!cx.length) { grid.innerHTML = `<div class="empty-state"><h3>${isSearch?'No matches':'No contacts'}</h3><p>${isSearch?'Try a different query.':'Use + New Contact to add one.'}</p></div>`; grid._contacts=[]; return; }
     const hMap = {Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
-    grid.innerHTML = cx.map((c, i) => {
-      const hb = c.relationship_health ? `<span class="crm-hb ${hMap[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>` : '';
-      const ab = c.activation_potential ? `<span class="crm-ab">${esc(c.activation_potential)}</span>` : '';
-      const sb = c.source ? `<span class="crm-sb">${esc(c.source)}</span>` : '';
-      const sc = (isSearch && c.score) ? `<span class="crm-score">${Math.round(c.score*100)}%</span>` : '';
-      const role = [c.title_role, c.organization].filter(Boolean).join(' · ');
-      return `<div class="crm-card" data-cidx="${i}" onclick="crmCardClick(this)">
-        <div class="crm-card-name">${esc(c.full_name)}</div>
-        <div class="crm-card-role">${esc(role)}</div>
-        <div class="crm-card-footer">${hb}${ab}${sb}${sc}</div>
-      </div>`;
+    grid.innerHTML = cx.map((c,i) => {
+      const hb = c.relationship_health?`<span class="crm-hb ${hMap[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>`:'';
+      const ab = c.activation_potential?`<span class="crm-ab">${esc(c.activation_potential)}</span>`:'';
+      const sb = c.source?`<span class="crm-sb">${esc(c.source)}</span>`:'';
+      const sc = (isSearch&&c.score)?`<span class="crm-score">${Math.round(c.score*100)}%</span>`:'';
+      const role = [c.title_role,c.organization].filter(Boolean).join(' · ');
+      return `<div class="crm-card" data-cidx="${i}" onclick="crmCardClick(this)"><div class="crm-card-name">${esc(c.full_name)}</div><div class="crm-card-role">${esc(role)}</div><div class="crm-card-footer">${hb}${ab}${sb}${sc}</div></div>`;
     }).join('');
     grid._contacts = cx;
   }
 
   window.crmCardClick = function (el) {
-    const grid = document.getElementById('crm-grid');
-    if (!grid || !grid._contacts) return;
-    const c = grid._contacts[parseInt(el.dataset.cidx, 10)];
-    if (!c) return;
-    window._crmDrawerContact = c;
-    if (window.openContactDrawer) window.openContactDrawer(c);
+    const grid = document.getElementById('crm-grid'); if (!grid||!grid._contacts) return;
+    const c = grid._contacts[parseInt(el.dataset.cidx,10)]; if (!c) return;
+    window._crmDrawerContact = c; if (window.openContactDrawer) window.openContactDrawer(c);
   };
 
   window.crmInput = function (v) {
-    const cl = document.getElementById('crm-clear');
-    if (cl) cl.classList.toggle('vis', v.length > 0);
+    const cl = document.getElementById('crm-clear'); if (cl) cl.classList.toggle('vis', v.length>0);
     if (!v) { crmLoad(crmOffset); return; }
     if (v.length < 4) {
       const q = v.toLowerCase();
-      renderGrid(crmContacts.filter(c =>
-        (c.full_name||'').toLowerCase().includes(q) ||
-        (c.organization||'').toLowerCase().includes(q) ||
-        (c.title_role||'').toLowerCase().includes(q)
-      ), false);
-      const p = document.getElementById('crm-pag');
-      if (p) p.style.display = 'none';
+      renderGrid(crmContacts.filter(c=>(c.full_name||'').toLowerCase().includes(q)||(c.organization||'').toLowerCase().includes(q)||(c.title_role||'').toLowerCase().includes(q)), false);
+      const p = document.getElementById('crm-pag'); if (p) p.style.display='none';
     }
   };
 
   window.crmSearch = async function (q) {
-    if (!q || !q.trim()) { crmLoad(0); return; }
-    crmMode = 'search'; showBadge(true);
+    if (!q||!q.trim()) { crmLoad(0); return; }
+    crmMode='search'; showBadge(true);
     const grid = document.getElementById('crm-grid');
-    if (grid) grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
-    const p = document.getElementById('crm-pag');
-    if (p) p.style.display = 'none';
+    if (grid) grid.innerHTML=`<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
+    const p = document.getElementById('crm-pag'); if (p) p.style.display='none';
     try {
-      const resp = await fetch(`${API_BASE}/search`, {
-        method:'POST', headers:hdrs(),
-        body: JSON.stringify({query:q.trim(), top_k:30}),
-      });
-      const data = await resp.json();
-      renderGrid(data.results||[], true);
-    } catch (e) {
-      if (grid) grid.innerHTML = `<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`;
-    }
+      const resp = await fetch(`${API_BASE}/search`,{method:'POST',headers:hdrs(),body:JSON.stringify({query:q.trim(),top_k:30})});
+      const data = await resp.json(); renderGrid(data.results||[],true);
+    } catch(e) { if(grid) grid.innerHTML=`<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`; }
   };
 
   window.crmReset = function () {
-    const inp = document.getElementById('crm-q'); if (inp) inp.value='';
-    const cl  = document.getElementById('crm-clear'); if (cl) cl.classList.remove('vis');
+    const inp=document.getElementById('crm-q'); if(inp) inp.value='';
+    const cl=document.getElementById('crm-clear'); if(cl) cl.classList.remove('vis');
     crmMode='browse'; showBadge(false); crmLoad(0);
   };
-  window.crmFilter = function () { if (crmMode==='browse') crmLoad(0); };
+  window.crmFilter = function () { if(crmMode==='browse') crmLoad(0); };
 
-  function updatePag(offset, total) {
-    const p = document.getElementById('crm-pag');
-    const info = document.getElementById('crm-pag-info');
-    const prev = document.getElementById('crm-prev');
-    const next = document.getElementById('crm-next');
-    if (!p) return;
-    p.style.display = 'flex';
-    if (info) info.textContent = `${offset+1}–${offset+crmContacts.length}${total?' of ~'+total:''}`;
-    if (prev) prev.disabled = offset===0;
-    if (next) next.disabled = crmContacts.length < PAGE_SIZE;
+  function updatePag(offset,total) {
+    const p=document.getElementById('crm-pag'),info=document.getElementById('crm-pag-info'),prev=document.getElementById('crm-prev'),next=document.getElementById('crm-next');
+    if(!p) return; p.style.display='flex';
+    if(info) info.textContent=`${offset+1}–${offset+crmContacts.length}${total?' of ~'+total:''}`;
+    if(prev) prev.disabled=offset===0; if(next) next.disabled=crmContacts.length<PAGE_SIZE;
   }
+  window.crmPage = function(dir) { const n=crmOffset+dir*PAGE_SIZE; if(n<0) return; crmLoad(n); const g=document.getElementById('crm-grid'); if(g) g.scrollIntoView({behavior:'smooth',block:'start'}); };
 
-  window.crmPage = function (dir) {
-    const n = crmOffset + dir * PAGE_SIZE; if (n<0) return;
-    crmLoad(n);
-    const g = document.getElementById('crm-grid');
-    if (g) g.scrollIntoView({behavior:'smooth',block:'start'});
-  };
-
-  /* ── Modal ──────────────────────────────────────────────── */
   function crmOpenModal(c) {
-    crmEditing = c||null;
-    sv('crm-modal-title', c?'Edit Contact':'New Contact');
-    sv('crm-save-btn',    c?'Save Changes':'Save Contact');
-    sv2('cm-name',  c?.full_name||'');    sv2('cm-role',  c?.title_role||'');
-    sv2('cm-org',   c?.organization||''); sv2('cm-ven',   c?.venture||'');
-    sv2('cm-src',   c?.source||'');       sv2('cm-hwm',   c?.how_we_met||'');
-    sv2('cm-hlth',  c?.relationship_health||'');
-    sv2('cm-act',   c?.activation_potential||'');
-    sv2('cm-bld',   c?.what_building||''); sv2('cm-need',  c?.what_need||'');
-    sv2('cm-offer', c?.what_offer||'');   sv2('cm-notes', c?.notes||'');
-    const m = document.getElementById('crm-modal'); if (m) m.classList.add('open');
+    crmEditing=c||null;
+    sv('crm-modal-title',c?'Edit Contact':'New Contact'); sv('crm-save-btn',c?'Save Changes':'Save Contact');
+    sv2('cm-name',c?.full_name||''); sv2('cm-role',c?.title_role||''); sv2('cm-org',c?.organization||'');
+    sv2('cm-ven',c?.venture||''); sv2('cm-src',c?.source||''); sv2('cm-hwm',c?.how_we_met||'');
+    sv2('cm-hlth',c?.relationship_health||''); sv2('cm-act',c?.activation_potential||'');
+    sv2('cm-bld',c?.what_building||''); sv2('cm-need',c?.what_need||''); sv2('cm-offer',c?.what_offer||''); sv2('cm-notes',c?.notes||'');
+    const m=document.getElementById('crm-modal'); if(m) m.classList.add('open');
   }
   window.crmOpenModal = crmOpenModal;
-
-  window.crmCloseModal = function () {
-    const m = document.getElementById('crm-modal'); if (m) m.classList.remove('open');
-    crmEditing = null;
-  };
+  window.crmCloseModal = function () { const m=document.getElementById('crm-modal'); if(m) m.classList.remove('open'); crmEditing=null; };
 
   window.crmSave = async function () {
-    const name = (gv('cm-name')||'').trim();
-    if (!name) { toast('Full name is required'); return; }
-    const sb = document.getElementById('crm-save-btn');
-    if (sb) { sb.disabled=true; sb.textContent='Saving…'; }
-    const isEdit = !!crmEditing;
-    const id = isEdit ? crmEditing.contact_id : 'C'+Date.now();
-    const payload = {
-      contact_id:id, full_name:name,
-      title_role:gv('cm-role'), organization:gv('cm-org'),
-      venture:gv('cm-ven'), source:gv('cm-src'),
-      how_we_met:gv('cm-hwm'), relationship_health:gv('cm-hlth'),
-      activation_potential:gv('cm-act'), what_building:gv('cm-bld'),
-      what_need:gv('cm-need'), what_offer:gv('cm-offer'), notes:gv('cm-notes'),
-    };
+    const name=(gv('cm-name')||'').trim(); if(!name){toast('Full name is required');return;}
+    const sb=document.getElementById('crm-save-btn'); if(sb){sb.disabled=true;sb.textContent='Saving…';}
+    const isEdit=!!crmEditing, id=isEdit?crmEditing.contact_id:'C'+Date.now();
+    const payload={contact_id:id,full_name:name,title_role:gv('cm-role'),organization:gv('cm-org'),venture:gv('cm-ven'),source:gv('cm-src'),how_we_met:gv('cm-hwm'),relationship_health:gv('cm-hlth'),activation_potential:gv('cm-act'),what_building:gv('cm-bld'),what_need:gv('cm-need'),what_offer:gv('cm-offer'),notes:gv('cm-notes')};
     try {
-      const resp = await fetch(
-        isEdit ? `${API_BASE}/contact/${id}` : `${API_BASE}/contact`,
-        {method:isEdit?'PUT':'POST', headers:hdrs(), body:JSON.stringify(payload)}
-      );
-      const data = await resp.json();
-      if (data.success) {
-        toast(`Contact ${isEdit?'updated':'saved'} ✓`);
-        window.crmCloseModal();
-        if (window.closeContactDrawer) window.closeContactDrawer();
-        crmLoad(isEdit?crmOffset:0);
-      } else { toast('Error saving contact'); }
-    } catch(e) { toast('Save failed: '+e.message); }
-    finally { if(sb){sb.disabled=false; sb.textContent=isEdit?'Save Changes':'Save Contact';} }
+      const resp=await fetch(isEdit?`${API_BASE}/contact/${id}`:`${API_BASE}/contact`,{method:isEdit?'PUT':'POST',headers:hdrs(),body:JSON.stringify(payload)});
+      const data=await resp.json();
+      if(data.success){toast(`Contact ${isEdit?'updated':'saved'} ✓`);window.crmCloseModal();if(window.closeContactDrawer)window.closeContactDrawer();crmLoad(isEdit?crmOffset:0);}
+      else{toast('Error saving contact');}
+    } catch(e){toast('Save failed: '+e.message);}
+    finally{if(sb){sb.disabled=false;sb.textContent=isEdit?'Save Changes':'Save Contact';}}
   };
 
-  /* ── Helpers ────────────────────────────────────────────── */
-  function esc(s)     { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function gv(id)     { const e=document.getElementById(id); return e?e.value:''; }
-  function sv(id,t)   { const e=document.getElementById(id); if(e) e.textContent=t; }
-  function sv2(id,v)  { const e=document.getElementById(id); if(e) e.value=v; }
-  function showBadge(on){ const b=document.getElementById('crm-badge'); if(b) b.classList.toggle('vis',on); }
-  function toast(msg) { if(window.showToast) window.showToast(msg); else console.log('[CRM]',msg); }
+  function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function gv(id){const e=document.getElementById(id);return e?e.value:'';}
+  function sv(id,t){const e=document.getElementById(id);if(e)e.textContent=t;}
+  function sv2(id,v){const e=document.getElementById(id);if(e)e.value=v;}
+  function showBadge(on){const b=document.getElementById('crm-badge');if(b)b.classList.toggle('vis',on);}
+  function toast(msg){if(window.showToast)window.showToast(msg);else console.log('[CRM]',msg);}
 
-  /* ── Init ───────────────────────────────────────────────── */
-  let attempts = 0;
-  (function tryInit() {
-    if (window.showPage || attempts > 30) {
-      injectDOM();
-      patchShowPage();
-      patchDrawer();
-    } else {
-      attempts++;
-      setTimeout(tryInit, 100);
-    }
+  let attempts=0;
+  (function tryInit(){
+    if(window.showPage||attempts>30){injectDOM();patchShowPage();patchDrawer();}
+    else{attempts++;setTimeout(tryInit,100);}
   })();
-
 })();

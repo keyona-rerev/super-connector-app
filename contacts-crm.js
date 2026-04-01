@@ -1,28 +1,24 @@
 /**
- * Contacts CRM + Activation Hub Extension — Super Connector App
+ * Contacts CRM + Activation Hub — Super Connector App
+ * v20260401d
  *
- * CONTACTS:
- *   - Replaces "Search Contacts" nav item with "Contacts"
- *   - Loads all contacts from Railway immediately on inject (no click needed)
- *   - Browse grid (50/page, paginated) + inline filter + Enter→vector search
- *   - + New Contact modal, Edit from drawer
- *
- * ACTIVATION HUB:
- *   - Merges "Activation Queue" and "Activation Angles" into one tab
- *   - "Activation Angles" nav item hidden; showPage('angles') → goes to queue tab
- *   - Two sub-tabs inside the Activation page: Queue | Angles
+ * Fixes in this version:
+ *   - Page stacking: patchShowPage now explicitly hides page-contacts
+ *     before calling the original showPage, so navigating away always works
+ *   - 403 debug: logs the exact key being sent and the response body
+ *   - Auto-loads contacts immediately on inject (no nav click needed)
+ *   - Merges Activation Angles into Activation Queue as a sub-tab
  */
 (function () {
-  /* ── Config ─────────────────────────────────────────────── */
   const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) ||
     'https://super-connector-api-production.up.railway.app';
+  const API_KEY = () => (window.CONFIG && window.CONFIG.API_KEY) || '';
   const hdrs = () => ({
     'Content-Type': 'application/json',
-    'X-API-Key': (window.CONFIG && window.CONFIG.API_KEY) || '',
+    'X-API-Key': API_KEY(),
   });
   const PAGE_SIZE = 50;
 
-  /* ── CRM State ──────────────────────────────────────────── */
   let crmContacts = [];
   let crmOffset   = 0;
   let crmMode     = 'browse';
@@ -31,7 +27,6 @@
   /* ── CSS ────────────────────────────────────────────────── */
   const css = document.createElement('style');
   css.textContent = `
-    /* Contacts grid */
     .crm-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
     .crm-search-wrap{position:relative;flex:1;min-width:220px;max-width:400px}
     .crm-search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:13px;padding:8px 34px 8px 12px;border-radius:var(--radius-lg);outline:none;transition:border-color .15s}
@@ -59,10 +54,8 @@
     .crm-pag{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-soft)}
     .crm-pag-info{font-size:12px;color:var(--text3)}
     .crm-pag-btns{display:flex;gap:8px}
-    /* Edit button in drawer */
     .drawer-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:5px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .12s;margin-top:8px}
     .drawer-edit-btn:hover{background:var(--border);color:var(--text)}
-    /* Activation sub-tabs */
     .activ-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content}
     .activ-tab{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;font-family:var(--font-sans);transition:background .12s,color .12s}
     .activ-tab.active{background:var(--accent);color:#fff}
@@ -72,12 +65,9 @@
   `;
   document.head.appendChild(css);
 
-  /* ══════════════════════════════════════════════════════════
-     DOM INJECTION
-  ══════════════════════════════════════════════════════════ */
+  /* ── DOM Injection ──────────────────────────────────────── */
   function injectDOM() {
-
-    /* ── 1. Contacts nav + page ─────────────────────────── */
+    /* 1. Contacts nav item — replaces "Search Contacts" */
     const navSearch = document.getElementById('nav-search');
     if (navSearch && !document.getElementById('nav-contacts')) {
       const btn = document.createElement('button');
@@ -86,9 +76,10 @@
       btn.innerHTML = '<span class="icon">⊞</span> Contacts';
       btn.onclick = () => goContacts();
       navSearch.parentNode.insertBefore(btn, navSearch);
-      navSearch.style.display = 'none'; // hide old "Search Contacts"
+      navSearch.style.display = 'none';
     }
 
+    /* 2. Contacts page */
     if (!document.getElementById('page-contacts')) {
       const ref = document.getElementById('page-search');
       if (ref) {
@@ -100,7 +91,7 @@
           <div class="crm-toolbar">
             <div class="crm-search-wrap">
               <input class="crm-search-input" id="crm-q" type="text"
-                placeholder="Filter · press Enter for semantic search…"
+                placeholder="Filter by name · Enter for semantic search…"
                 oninput="crmInput(this.value)"
                 onkeydown="if(event.key==='Enter')crmSearch(this.value)">
               <button class="crm-clear" id="crm-clear" onclick="crmReset()" title="Clear">×</button>
@@ -124,7 +115,7 @@
           </div>
           <div class="crm-grid" id="crm-grid">
             <div class="loading-state" style="grid-column:1/-1">
-              <div class="spinner"></div>Loading your contacts…
+              <div class="spinner"></div>Loading contacts…
             </div>
           </div>
           <div class="crm-pag" id="crm-pag" style="display:none">
@@ -138,16 +129,14 @@
       }
     }
 
-    /* ── 2. Activation Hub — merge Queue + Angles ────────── */
+    /* 3. Activation Hub — merge Angles into Queue page as sub-tab */
     const navAngles = document.getElementById('nav-angles');
-    if (navAngles) navAngles.style.display = 'none'; // hide separate Angles nav
+    if (navAngles) navAngles.style.display = 'none';
 
-    // Wrap the existing queue page content in a tabbed container
-    const pageQueue = document.getElementById('page-queue');
+    const pageQueue  = document.getElementById('page-queue');
     const pageAngles = document.getElementById('page-angles');
 
     if (pageQueue && !document.getElementById('activ-tab-bar')) {
-      // Build the tab bar and inject it at the top of the queue page
       const tabBar = document.createElement('div');
       tabBar.className = 'activ-tabs';
       tabBar.id = 'activ-tab-bar';
@@ -155,39 +144,28 @@
         <button class="activ-tab active" id="activ-tab-queue"  onclick="activTab('queue')">Activation Queue</button>
         <button class="activ-tab"        id="activ-tab-angles" onclick="activTab('angles')">Activation Angles</button>`;
 
-      // Wrap existing queue content in a panel div
-      const queueInner = document.getElementById('queue-list');
       const queuePanel = document.createElement('div');
       queuePanel.className = 'activ-panel active';
       queuePanel.id = 'activ-panel-queue';
+      const queueInner = document.getElementById('queue-list');
       if (queueInner) {
         queueInner.parentNode.insertBefore(queuePanel, queueInner);
         queuePanel.appendChild(queueInner);
       }
 
-      // Move angles content into a panel inside the queue page
       const anglesPanel = document.createElement('div');
       anglesPanel.className = 'activ-panel';
       anglesPanel.id = 'activ-panel-angles';
       if (pageAngles) {
-        // Move inner children of page-angles into our panel
-        while (pageAngles.firstChild) {
-          anglesPanel.appendChild(pageAngles.firstChild);
-        }
-        pageAngles.style.display = 'none'; // hide the now-empty original
-      } else {
-        anglesPanel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-          <div></div>
-          <button class="btn btn-primary btn-sm" onclick="openAngleModal()">+ New Angle</button>
-        </div>
-        <div id="angles-list"><div class="loading-state"><div class="spinner"></div>Loading angles…</div></div>`;
+        while (pageAngles.firstChild) anglesPanel.appendChild(pageAngles.firstChild);
+        pageAngles.style.display = 'none';
       }
 
       pageQueue.insertBefore(tabBar, pageQueue.firstChild);
       pageQueue.appendChild(anglesPanel);
     }
 
-    /* ── 3. Contact modal ───────────────────────────────── */
+    /* 4. Contact modal */
     if (!document.getElementById('crm-modal')) {
       document.body.insertAdjacentHTML('beforeend', `
 <div class="modal-overlay" id="crm-modal">
@@ -221,7 +199,7 @@
 </div>`);
     }
 
-    /* ── 4. Edit button in contact drawer ───────────────── */
+    /* 5. Edit button in drawer */
     if (!document.getElementById('drawer-edit-btn')) {
       const dh = document.querySelector('#contact-drawer .drawer-header');
       if (dh) {
@@ -234,41 +212,70 @@
       }
     }
 
-    /* ── 5. Kick off contacts load immediately ──────────── */
-    // Don't wait for a nav click — load as soon as we inject
+    /* 6. Start loading contacts immediately */
     crmLoad(0);
   }
 
-  /* ══════════════════════════════════════════════════════════
-     ACTIVATION TAB SWITCHER
-  ══════════════════════════════════════════════════════════ */
+  /* ── Activation sub-tab switcher ───────────────────────── */
   window.activTab = function (which) {
     ['queue', 'angles'].forEach(t => {
+      const isActive = t === which;
       const tab   = document.getElementById('activ-tab-' + t);
       const panel = document.getElementById('activ-panel-' + t);
-      const isActive = t === which;
       if (tab)   tab.classList.toggle('active', isActive);
       if (panel) panel.classList.toggle('active', isActive);
     });
-    // If switching to angles and angles-list is still showing loading, trigger load
     if (which === 'angles' && window.loadAngles) window.loadAngles();
   };
 
-  /* ══════════════════════════════════════════════════════════
-     NAVIGATION PATCHES
-  ══════════════════════════════════════════════════════════ */
+  /* ── Navigation ─────────────────────────────────────────── */
+  function hideContactsPage() {
+    const pg = document.getElementById('page-contacts');
+    if (pg) pg.style.display = 'none';
+  }
+
+  function goContacts() {
+    // Hide every .page the original app knows about, plus ours
+    document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
+    const pg = document.getElementById('page-contacts');
+    if (pg) pg.style.display = '';
+
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const nc = document.getElementById('nav-contacts');
+    if (nc) nc.classList.add('active');
+
+    const title = document.getElementById('page-title');
+    if (title) title.textContent = 'Contacts';
+    const addBtn = document.getElementById('topbar-add-btn');
+    if (addBtn) {
+      addBtn.textContent = '+ New Contact';
+      addBtn.onclick = () => crmOpenModal(null);
+    }
+
+    if (crmContacts.length === 0 && crmMode === 'browse') crmLoad(0);
+  }
+
   function patchShowPage() {
     const orig = window.showPage;
     window.showPage = function (page) {
+      // *** THE FIX: always hide page-contacts before going anywhere else ***
+      hideContactsPage();
+
       if (page === 'contacts' || page === 'search') {
         goContacts();
         return;
       }
       if (page === 'angles') {
-        // Redirect angles to the queue page, switch to angles tab
         if (orig) orig('queue');
         activTab('angles');
         return;
+      }
+      // Also reset the topbar button back to its default for non-contacts pages
+      // (the original showPage handles topbar title, but not the button)
+      const addBtn = document.getElementById('topbar-add-btn');
+      if (addBtn && page !== 'contacts') {
+        // Let original app restore its own button state
+        addBtn.onclick = null;
       }
       if (orig) orig(page);
     };
@@ -282,25 +289,7 @@
     };
   }
 
-  /* ── goContacts ─────────────────────────────────────────── */
-  function goContacts() {
-    document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
-    const pg = document.getElementById('page-contacts');
-    if (pg) pg.style.display = '';
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const nc = document.getElementById('nav-contacts');
-    if (nc) nc.classList.add('active');
-    const title = document.getElementById('page-title');
-    if (title) title.textContent = 'Contacts';
-    const addBtn = document.getElementById('topbar-add-btn');
-    if (addBtn) { addBtn.textContent = '+ New Contact'; addBtn.onclick = () => crmOpenModal(null); }
-    // Contacts are already loaded; just make sure grid is showing
-    if (crmContacts.length === 0 && crmMode === 'browse') crmLoad(0);
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     CONTACTS DATA
-  ══════════════════════════════════════════════════════════ */
+  /* ── Load contacts from Railway ─────────────────────────── */
   async function crmLoad(offset) {
     offset = offset || 0;
     crmOffset = offset;
@@ -308,17 +297,25 @@
     showBadge(false);
 
     const grid = document.getElementById('crm-grid');
-    if (!grid) return; // page div not injected yet — bail
+    if (!grid) return;
 
     const fv = gv('crm-fv'), fh = gv('crm-fh'), fa = gv('crm-fa');
     grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>`;
+
+    const key = API_KEY();
+    console.log('[CRM] fetching contacts, API key present:', key.length > 0, 'key starts:', key.slice(0, 8));
 
     try {
       const resp = await fetch(
         `${API_BASE}/contacts?limit=${PAGE_SIZE}&offset=${offset}`,
         { headers: hdrs() }
       );
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      console.log('[CRM] response status:', resp.status);
+      if (!resp.ok) {
+        const body = await resp.text();
+        console.log('[CRM] error body:', body);
+        throw new Error(`HTTP ${resp.status}: ${body}`);
+      }
       const data = await resp.json();
       let cx = data.data || [];
       if (fv) cx = cx.filter(c => (c.venture||'').toLowerCase().includes(fv.toLowerCase()));
@@ -328,6 +325,7 @@
       renderGrid(cx, false);
       updatePag(offset, data.count);
     } catch (e) {
+      console.error('[CRM] load failed:', e);
       if (grid) grid.innerHTML = `<div class="empty-state"><h3>Could not load contacts</h3><p>${e.message}</p></div>`;
     }
   }
@@ -436,9 +434,7 @@
     if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  /* ══════════════════════════════════════════════════════════
-     CONTACT MODAL
-  ══════════════════════════════════════════════════════════ */
+  /* ── Modal ──────────────────────────────────────────────── */
   function crmOpenModal(c) {
     crmEditing = c || null;
     sv('crm-modal-title', c ? 'Edit Contact' : 'New Contact');
@@ -505,13 +501,11 @@
   function showBadge(on) { const b = document.getElementById('crm-badge'); if (b) b.classList.toggle('vis', on); }
   function toast(msg) { if (window.showToast) window.showToast(msg); else console.log('[CRM]', msg); }
 
-  /* ══════════════════════════════════════════════════════════
-     INIT — poll until showPage exists, then inject everything
-  ══════════════════════════════════════════════════════════ */
+  /* ── Init ───────────────────────────────────────────────── */
   let attempts = 0;
   (function tryInit() {
     if (window.showPage || attempts > 30) {
-      injectDOM();      // builds pages + kicks off crmLoad(0)
+      injectDOM();
       patchShowPage();
       patchDrawer();
     } else {

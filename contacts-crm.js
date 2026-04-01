@@ -1,24 +1,26 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App
- * v20260401d
+ * Contacts CRM + Activation Hub — Super Connector App v20260401e
  *
- * Fixes in this version:
- *   - Page stacking: patchShowPage now explicitly hides page-contacts
- *     before calling the original showPage, so navigating away always works
- *   - 403 debug: logs the exact key being sent and the response body
- *   - Auto-loads contacts immediately on inject (no nav click needed)
- *   - Merges Activation Angles into Activation Queue as a sub-tab
+ * KEY FIX: reads API key from window.API_KEY (set by index.html's script block)
+ * which is the same key already working for Initiatives, Events, etc.
+ * Falls back to CONFIG.API_KEY if window.API_KEY isn't set.
  */
 (function () {
-  const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) ||
-    'https://super-connector-api-production.up.railway.app';
-  const API_KEY = () => (window.CONFIG && window.CONFIG.API_KEY) || '';
+  const API_BASE = 'https://super-connector-api-production.up.railway.app';
+
+  // index.html defines `const API_KEY = "..."` in its own <script> block.
+  // We read it at call-time so it's available even if our script runs first.
+  const getKey = () =>
+    window.API_KEY ||
+    (window.CONFIG && window.CONFIG.API_KEY) ||
+    '';
+
   const hdrs = () => ({
     'Content-Type': 'application/json',
-    'X-API-Key': API_KEY(),
+    'X-API-Key': getKey(),
   });
-  const PAGE_SIZE = 50;
 
+  const PAGE_SIZE = 50;
   let crmContacts = [];
   let crmOffset   = 0;
   let crmMode     = 'browse';
@@ -67,7 +69,7 @@
 
   /* ── DOM Injection ──────────────────────────────────────── */
   function injectDOM() {
-    /* 1. Contacts nav item — replaces "Search Contacts" */
+    /* 1. Contacts nav — replace "Search Contacts" */
     const navSearch = document.getElementById('nav-search');
     if (navSearch && !document.getElementById('nav-contacts')) {
       const btn = document.createElement('button');
@@ -129,13 +131,12 @@
       }
     }
 
-    /* 3. Activation Hub — merge Angles into Queue page as sub-tab */
+    /* 3. Activation Hub — merge Angles into Queue as sub-tab */
     const navAngles = document.getElementById('nav-angles');
     if (navAngles) navAngles.style.display = 'none';
 
     const pageQueue  = document.getElementById('page-queue');
     const pageAngles = document.getElementById('page-angles');
-
     if (pageQueue && !document.getElementById('activ-tab-bar')) {
       const tabBar = document.createElement('div');
       tabBar.className = 'activ-tabs';
@@ -212,11 +213,11 @@
       }
     }
 
-    /* 6. Start loading contacts immediately */
+    /* 6. Kick off background load */
     crmLoad(0);
   }
 
-  /* ── Activation sub-tab switcher ───────────────────────── */
+  /* ── Activation sub-tabs ────────────────────────────────── */
   window.activTab = function (which) {
     ['queue', 'angles'].forEach(t => {
       const isActive = t === which;
@@ -229,54 +230,29 @@
   };
 
   /* ── Navigation ─────────────────────────────────────────── */
-  function hideContactsPage() {
-    const pg = document.getElementById('page-contacts');
-    if (pg) pg.style.display = 'none';
-  }
-
   function goContacts() {
-    // Hide every .page the original app knows about, plus ours
     document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
     const pg = document.getElementById('page-contacts');
     if (pg) pg.style.display = '';
-
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const nc = document.getElementById('nav-contacts');
     if (nc) nc.classList.add('active');
-
     const title = document.getElementById('page-title');
     if (title) title.textContent = 'Contacts';
     const addBtn = document.getElementById('topbar-add-btn');
-    if (addBtn) {
-      addBtn.textContent = '+ New Contact';
-      addBtn.onclick = () => crmOpenModal(null);
-    }
-
-    if (crmContacts.length === 0 && crmMode === 'browse') crmLoad(0);
+    if (addBtn) { addBtn.textContent = '+ New Contact'; addBtn.onclick = () => crmOpenModal(null); }
+    if (crmContacts.length === 0) crmLoad(0);
   }
 
   function patchShowPage() {
     const orig = window.showPage;
     window.showPage = function (page) {
-      // *** THE FIX: always hide page-contacts before going anywhere else ***
-      hideContactsPage();
+      // Always hide contacts page when navigating away
+      const pg = document.getElementById('page-contacts');
+      if (pg) pg.style.display = 'none';
 
-      if (page === 'contacts' || page === 'search') {
-        goContacts();
-        return;
-      }
-      if (page === 'angles') {
-        if (orig) orig('queue');
-        activTab('angles');
-        return;
-      }
-      // Also reset the topbar button back to its default for non-contacts pages
-      // (the original showPage handles topbar title, but not the button)
-      const addBtn = document.getElementById('topbar-add-btn');
-      if (addBtn && page !== 'contacts') {
-        // Let original app restore its own button state
-        addBtn.onclick = null;
-      }
+      if (page === 'contacts' || page === 'search') { goContacts(); return; }
+      if (page === 'angles') { if (orig) orig('queue'); activTab('angles'); return; }
       if (orig) orig(page);
     };
   }
@@ -289,31 +265,28 @@
     };
   }
 
-  /* ── Load contacts from Railway ─────────────────────────── */
+  /* ── Load ───────────────────────────────────────────────── */
   async function crmLoad(offset) {
     offset = offset || 0;
     crmOffset = offset;
     crmMode = 'browse';
     showBadge(false);
-
     const grid = document.getElementById('crm-grid');
     if (!grid) return;
-
     const fv = gv('crm-fv'), fh = gv('crm-fh'), fa = gv('crm-fa');
     grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>`;
 
-    const key = API_KEY();
-    console.log('[CRM] fetching contacts, API key present:', key.length > 0, 'key starts:', key.slice(0, 8));
+    const key = getKey();
+    console.log('[CRM] key source: window.API_KEY=' + !!window.API_KEY + ' CONFIG.API_KEY=' + !!(window.CONFIG && window.CONFIG.API_KEY) + ' key[:8]=' + key.slice(0,8));
 
     try {
       const resp = await fetch(
         `${API_BASE}/contacts?limit=${PAGE_SIZE}&offset=${offset}`,
         { headers: hdrs() }
       );
-      console.log('[CRM] response status:', resp.status);
       if (!resp.ok) {
         const body = await resp.text();
-        console.log('[CRM] error body:', body);
+        console.error('[CRM] 403 body:', body);
         throw new Error(`HTTP ${resp.status}: ${body}`);
       }
       const data = await resp.json();
@@ -325,7 +298,6 @@
       renderGrid(cx, false);
       updatePag(offset, data.count);
     } catch (e) {
-      console.error('[CRM] load failed:', e);
       if (grid) grid.innerHTML = `<div class="empty-state"><h3>Could not load contacts</h3><p>${e.message}</p></div>`;
     }
   }
@@ -335,12 +307,8 @@
     const grid = document.getElementById('crm-grid');
     if (!grid) return;
     if (!cx.length) {
-      grid.innerHTML = `<div class="empty-state">
-        <h3>${isSearch ? 'No matches' : 'No contacts'}</h3>
-        <p>${isSearch ? 'Try a different query.' : 'Use + New Contact to add one.'}</p>
-      </div>`;
-      grid._contacts = [];
-      return;
+      grid.innerHTML = `<div class="empty-state"><h3>${isSearch?'No matches':'No contacts'}</h3><p>${isSearch?'Try a different query.':'Use + New Contact to add one.'}</p></div>`;
+      grid._contacts = []; return;
     }
     const hMap = {Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
     grid.innerHTML = cx.map((c, i) => {
@@ -385,34 +353,30 @@
 
   window.crmSearch = async function (q) {
     if (!q || !q.trim()) { crmLoad(0); return; }
-    crmMode = 'search';
-    showBadge(true);
+    crmMode = 'search'; showBadge(true);
     const grid = document.getElementById('crm-grid');
     if (grid) grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
     const p = document.getElementById('crm-pag');
     if (p) p.style.display = 'none';
     try {
       const resp = await fetch(`${API_BASE}/search`, {
-        method: 'POST', headers: hdrs(),
-        body: JSON.stringify({ query: q.trim(), top_k: 30 }),
+        method:'POST', headers:hdrs(),
+        body: JSON.stringify({query:q.trim(), top_k:30}),
       });
       const data = await resp.json();
-      renderGrid(data.results || [], true);
+      renderGrid(data.results||[], true);
     } catch (e) {
       if (grid) grid.innerHTML = `<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`;
     }
   };
 
   window.crmReset = function () {
-    const inp = document.getElementById('crm-q');
-    if (inp) inp.value = '';
-    const cl = document.getElementById('crm-clear');
-    if (cl) cl.classList.remove('vis');
-    crmMode = 'browse'; showBadge(false);
-    crmLoad(0);
+    const inp = document.getElementById('crm-q'); if (inp) inp.value='';
+    const cl  = document.getElementById('crm-clear'); if (cl) cl.classList.remove('vis');
+    crmMode='browse'; showBadge(false); crmLoad(0);
   };
 
-  window.crmFilter = function () { if (crmMode === 'browse') crmLoad(0); };
+  window.crmFilter = function () { if (crmMode==='browse') crmLoad(0); };
 
   function updatePag(offset, total) {
     const p = document.getElementById('crm-pag');
@@ -422,53 +386,45 @@
     if (!p) return;
     p.style.display = 'flex';
     if (info) info.textContent = `${offset+1}–${offset+crmContacts.length}${total?' of ~'+total:''}`;
-    if (prev) prev.disabled = offset === 0;
+    if (prev) prev.disabled = offset===0;
     if (next) next.disabled = crmContacts.length < PAGE_SIZE;
   }
 
   window.crmPage = function (dir) {
-    const n = crmOffset + dir * PAGE_SIZE;
-    if (n < 0) return;
+    const n = crmOffset + dir * PAGE_SIZE; if (n<0) return;
     crmLoad(n);
     const g = document.getElementById('crm-grid');
-    if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (g) g.scrollIntoView({behavior:'smooth',block:'start'});
   };
 
   /* ── Modal ──────────────────────────────────────────────── */
   function crmOpenModal(c) {
-    crmEditing = c || null;
-    sv('crm-modal-title', c ? 'Edit Contact' : 'New Contact');
-    sv('crm-save-btn',    c ? 'Save Changes'  : 'Save Contact');
-    sv2('cm-name',  c?.full_name||'');
-    sv2('cm-role',  c?.title_role||'');
-    sv2('cm-org',   c?.organization||'');
-    sv2('cm-ven',   c?.venture||'');
-    sv2('cm-src',   c?.source||'');
-    sv2('cm-hwm',   c?.how_we_met||'');
+    crmEditing = c||null;
+    sv('crm-modal-title', c?'Edit Contact':'New Contact');
+    sv('crm-save-btn',    c?'Save Changes':'Save Contact');
+    sv2('cm-name',  c?.full_name||'');    sv2('cm-role',  c?.title_role||'');
+    sv2('cm-org',   c?.organization||''); sv2('cm-ven',   c?.venture||'');
+    sv2('cm-src',   c?.source||'');       sv2('cm-hwm',   c?.how_we_met||'');
     sv2('cm-hlth',  c?.relationship_health||'');
     sv2('cm-act',   c?.activation_potential||'');
-    sv2('cm-bld',   c?.what_building||'');
-    sv2('cm-need',  c?.what_need||'');
-    sv2('cm-offer', c?.what_offer||'');
-    sv2('cm-notes', c?.notes||'');
-    const m = document.getElementById('crm-modal');
-    if (m) m.classList.add('open');
+    sv2('cm-bld',   c?.what_building||''); sv2('cm-need',  c?.what_need||'');
+    sv2('cm-offer', c?.what_offer||'');   sv2('cm-notes', c?.notes||'');
+    const m = document.getElementById('crm-modal'); if (m) m.classList.add('open');
   }
   window.crmOpenModal = crmOpenModal;
 
   window.crmCloseModal = function () {
-    const m = document.getElementById('crm-modal');
-    if (m) m.classList.remove('open');
+    const m = document.getElementById('crm-modal'); if (m) m.classList.remove('open');
     crmEditing = null;
   };
 
   window.crmSave = async function () {
-    const name = (gv('cm-name') || '').trim();
+    const name = (gv('cm-name')||'').trim();
     if (!name) { toast('Full name is required'); return; }
     const sb = document.getElementById('crm-save-btn');
-    if (sb) { sb.disabled = true; sb.textContent = 'Saving…'; }
+    if (sb) { sb.disabled=true; sb.textContent='Saving…'; }
     const isEdit = !!crmEditing;
-    const id = isEdit ? crmEditing.contact_id : 'C' + Date.now();
+    const id = isEdit ? crmEditing.contact_id : 'C'+Date.now();
     const payload = {
       contact_id:id, full_name:name,
       title_role:gv('cm-role'), organization:gv('cm-org'),
@@ -480,26 +436,26 @@
     try {
       const resp = await fetch(
         isEdit ? `${API_BASE}/contact/${id}` : `${API_BASE}/contact`,
-        { method: isEdit ? 'PUT' : 'POST', headers: hdrs(), body: JSON.stringify(payload) }
+        {method:isEdit?'PUT':'POST', headers:hdrs(), body:JSON.stringify(payload)}
       );
       const data = await resp.json();
       if (data.success) {
-        toast(`Contact ${isEdit ? 'updated' : 'saved'} ✓`);
+        toast(`Contact ${isEdit?'updated':'saved'} ✓`);
         window.crmCloseModal();
         if (window.closeContactDrawer) window.closeContactDrawer();
-        crmLoad(isEdit ? crmOffset : 0);
+        crmLoad(isEdit?crmOffset:0);
       } else { toast('Error saving contact'); }
-    } catch (e) { toast('Save failed: ' + e.message); }
-    finally { if (sb) { sb.disabled = false; sb.textContent = isEdit ? 'Save Changes' : 'Save Contact'; } }
+    } catch(e) { toast('Save failed: '+e.message); }
+    finally { if(sb){sb.disabled=false; sb.textContent=isEdit?'Save Changes':'Save Contact';} }
   };
 
   /* ── Helpers ────────────────────────────────────────────── */
   function esc(s)     { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function gv(id)     { const e = document.getElementById(id); return e ? e.value : ''; }
-  function sv(id, t)  { const e = document.getElementById(id); if (e) e.textContent = t; }
-  function sv2(id, v) { const e = document.getElementById(id); if (e) e.value = v; }
-  function showBadge(on) { const b = document.getElementById('crm-badge'); if (b) b.classList.toggle('vis', on); }
-  function toast(msg) { if (window.showToast) window.showToast(msg); else console.log('[CRM]', msg); }
+  function gv(id)     { const e=document.getElementById(id); return e?e.value:''; }
+  function sv(id,t)   { const e=document.getElementById(id); if(e) e.textContent=t; }
+  function sv2(id,v)  { const e=document.getElementById(id); if(e) e.value=v; }
+  function showBadge(on){ const b=document.getElementById('crm-badge'); if(b) b.classList.toggle('vis',on); }
+  function toast(msg) { if(window.showToast) window.showToast(msg); else console.log('[CRM]',msg); }
 
   /* ── Init ───────────────────────────────────────────────── */
   let attempts = 0;

@@ -1,7 +1,8 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App v20260401h
+ * Contacts CRM + Activation Hub — Super Connector App v20260401i
  * - API key hardcoded as a module-level constant
  * - openContactDrawer fully overridden — no longer depends on index.html's broken version
+ * - index.html's native contact-drawer suppressed via CSS + window override
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
@@ -21,6 +22,9 @@
   /* ── CSS ────────────────────────────────────────────────── */
   const css = document.createElement('style');
   css.textContent = `
+    /* Suppress index.html's native contact drawer entirely */
+    #contact-drawer, .contact-drawer, .drawer-overlay { display: none !important; }
+
     .crm-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
     .crm-search-wrap{position:relative;flex:1;min-width:220px;max-width:400px}
     .crm-search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:13px;padding:8px 34px 8px 12px;border-radius:var(--radius-lg);outline:none;transition:border-color .15s}
@@ -55,7 +59,7 @@
     .activ-panel{display:none}
     .activ-panel.active{display:block}
     /* ── CRM Drawer ── */
-    #crm-drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:95vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:1000;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
+    #crm-drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:95vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:1000;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex !important;flex-direction:column}
     #crm-drawer.open{transform:translateX(0)}
     .crm-drawer-header{display:flex;align-items:flex-start;justify-content:space-between;padding:24px 24px 0;gap:12px}
     .crm-drawer-name{font-family:var(--font-serif);font-size:22px;font-weight:400;color:var(--text);line-height:1.2;flex:1}
@@ -68,7 +72,7 @@
     .crm-drawer-section-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
     .crm-drawer-section-value{font-size:13px;color:var(--text);line-height:1.6}
     .crm-drawer-section-value.empty{color:var(--text3);font-style:italic}
-    .crm-drawer-actions{display:flex;gap:8px;padding:0 24px 24px;border-top:1px solid var(--border-soft);padding-top:16px}
+    .crm-drawer-actions{display:flex;gap:8px;padding:16px 24px 24px;border-top:1px solid var(--border-soft)}
     .crm-drawer-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .12s}
     .crm-drawer-edit-btn:hover{background:var(--border);color:var(--text)}
     #crm-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:999}
@@ -76,7 +80,7 @@
   `;
   document.head.appendChild(css);
 
-  /* ── Drawer ─────────────────────────────────────────────── */
+  /* ── CRM Drawer (fully self-contained) ──────────────────── */
   function injectDrawer() {
     if (document.getElementById('crm-drawer')) return;
     document.body.insertAdjacentHTML('beforeend', `
@@ -98,6 +102,11 @@
   function openCrmDrawer(c) {
     if (!c) return;
     window._crmDrawerContact = c;
+
+    // Make sure index.html's drawer stays hidden
+    const oldDrawer = document.getElementById('contact-drawer');
+    if (oldDrawer) oldDrawer.style.setProperty('display', 'none', 'important');
+
     const hMap = {Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
 
     sv('crm-drawer-name', c.full_name || '—');
@@ -114,12 +123,12 @@
     if (bd) bd.innerHTML = badges.join('');
 
     const sections = [
-      { label: 'How We Met',       value: c.how_we_met },
+      { label: 'How We Met',            value: c.how_we_met },
       { label: "What They're Building", value: c.what_building },
-      { label: 'What They Need',   value: c.what_need },
-      { label: 'What They Offer',  value: c.what_offer },
-      { label: 'Notes',            value: c.notes },
-      { label: 'Contact ID',       value: c.contact_id },
+      { label: 'What They Need',        value: c.what_need },
+      { label: 'What They Offer',       value: c.what_offer },
+      { label: 'Notes',                 value: c.notes },
+      { label: 'Contact ID',            value: c.contact_id },
     ];
 
     const body = document.getElementById('crm-drawer-body');
@@ -295,10 +304,11 @@
     };
   }
 
-  /* openContactDrawer is now fully owned by contacts-crm.js.
-     index.html's version is discarded — it doesn't know Railway's field names. */
+  /* Nuke index.html's openContactDrawer and closeContactDrawer.
+     Both are replaced with our versions so nothing leaks through. */
   function patchDrawer() {
-    window.openContactDrawer = openCrmDrawer;
+    window.openContactDrawer  = openCrmDrawer;
+    window.closeContactDrawer = window.crmCloseDrawer;
   }
 
   async function crmLoad(offset) {
@@ -338,6 +348,8 @@
   }
 
   window.crmCardClick = function (el) {
+    // Stop any propagation so index.html event listeners can't intercept
+    if (el && el.stopPropagation) el.stopPropagation && el.stopPropagation();
     const grid = document.getElementById('crm-grid'); if (!grid||!grid._contacts) return;
     const c = grid._contacts[parseInt(el.dataset.cidx,10)]; if (!c) return;
     openCrmDrawer(c);
@@ -404,7 +416,6 @@
         toast(`Contact ${isEdit?'updated':'saved'} ✓`);
         window.crmCloseModal();
         window.crmCloseDrawer();
-        // refresh drawer with updated data if editing
         if(isEdit) openCrmDrawer({...crmEditing,...payload});
         crmLoad(isEdit?crmOffset:0);
       } else {

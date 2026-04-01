@@ -1,6 +1,7 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App v20260401g
- * API key hardcoded as a module-level constant — bypasses all window variable timing issues.
+ * Contacts CRM + Activation Hub — Super Connector App v20260401h
+ * - API key hardcoded as a module-level constant
+ * - openContactDrawer fully overridden — no longer depends on index.html's broken version
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
@@ -47,18 +48,109 @@
     .crm-pag{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-soft)}
     .crm-pag-info{font-size:12px;color:var(--text3)}
     .crm-pag-btns{display:flex;gap:8px}
-    .drawer-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:5px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .12s;margin-top:8px}
-    .drawer-edit-btn:hover{background:var(--border);color:var(--text)}
     .activ-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content}
     .activ-tab{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;font-family:var(--font-sans);transition:background .12s,color .12s}
     .activ-tab.active{background:var(--accent);color:#fff}
     .activ-tab:not(.active):hover{background:var(--surface2);color:var(--text)}
     .activ-panel{display:none}
     .activ-panel.active{display:block}
+    /* ── CRM Drawer ── */
+    #crm-drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:95vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:1000;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
+    #crm-drawer.open{transform:translateX(0)}
+    .crm-drawer-header{display:flex;align-items:flex-start;justify-content:space-between;padding:24px 24px 0;gap:12px}
+    .crm-drawer-name{font-family:var(--font-serif);font-size:22px;font-weight:400;color:var(--text);line-height:1.2;flex:1}
+    .crm-drawer-close{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
+    .crm-drawer-close:hover{color:var(--text)}
+    .crm-drawer-meta{padding:6px 24px 16px;font-size:13px;color:var(--text2)}
+    .crm-drawer-badges{display:flex;flex-wrap:wrap;gap:5px;padding:0 24px 16px}
+    .crm-drawer-body{padding:0 24px 24px;flex:1}
+    .crm-drawer-section{margin-bottom:20px}
+    .crm-drawer-section-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+    .crm-drawer-section-value{font-size:13px;color:var(--text);line-height:1.6}
+    .crm-drawer-section-value.empty{color:var(--text3);font-style:italic}
+    .crm-drawer-actions{display:flex;gap:8px;padding:0 24px 24px;border-top:1px solid var(--border-soft);padding-top:16px}
+    .crm-drawer-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .12s}
+    .crm-drawer-edit-btn:hover{background:var(--border);color:var(--text)}
+    #crm-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:999}
+    #crm-drawer-overlay.open{display:block}
   `;
   document.head.appendChild(css);
 
+  /* ── Drawer ─────────────────────────────────────────────── */
+  function injectDrawer() {
+    if (document.getElementById('crm-drawer')) return;
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="crm-drawer-overlay" onclick="crmCloseDrawer()"></div>
+      <div id="crm-drawer">
+        <div class="crm-drawer-header">
+          <div class="crm-drawer-name" id="crm-drawer-name">—</div>
+          <button class="crm-drawer-close" onclick="crmCloseDrawer()">×</button>
+        </div>
+        <div class="crm-drawer-meta" id="crm-drawer-meta"></div>
+        <div class="crm-drawer-badges" id="crm-drawer-badges"></div>
+        <div class="crm-drawer-body" id="crm-drawer-body"></div>
+        <div class="crm-drawer-actions">
+          <button class="crm-drawer-edit-btn" onclick="if(window._crmDrawerContact)crmOpenModal(window._crmDrawerContact)">✎ Edit Contact</button>
+        </div>
+      </div>`);
+  }
+
+  function openCrmDrawer(c) {
+    if (!c) return;
+    window._crmDrawerContact = c;
+    const hMap = {Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
+
+    sv('crm-drawer-name', c.full_name || '—');
+
+    const meta = [c.title_role, c.organization].filter(Boolean).join(' · ');
+    sv('crm-drawer-meta', meta);
+
+    const badges = [];
+    if (c.relationship_health) badges.push(`<span class="crm-hb ${hMap[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>`);
+    if (c.activation_potential) badges.push(`<span class="crm-ab">${esc(c.activation_potential)} activation</span>`);
+    if (c.venture) badges.push(`<span class="crm-sb">${esc(c.venture)}</span>`);
+    if (c.source) badges.push(`<span class="crm-sb">${esc(c.source)}</span>`);
+    const bd = document.getElementById('crm-drawer-badges');
+    if (bd) bd.innerHTML = badges.join('');
+
+    const sections = [
+      { label: 'How We Met',       value: c.how_we_met },
+      { label: "What They're Building", value: c.what_building },
+      { label: 'What They Need',   value: c.what_need },
+      { label: 'What They Offer',  value: c.what_offer },
+      { label: 'Notes',            value: c.notes },
+      { label: 'Contact ID',       value: c.contact_id },
+    ];
+
+    const body = document.getElementById('crm-drawer-body');
+    if (body) {
+      body.innerHTML = sections
+        .filter(s => s.value)
+        .map(s => `
+          <div class="crm-drawer-section">
+            <div class="crm-drawer-section-label">${esc(s.label)}</div>
+            <div class="crm-drawer-section-value">${esc(s.value)}</div>
+          </div>`)
+        .join('') || '<div class="crm-drawer-section"><div class="crm-drawer-section-value empty">No additional details on file.</div></div>';
+    }
+
+    document.getElementById('crm-drawer').classList.add('open');
+    document.getElementById('crm-drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  window.crmCloseDrawer = function () {
+    const d = document.getElementById('crm-drawer');
+    const o = document.getElementById('crm-drawer-overlay');
+    if (d) d.classList.remove('open');
+    if (o) o.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  /* ── DOM Injection ──────────────────────────────────────── */
   function injectDOM() {
+    injectDrawer();
+
     const navSearch = document.getElementById('nav-search');
     if (navSearch && !document.getElementById('nav-contacts')) {
       const btn = document.createElement('button');
@@ -168,17 +260,6 @@
 </div>`);
     }
 
-    if (!document.getElementById('drawer-edit-btn')) {
-      const dh = document.querySelector('#contact-drawer .drawer-header');
-      if (dh) {
-        const b = document.createElement('button');
-        b.className = 'drawer-edit-btn'; b.id = 'drawer-edit-btn';
-        b.innerHTML = '✎ Edit Contact';
-        b.onclick = () => { if (window._crmDrawerContact) crmOpenModal(window._crmDrawerContact); };
-        dh.appendChild(b);
-      }
-    }
-
     crmLoad(0);
   }
 
@@ -214,9 +295,10 @@
     };
   }
 
+  /* openContactDrawer is now fully owned by contacts-crm.js.
+     index.html's version is discarded — it doesn't know Railway's field names. */
   function patchDrawer() {
-    const orig = window.openContactDrawer;
-    window.openContactDrawer = function (c) { window._crmDrawerContact = c; if (orig) orig(c); };
+    window.openContactDrawer = openCrmDrawer;
   }
 
   async function crmLoad(offset) {
@@ -258,7 +340,7 @@
   window.crmCardClick = function (el) {
     const grid = document.getElementById('crm-grid'); if (!grid||!grid._contacts) return;
     const c = grid._contacts[parseInt(el.dataset.cidx,10)]; if (!c) return;
-    window._crmDrawerContact = c; if (window.openContactDrawer) window.openContactDrawer(c);
+    openCrmDrawer(c);
   };
 
   window.crmInput = function (v) {
@@ -293,7 +375,7 @@
   function updatePag(offset,total) {
     const p=document.getElementById('crm-pag'),info=document.getElementById('crm-pag-info'),prev=document.getElementById('crm-prev'),next=document.getElementById('crm-next');
     if(!p) return; p.style.display='flex';
-    if(info) info.textContent=`${offset+1}–${offset+crmContacts.length}${total?' of ~'+total:''}`;
+    if(info) info.textContent=`${offset+1}–${Math.min(offset+crmContacts.length, total||999)}${total?' of '+total:''}`;
     if(prev) prev.disabled=offset===0; if(next) next.disabled=crmContacts.length<PAGE_SIZE;
   }
   window.crmPage = function(dir) { const n=crmOffset+dir*PAGE_SIZE; if(n<0) return; crmLoad(n); const g=document.getElementById('crm-grid'); if(g) g.scrollIntoView({behavior:'smooth',block:'start'}); };
@@ -318,8 +400,16 @@
     try {
       const resp=await fetch(isEdit?`${API_BASE}/contact/${id}`:`${API_BASE}/contact`,{method:isEdit?'PUT':'POST',headers:hdrs(),body:JSON.stringify(payload)});
       const data=await resp.json();
-      if(data.success){toast(`Contact ${isEdit?'updated':'saved'} ✓`);window.crmCloseModal();if(window.closeContactDrawer)window.closeContactDrawer();crmLoad(isEdit?crmOffset:0);}
-      else{toast('Error saving contact');}
+      if(data.success){
+        toast(`Contact ${isEdit?'updated':'saved'} ✓`);
+        window.crmCloseModal();
+        window.crmCloseDrawer();
+        // refresh drawer with updated data if editing
+        if(isEdit) openCrmDrawer({...crmEditing,...payload});
+        crmLoad(isEdit?crmOffset:0);
+      } else {
+        toast('Error saving contact');
+      }
     } catch(e){toast('Save failed: '+e.message);}
     finally{if(sb){sb.disabled=false;sb.textContent=isEdit?'Save Changes':'Save Contact';}}
   };

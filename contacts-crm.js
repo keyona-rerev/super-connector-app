@@ -1,16 +1,14 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App v20260401e
- *
- * KEY FIX: reads API key from window.API_KEY (set by index.html's script block)
- * which is the same key already working for Initiatives, Events, etc.
- * Falls back to CONFIG.API_KEY if window.API_KEY isn't set.
+ * Contacts CRM + Activation Hub — Super Connector App v20260401f
+ * Reads API key from window.SC_API_KEY (set by config.js as a plain global).
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
 
-  // index.html defines `const API_KEY = "..."` in its own <script> block.
-  // We read it at call-time so it's available even if our script runs first.
+  // config.js sets window.SC_API_KEY = "sc_live_k3y_2026_scak" as a plain global.
+  // Plain window assignments survive const redeclarations in other scripts.
   const getKey = () =>
+    window.SC_API_KEY ||
     window.API_KEY ||
     (window.CONFIG && window.CONFIG.API_KEY) ||
     '';
@@ -247,10 +245,8 @@
   function patchShowPage() {
     const orig = window.showPage;
     window.showPage = function (page) {
-      // Always hide contacts page when navigating away
       const pg = document.getElementById('page-contacts');
       if (pg) pg.style.display = 'none';
-
       if (page === 'contacts' || page === 'search') { goContacts(); return; }
       if (page === 'angles') { if (orig) orig('queue'); activTab('angles'); return; }
       if (orig) orig(page);
@@ -275,10 +271,8 @@
     if (!grid) return;
     const fv = gv('crm-fv'), fh = gv('crm-fh'), fa = gv('crm-fa');
     grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>`;
-
     const key = getKey();
-    console.log('[CRM] key source: window.API_KEY=' + !!window.API_KEY + ' CONFIG.API_KEY=' + !!(window.CONFIG && window.CONFIG.API_KEY) + ' key[:8]=' + key.slice(0,8));
-
+    console.log('[CRM] SC_API_KEY='+!!window.SC_API_KEY+' key[:12]='+key.slice(0,12));
     try {
       const resp = await fetch(
         `${API_BASE}/contacts?limit=${PAGE_SIZE}&offset=${offset}`,
@@ -286,7 +280,6 @@
       );
       if (!resp.ok) {
         const body = await resp.text();
-        console.error('[CRM] 403 body:', body);
         throw new Error(`HTTP ${resp.status}: ${body}`);
       }
       const data = await resp.json();
@@ -375,7 +368,6 @@
     const cl  = document.getElementById('crm-clear'); if (cl) cl.classList.remove('vis');
     crmMode='browse'; showBadge(false); crmLoad(0);
   };
-
   window.crmFilter = function () { if (crmMode==='browse') crmLoad(0); };
 
   function updatePag(offset, total) {

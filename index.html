@@ -296,6 +296,57 @@
     .content-detail-value a:hover { text-decoration: underline; }
     .content-tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
 
+    /* ══ EVENTS ══ */
+    .events-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 4px; width: fit-content; }
+    .events-tab { padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; border: none; background: none; font-family: var(--font-sans); transition: background 0.12s, color 0.12s; }
+    .events-tab.active { background: var(--accent); color: #fff; }
+    .events-tab:not(.active):hover { background: var(--surface2); color: var(--text); }
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .event-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; position: relative; overflow: hidden; }
+    .event-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+    .event-card.es-planning::before  { background: var(--planning-border); }
+    .event-card.es-confirmed::before { background: var(--complete-border); }
+    .event-card.es-complete::before  { background: var(--dump-border); }
+    .event-card.es-cancelled::before { background: var(--critical); }
+    .event-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+    .event-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .event-card-meta { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+    .event-card-name { font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
+    .event-card-date { font-size: 12px; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+    .event-card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .guest-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--medium-bg); color: var(--medium); }
+    .event-status-badge { display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .evs-planning  { background: var(--medium-bg);  color: var(--medium); }
+    .evs-confirmed { background: #EDF7ED;            color: var(--complete-border); }
+    .evs-complete  { background: var(--surface2);   color: var(--text3); }
+    .evs-cancelled { background: var(--critical-bg); color: var(--critical); }
+
+    /* ══ EVENT MODAL ══ */
+    .emodal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.55); backdrop-filter: blur(4px); z-index: 250; display: flex; align-items: center; justify-content: center; padding: 32px 24px; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+    .emodal-overlay.open { opacity: 1; pointer-events: all; }
+    .emodal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 860px; max-height: 88vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); overflow: hidden; transform: translateY(20px) scale(0.98); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .emodal-overlay.open .emodal { transform: translateY(0) scale(1); }
+    .emodal-header { padding: 28px 36px 20px; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; }
+    .emodal-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .emodal-title { font-family: var(--font-serif); font-size: 26px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.2; color: var(--text); }
+    .emodal-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text2); flex-shrink: 0; transition: background 0.12s; }
+    .emodal-close:hover { background: var(--border); }
+    .emodal-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .emodal-body { flex: 1; overflow-y: auto; padding: 28px 36px; }
+    .emodal-section { margin-bottom: 28px; }
+    .emodal-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; }
+    .guest-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; }
+    .guest-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-size: 13px; flex-shrink: 0; }
+    .guest-info { flex: 1; min-width: 0; }
+    .guest-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .guest-role-text { font-size: 11px; color: var(--text2); }
+    .guest-status-select { font-size: 11px; font-family: var(--font-sans); background: var(--bg); border: 1px solid var(--border); color: var(--text2); padding: 3px 8px; border-radius: 6px; cursor: pointer; outline: none; }
+    .guest-status-select:focus { border-color: var(--accent); }
+    .add-guest-row { display: flex; gap: 8px; margin-top: 10px; }
+    .add-guest-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 13px; padding: 8px 12px; border-radius: var(--radius); outline: none; }
+    .add-guest-row input:focus { border-color: var(--accent); }
+    .add-guest-row select { background: var(--bg); border: 1px solid var(--border); color: var(--text2); font-family: var(--font-sans); font-size: 13px; padding: 8px 10px; border-radius: var(--radius); outline: none; cursor: pointer; }
+
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -316,6 +367,7 @@
       <button class="nav-item" onclick="showPage('queue')" id="nav-queue"><span class="icon">◎</span> Activation Queue</button>
       <button class="nav-item" onclick="showPage('angles')" id="nav-angles"><span class="icon">◇</span> Activation Angles</button>
       <button class="nav-item" onclick="showPage('content')" id="nav-content"><span class="icon">◫</span> Content Registry</button>
+      <button class="nav-item" onclick="showPage('events')" id="nav-events"><span class="icon">◈</span> Events</button>
     </nav>
     <div class="nav-section">
       <div class="nav-label">Ventures</div>
@@ -404,6 +456,19 @@
         <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading content…</div>
       </div>
     </div>
+
+    <!-- EVENTS PAGE -->
+    <div class="page" id="page-events" style="display:none">
+      <div class="events-tabs">
+        <button class="events-tab active" id="etab-hosting"   onclick="switchEventsTab('Hosting')">Hosting</button>
+        <button class="events-tab"        id="etab-attending" onclick="switchEventsTab('Attending')">Attending</button>
+        <button class="events-tab"        id="etab-workshop"  onclick="switchEventsTab('Workshop')">Workshops</button>
+      </div>
+      <div class="events-grid" id="events-grid">
+        <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading events…</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -525,6 +590,43 @@
   </div>
 </div>
 
+<!-- ADD EVENT MODAL -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <h3>New Event</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="field-group" style="grid-column:1/-1"><label>Event Name *</label><input type="text" id="evt-name" placeholder="BTC Networking Mixer"></div>
+      <div class="field-group"><label>Type</label><select id="evt-type"><option>Hosting</option><option>Attending</option><option>Workshop</option></select></div>
+      <div class="field-group"><label>Venture</label><select id="evt-venture"><option value="">Select…</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
+      <div class="field-group"><label>Date</label><input type="date" id="evt-date"></div>
+      <div class="field-group"><label>Status</label><select id="evt-status"><option>Planning</option><option>Confirmed</option><option>Complete</option><option>Cancelled</option></select></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Location</label><input type="text" id="evt-location" placeholder="Birmingham, AL / Virtual"></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Description</label><textarea id="evt-desc" placeholder="What is this event?" style="min-height:64px"></textarea></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Notes</label><textarea id="evt-notes" placeholder="Internal notes…" style="min-height:52px"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Create Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT DETAIL MODAL -->
+<div class="emodal-overlay" id="emodal-overlay" onclick="handleEModalOverlayClick(event)">
+  <div class="emodal" id="emodal">
+    <div class="emodal-header">
+      <div class="emodal-header-top">
+        <div class="emodal-title" id="emodal-title">Event</div>
+        <button class="emodal-close" onclick="closeEModal()">×</button>
+      </div>
+      <div class="emodal-meta" id="emodal-meta"></div>
+    </div>
+    <div class="emodal-body" id="emodal-body">
+      <div class="loading-state"><div class="spinner"></div>Loading event…</div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="config.js"></script>
@@ -559,6 +661,8 @@ let activeVentureFilter = '';
 let currentPage = 'board';
 let activeModuleIndex = null;
 let currentInitiativeData = null;
+let allEvents = [];
+let activeEventTab = 'Hosting';
 
 // ── BTC SUBPROJECTS ────────────────────────────────────────────────────────
 const BTC_SUBPROJECTS = [
@@ -574,229 +678,310 @@ const INITIATIVE_SUBPROJECTS = { 'BTC Climate Tech Exit Lab': BTC_SUBPROJECTS };
 
 // ── NAV ────────────────────────────────────────────────────────────────────
 function showPage(page) {
-  ['board','search','queue','angles','content'].forEach(p => {
+  ['board','search','queue','angles','content','events'].forEach(p => {
     document.getElementById('page-' + p).style.display = p === page ? '' : 'none';
     document.getElementById('nav-' + p)?.classList.toggle('active', p === page);
   });
-  const titles = { board:'Initiatives Board', search:'Search Contacts', queue:'Activation Queue', angles:'Activation Angles', content:'Content Registry' };
+  const titles = {
+    board:'Initiatives Board', search:'Search Contacts', queue:'Activation Queue',
+    angles:'Activation Angles', content:'Content Registry', events:'Events'
+  };
   document.getElementById('page-title').textContent = titles[page] || '';
   const addBtn = document.getElementById('topbar-add-btn');
-  if (page === 'board') { addBtn.style.display = ''; addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
-  else if (page === 'content') { addBtn.style.display = ''; addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; }
-  else { addBtn.style.display = 'none'; }
+  if (page === 'board') {
+    addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; addBtn.style.display = '';
+  } else if (page === 'content') {
+    addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; addBtn.style.display = '';
+  } else if (page === 'angles') {
+    addBtn.textContent = '+ New Angle'; addBtn.onclick = openAngleModal; addBtn.style.display = '';
+  } else if (page === 'events') {
+    addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; addBtn.style.display = '';
+    loadEvents();
+  } else {
+    addBtn.style.display = 'none';
+  }
   currentPage = page;
-  if (page === 'queue')   loadQueue();
-  if (page === 'angles')  loadAngles();
+  if (page === 'board' && allInitiatives.length === 0) loadBoard();
+  if (page === 'queue') loadQueue();
+  if (page === 'angles') loadAngles();
   if (page === 'content') loadContent();
 }
 
 function filterVenture(v) {
   activeVentureFilter = v;
   showPage('board');
-  ['rerev','prismm','btc','sekh'].forEach(id => document.getElementById('nav-' + id)?.classList.remove('active'));
-  const map = { 'ReRev Labs':'rerev', 'Prismm':'prismm', 'Black Tech Capital':'btc', 'Sekhmetic':'sekh' };
-  if (map[v]) document.getElementById('nav-' + map[v])?.classList.add('active');
   renderBoard();
 }
 
-// ── INITIATIVES BOARD ──────────────────────────────────────────────────────
+// ── BOARD ──────────────────────────────────────────────────────────────────
 async function loadBoard() {
   try {
-    const res = await api('/initiatives');
-    allInitiatives = res.data || [];
+    const data = await api('/initiatives');
+    allInitiatives = data.data || [];
     renderBoard();
     document.getElementById('topbar-meta').textContent = `${allInitiatives.length} initiatives`;
-  } catch (e) {
-    document.getElementById('board-columns').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Could not load initiatives</h3><p>${e.message}</p></div>`;
+  } catch(e) {
+    document.getElementById('board-columns').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Failed to load: ${esc(e.message)}</p></div>`;
   }
 }
 
-const COLUMNS = [
-  { key:'Active', label:'Active', cls:'col-active' },
-  { key:'Planning', label:'Planning', cls:'col-planning' },
-  { key:'Brain Dump', label:'Brain Dump', cls:'col-dump' },
-  { key:'Blocked', label:'Blocked', cls:'col-blocked' },
-  { key:'Complete', label:'Complete', cls:'col-complete' },
-];
-const DOT_CLASS = { 'Active':'dot-active','Planning':'dot-planning','Brain Dump':'dot-dump','Blocked':'dot-blocked','Complete':'dot-complete' };
-
 function renderBoard() {
-  const q = (document.getElementById('board-search')?.value || '').toLowerCase();
-  const priFilter = document.getElementById('board-priority')?.value || '';
-  let items = allInitiatives.filter(i => {
-    if (activeVentureFilter && i.venture !== activeVentureFilter) return false;
-    if (priFilter && i.priority !== priFilter) return false;
-    if (q) { const hay = [i.initiative_name,i.goal,i.venture,i.notes,i.brain_dump].join(' ').toLowerCase(); if (!hay.includes(q)) return false; }
-    return true;
-  });
-  const grid = document.getElementById('board-columns');
-  grid.innerHTML = COLUMNS.map(col => {
-    const cards = items.filter(i => (i.status || 'Brain Dump') === col.key);
-    return `<div class="board-col"><div class="board-col-header"><div class="board-col-title"><span class="status-dot ${DOT_CLASS[col.key]}"></span>${col.label}</div><span class="board-col-count">${cards.length}</span></div>${cards.length === 0 ? `<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px">No initiatives</div>` : cards.map(c => initiativeCard(c, col.cls)).join('')}</div>`;
-  }).join('');
+  const q = document.getElementById('board-search').value.toLowerCase();
+  const pri = document.getElementById('board-priority').value;
+  const cols = { 'Brain Dump':[], 'Planning':[], 'Active':[], 'Paused':[], 'Complete':[] };
+  allInitiatives
+    .filter(i => {
+      if (activeVentureFilter && i.venture !== activeVentureFilter) return false;
+      if (pri && i.priority !== pri) return false;
+      if (q && !((i.initiative_name||'').toLowerCase().includes(q) || (i.goal||'').toLowerCase().includes(q))) return false;
+      return true;
+    })
+    .forEach(i => { (cols[i.status] || cols['Brain Dump']).push(i); });
+
+  const colMeta = [
+    { key:'Brain Dump', label:'Brain Dump', cls:'col-dump',     dot:'dot-dump' },
+    { key:'Planning',   label:'Planning',   cls:'col-planning', dot:'dot-planning' },
+    { key:'Active',     label:'Active',     cls:'col-active',   dot:'dot-active' },
+    { key:'Paused',     label:'Paused',     cls:'col-blocked',  dot:'dot-blocked' },
+    { key:'Complete',   label:'Complete',   cls:'col-complete', dot:'dot-complete' },
+  ];
+
+  document.getElementById('board-columns').innerHTML = colMeta.map(col => `
+    <div>
+      <div class="board-col-header">
+        <div class="board-col-title"><span class="status-dot ${col.dot}"></span>${col.label}</div>
+        <span class="board-col-count">${cols[col.key].length}</span>
+      </div>
+      ${cols[col.key].map(i => `
+        <div class="initiative-card ${col.cls}" onclick="openIModal('${esc(i.initiative_id)}')">
+          <div class="card-venture">${esc(i.venture)}</div>
+          <div class="card-name">${esc(i.initiative_name)}</div>
+          <div class="card-goal">${esc(i.goal)}</div>
+          <div class="card-footer">
+            <span class="badge badge-${(i.priority||'medium').toLowerCase()}">${esc(i.priority)}</span>
+            <span style="font-size:10px;color:var(--text3)">${esc(i.phoebe_cadence||'')}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
 }
 
-function initiativeCard(i, cls) {
-  const priClass = { Critical:'badge-critical', High:'badge-high', Medium:'badge-medium', Low:'badge-low', Parked:'badge-low' };
-  return `<div class="initiative-card ${cls}" onclick="openInitiative('${i.initiative_id}')"><div class="card-venture">${esc(i.venture||'—')}</div><div class="card-name">${esc(i.initiative_name||'Untitled')}</div>${i.goal?`<div class="card-goal">${esc(i.goal)}</div>`:''}<div class="card-footer"><span class="badge ${priClass[i.priority]||'badge-low'}">${i.priority||'No priority'}</span>${i.phoebe_cadence&&i.phoebe_cadence!=='None'?`<span style="font-size:11px;color:var(--text3)">⊛ ${i.phoebe_cadence}</span>`:''}</div></div>`;
-}
-
-// ── INITIATIVE MODAL ───────────────────────────────────────────────────────
-async function openInitiative(id) {
-  activeModuleIndex = null; currentInitiativeData = null;
-  const pSection = document.getElementById('pipeline-section');
-  pSection.classList.remove('collapsed');
-  document.getElementById('pipeline-toggle-label').textContent = 'Collapse';
-  const overlay = document.getElementById('imodal-overlay');
-  overlay.classList.add('open');
-  document.getElementById('imodal-venture').textContent = '';
+// ── INITIATIVE MODAL ──────────────────────────────────────────────────────
+async function openIModal(initiativeId) {
+  document.getElementById('imodal-overlay').classList.add('open');
   document.getElementById('imodal-title').textContent = 'Loading…';
   document.getElementById('imodal-goal').textContent = '';
+  document.getElementById('imodal-venture').textContent = '';
   document.getElementById('imodal-meta').innerHTML = '';
   document.getElementById('pipeline-track').innerHTML = '<div class="loading-state" style="padding:20px"><div class="spinner"></div></div>';
   document.getElementById('module-detail').className = 'module-detail empty';
   document.getElementById('module-detail').innerHTML = '<span>Select a module to see details and matched contacts</span>';
+  activeModuleIndex = null;
+
   try {
-    const res = await api(`/initiative/${id}`);
-    const d = res.data; currentInitiativeData = d;
-    document.getElementById('imodal-venture').textContent = d.venture || '';
-    document.getElementById('imodal-title').textContent = d.initiative_name || 'Initiative';
-    document.getElementById('imodal-goal').textContent = d.goal || '';
-    const priClass = { Critical:'badge-critical', High:'badge-high', Medium:'badge-medium', Low:'badge-low', Parked:'badge-parked' };
-    const dotCls = { Active:'dot-active', Planning:'dot-planning', 'Brain Dump':'dot-dump', Blocked:'dot-blocked', Complete:'dot-complete' };
+    const data = await api(`/initiative/${initiativeId}`);
+    currentInitiativeData = data;
+    const ini = data.data;
+    document.getElementById('imodal-venture').textContent = ini.venture || '';
+    document.getElementById('imodal-title').textContent = ini.initiative_name || '';
+    document.getElementById('imodal-goal').textContent = ini.goal || '';
+
+    const statusDot = { Active:'dot-active', Planning:'dot-planning', 'Brain Dump':'dot-dump', Paused:'dot-blocked', Complete:'dot-complete' };
     document.getElementById('imodal-meta').innerHTML = `
-      <div class="imodal-meta-chip"><span class="dot" style="background:var(--${d.status==='Active'?'active':'planning'}-border)"></span>${d.status||''}</div>
-      <div class="imodal-meta-chip"><span class="badge ${priClass[d.priority]||'badge-low'}" style="padding:1px 6px">${d.priority||''}</span></div>
-      ${d.phoebe_cadence&&d.phoebe_cadence!=='None'?`<div class="imodal-meta-chip">⊛ ${d.phoebe_cadence}</div>`:''}`;
-    renderPipeline(d);
+      <span class="imodal-meta-chip"><span class="dot ${statusDot[ini.status]||'dot-dump'}"></span>${esc(ini.status)}</span>
+      <span class="imodal-meta-chip">${esc(ini.priority)}</span>
+      ${ini.phoebe_cadence ? `<span class="imodal-meta-chip">Phoebe: ${esc(ini.phoebe_cadence)}</span>` : ''}
+      ${ini.timeline ? `<span class="imodal-meta-chip">${esc(ini.timeline)}</span>` : ''}
+    `;
+
+    renderPipeline(ini, data.sub_projects || []);
   } catch(e) {
     document.getElementById('imodal-title').textContent = 'Error loading initiative';
-    document.getElementById('pipeline-track').innerHTML = `<div class="contacts-empty">${e.message}</div>`;
+    document.getElementById('pipeline-track').innerHTML = `<p style="padding:20px;color:var(--critical)">${esc(e.message)}</p>`;
   }
 }
 
-function renderPipeline(d) {
-  const subprojects = INITIATIVE_SUBPROJECTS[d.initiative_name];
-  if (!subprojects || subprojects.length === 0) {
-    document.getElementById('pipeline-track').innerHTML = '<div class="contacts-empty" style="padding:20px 0">No pipeline defined for this initiative</div>';
+function renderPipeline(ini, subProjects) {
+  const hardcoded = INITIATIVE_SUBPROJECTS[ini.initiative_name];
+  const nodes = hardcoded || subProjects.map((sp, i) => ({
+    id: sp.sub_project_id, name: sp.sub_project_name, status: sp.status,
+    description: sp.description || '', stakeholderProfile: '', searchQuery: sp.sub_project_name,
+    actionType: 'outreach', actionLabel: 'Outreach', parallel: false, dependsOn: []
+  }));
+
+  if (!nodes || nodes.length === 0) {
+    document.getElementById('pipeline-track').innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px;font-style:italic">No sub-projects yet.</div>';
     return;
   }
+
   let html = '';
   let i = 0;
-  while (i < subprojects.length) {
-    const sp = subprojects[i];
-    if (i > 0) html += `<div class="pipeline-arrow"><div class="arrow-line" style="width:24px"></div><div class="arrow-head"></div></div>`;
-    if (sp.parallel && i + 1 < subprojects.length && subprojects[i+1].parallel && subprojects[i+1].parallelGroup === sp.parallelGroup) {
-      const group = [];
-      const pg = sp.parallelGroup;
-      while (i < subprojects.length && subprojects[i].parallel && subprojects[i].parallelGroup === pg) { group.push(subprojects[i]); i++; }
-      html += `<div class="parallel-group-wrap"><div class="parallel-label">Parallel · Group ${pg}</div><div class="parallel-group">${group.map((gsp,gi) => pipelineNode(gsp, false)).join('')}</div></div>`;
-    } else {
-      html += pipelineNode(sp, false);
-      i++;
+  while (i < nodes.length) {
+    const node = nodes[i];
+    if (i > 0) html += `<div class="pipeline-arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>`;
+
+    if (node.parallel && node.parallelGroup) {
+      const group = nodes.filter(n => n.parallelGroup === node.parallelGroup);
+      const groupIndices = group.map(n => nodes.indexOf(n));
+      html += `
+        <div class="parallel-group-wrap">
+          <div class="parallel-label">Parallel</div>
+          <div class="parallel-group">
+            ${group.map((n, gi) => `
+              <div class="pipeline-node parallel-child ${activeModuleIndex === nodes.indexOf(n) ? 'active':''}" onclick="selectModule(${nodes.indexOf(n)})">
+                <div class="node-number">${nodes.indexOf(n)+1}</div>
+                <div class="node-name">${esc(n.name)}</div>
+                <div class="node-status"><span class="node-status-dot ns-${(n.status||'planning').toLowerCase()}"></span>${esc(n.status||'Planning')}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+      i += group.length;
+      continue;
     }
+
+    html += `
+      <div class="pipeline-node ${activeModuleIndex === i ? 'active':''}" onclick="selectModule(${i})">
+        <div class="node-number">${i+1}</div>
+        <div class="node-name">${esc(node.name)}</div>
+        <div class="node-status"><span class="node-status-dot ns-${(node.status||'planning').toLowerCase()}"></span>${esc(node.status||'Planning')}</div>
+      </div>`;
+    i++;
   }
   document.getElementById('pipeline-track').innerHTML = html;
+  window._pipelineNodes = nodes;
 }
 
-function pipelineNode(sp, isActive) {
-  const statusDot = { planning:'ns-planning', active:'ns-active', complete:'ns-complete' };
-  return `<div class="pipeline-node${isActive?' active':''}${sp.parallel?' parallel-child':''}" onclick="selectModule('${sp.id}')">
-    <div class="node-number">${sp.id.replace('sp','')}</div>
-    <div class="node-name">${esc(sp.name)}</div>
-    <div class="node-status"><div class="node-status-dot ${statusDot[sp.status]||''}"></div>${sp.status}</div>
-  </div>`;
-}
+async function selectModule(idx) {
+  activeModuleIndex = idx;
+  const nodes = window._pipelineNodes;
+  if (!nodes) return;
+  const node = nodes[idx];
 
-function selectModule(spId) {
-  if (!currentInitiativeData) return;
-  const subprojects = INITIATIVE_SUBPROJECTS[currentInitiativeData.initiative_name];
-  if (!subprojects) return;
-  const sp = subprojects.find(s => s.id === spId);
-  if (!sp) return;
-  document.querySelectorAll('.pipeline-node').forEach(n => n.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  document.querySelectorAll('.pipeline-node').forEach((el, i) => {
+    el.classList.toggle('active', false);
+  });
+  document.querySelectorAll('.pipeline-node').forEach(el => {
+    if (el.querySelector('.node-number')?.textContent === String(idx+1)) el.classList.add('active');
+  });
+
   const detail = document.getElementById('module-detail');
   detail.className = 'module-detail';
-  detail.innerHTML = `<div class="module-detail-inner">
-    <div class="module-info-panel">
-      <div class="module-info-title">${esc(sp.name)}</div>
-      <div class="module-info-section"><div class="module-info-label">What we're doing</div><div class="module-info-text">${esc(sp.description)}</div></div>
-      <div class="module-info-section"><div class="module-info-label">Who we need</div><div class="stakeholder-profile"><div class="stakeholder-profile-desc">${esc(sp.stakeholderProfile)}</div></div></div>
-    </div>
-    <div class="module-actions">
-      <div class="module-actions-header"><div class="module-actions-title">Matched Contacts</div></div>
-      <div id="module-contacts-${sp.id}"><div class="contacts-loading"><div class="spinner"></div>Finding matches…</div></div>
-    </div>
-  </div>`;
-  loadModuleContacts(sp);
-}
+  detail.innerHTML = `
+    <div class="module-detail-inner">
+      <div class="module-info-panel">
+        <div class="module-info-title">${esc(node.name)}</div>
+        <div class="module-info-section">
+          <div class="module-info-label">What this is</div>
+          <div class="module-info-text">${esc(node.description)}</div>
+        </div>
+        ${node.stakeholderProfile ? `
+        <div class="module-info-section">
+          <div class="module-info-label">Ideal stakeholder profile</div>
+          <div class="stakeholder-profile">
+            <div class="stakeholder-profile-desc">${esc(node.stakeholderProfile)}</div>
+          </div>
+        </div>` : ''}
+      </div>
+      <div class="module-actions">
+        <div class="module-actions-header">
+          <div class="module-actions-title">Matched Contacts</div>
+        </div>
+        <div id="module-contacts"><div class="contacts-loading"><div class="spinner"></div>Searching…</div></div>
+      </div>
+    </div>`;
 
-async function loadModuleContacts(sp) {
-  const container = document.getElementById(`module-contacts-${sp.id}`);
   try {
-    const res = await api(`/search?q=${encodeURIComponent(sp.searchQuery)}&limit=5`);
-    const results = res.results || [];
-    if (results.length === 0) { container.innerHTML = '<div class="contacts-empty">No strong matches found</div>'; return; }
-    container.innerHTML = results.map(r => `
-      <div class="match-result-card" onclick="openContactDrawer('${r.contact_id||r.id}')">
+    const res = await api('/search', { method:'POST', body: JSON.stringify({ query: node.searchQuery || node.name, top_k: 6 }) });
+    const results = (res.results || []).filter(r => r.similarity > 0.3);
+    if (!results.length) {
+      document.getElementById('module-contacts').innerHTML = '<div class="contacts-empty">No strong matches found.</div>';
+      return;
+    }
+    document.getElementById('module-contacts').innerHTML = results.map(r => `
+      <div class="match-result-card" onclick="openContactDrawer('${esc(r.contact_id)}')">
         <div class="match-result-top">
           <div class="match-result-identity">
-            <div class="match-result-name">${esc(r.name||r.full_name||'Unknown')}</div>
-            <div class="match-result-role">${esc(r.title||'')}${r.organization?` · ${esc(r.organization)}`:''}</div>
+            <div class="match-result-name">${esc(r.full_name)}</div>
+            <div class="match-result-role">${esc(r.title_role||'')}${r.organization ? ' · '+esc(r.organization) : ''}</div>
           </div>
-          <span class="match-result-score">${r.score?Math.round(r.score*100)+'%':''}</span>
+          <span class="match-result-score">${Math.round(r.similarity*100)}%</span>
         </div>
-        ${r.why||r.summary?`<div class="match-result-why">${esc(r.why||r.summary)}</div>`:''}
+        ${r.notes ? `<div class="match-result-why">${esc(r.notes)}</div>` : ''}
         <div class="action-chips">
-          <button class="action-chip ${sp.actionType}" onclick="event.stopPropagation();toast('${sp.actionLabel} queued')">${sp.actionLabel}</button>
+          <button class="action-chip ${node.actionType||'outreach'}" onclick="event.stopPropagation()">${esc(node.actionLabel||'Outreach')}</button>
+          <button class="action-chip followup" onclick="event.stopPropagation()">Follow Up</button>
         </div>
       </div>`).join('');
   } catch(e) {
-    container.innerHTML = `<div class="contacts-empty">${e.message}</div>`;
+    document.getElementById('module-contacts').innerHTML = `<div class="contacts-empty">${esc(e.message)}</div>`;
   }
 }
 
-function handleIModalOverlayClick(e) { if (e.target === document.getElementById('imodal-overlay')) closeIModal(); }
 function closeIModal() { document.getElementById('imodal-overlay').classList.remove('open'); }
+function handleIModalOverlayClick(e) { if (e.target === document.getElementById('imodal-overlay')) closeIModal(); }
+
 function togglePipeline() {
-  const s = document.getElementById('pipeline-section');
-  s.classList.toggle('collapsed');
-  document.getElementById('pipeline-toggle-label').textContent = s.classList.contains('collapsed') ? 'Expand' : 'Collapse';
+  const section = document.getElementById('pipeline-section');
+  const label = document.getElementById('pipeline-toggle-label');
+  const collapsed = section.classList.toggle('collapsed');
+  label.textContent = collapsed ? 'Expand' : 'Collapse';
 }
 
 // ── CONTACT DRAWER ─────────────────────────────────────────────────────────
-async function openContactDrawer(id) {
-  document.getElementById('contact-drawer-title').textContent = 'Loading…';
-  document.getElementById('contact-drawer-sub').textContent = '';
-  document.getElementById('contact-drawer-body').innerHTML = '<div class="loading-state" style="padding:30px 0"><div class="spinner"></div></div>';
+async function openContactDrawer(contactId) {
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('contact-drawer').classList.add('open');
+  document.getElementById('contact-drawer-title').textContent = 'Loading…';
+  document.getElementById('contact-drawer-sub').textContent = '';
+  document.getElementById('contact-drawer-body').innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
   try {
-    const res = await api(`/contact/${id}`);
+    const res = await api(`/contact/${contactId}`);
     const c = res.data;
-    document.getElementById('contact-drawer-title').textContent = c.full_name || c.name || 'Contact';
-    document.getElementById('contact-drawer-sub').textContent = [c.title, c.organization].filter(Boolean).join(' · ');
+    document.getElementById('contact-drawer-title').textContent = c.full_name || '';
+    document.getElementById('contact-drawer-sub').textContent = [c.title_role, c.organization].filter(Boolean).join(' · ');
     document.getElementById('contact-drawer-body').innerHTML = `
       <div class="detail-section">
-        <div class="detail-section-label">Profile</div>
+        <div class="detail-section-label">Identity</div>
         <div class="field-grid-2">
-          ${c.email?`<div class="detail-field"><label>Email</label><p>${esc(c.email)}</p></div>`:''}
-          ${c.phone?`<div class="detail-field"><label>Phone</label><p>${esc(c.phone)}</p></div>`:''}
-          ${c.location?`<div class="detail-field"><label>Location</label><p>${esc(c.location)}</p></div>`:''}
-          ${c.relationship_health?`<div class="detail-field"><label>Rel. Health</label><p>${esc(c.relationship_health)}</p></div>`:''}
+          <div class="detail-field"><label>Role</label><p>${esc(c.title_role||'—')}</p></div>
+          <div class="detail-field"><label>Organization</label><p>${esc(c.organization||'—')}</p></div>
+          <div class="detail-field"><label>Venture</label><p>${esc(c.venture||'—')}</p></div>
+          <div class="detail-field"><label>How We Met</label><p>${esc(c.how_we_met||'—')}</p></div>
         </div>
       </div>
-      ${c.notes?`<div class="detail-section"><div class="detail-section-label">Notes</div><p style="font-size:13px;color:var(--text2);line-height:1.6">${esc(c.notes)}</p></div>`:''}
       <div class="detail-section">
-        <div class="detail-section-label">Quick Actions</div>
-        <div class="quick-actions">
-          <button class="btn btn-ghost btn-sm" onclick="toast('Follow-up logged')">Log Follow-Up</button>
-          <button class="btn btn-ghost btn-sm" onclick="toast('Email drafted')">Draft Email</button>
+        <div class="detail-section-label">Profile</div>
+        <div class="detail-field"><label>What They're Building</label><p>${esc(c.what_building||'—')}</p></div>
+        <div class="detail-field"><label>What They Need</label><p>${esc(c.what_need||'—')}</p></div>
+        <div class="detail-field"><label>What They Offer</label><p>${esc(c.what_offer||'—')}</p></div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-label">Relationship</div>
+        <div class="field-grid-2">
+          <div class="detail-field"><label>Health</label><p>${esc(c.relationship_health||'—')}</p></div>
+          <div class="detail-field"><label>Activation Potential</label><p>${esc(c.activation_potential||'—')}</p></div>
         </div>
+        ${c.notes ? `<div class="detail-field"><label>Notes</label><p>${esc(c.notes)}</p></div>` : ''}
+      </div>
+      ${res.initiative_links && res.initiative_links.length ? `
+      <div class="detail-section">
+        <div class="detail-section-label">Initiative Links (${res.initiative_links.length})</div>
+        ${res.initiative_links.map(l => `
+          <div class="initiative-link">
+            <div>
+              <div class="initiative-link-name">${esc(l.initiative_id)}</div>
+              <div class="initiative-link-role">${esc(l.role||'')} — ${esc(l.engagement_status||'')}</div>
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+      <div class="quick-actions">
+        <button class="btn btn-ghost btn-sm" onclick="toast('Draft sent to clipboard')">Draft Outreach</button>
+        <button class="btn btn-ghost btn-sm" onclick="toast('Follow-up logged')">Log Follow-up</button>
       </div>`;
   } catch(e) {
-    document.getElementById('contact-drawer-body').innerHTML = `<div class="contacts-empty">${e.message}</div>`;
+    document.getElementById('contact-drawer-body').innerHTML = `<p style="color:var(--critical)">${esc(e.message)}</p>`;
   }
 }
 
@@ -809,81 +994,379 @@ function closeContactDrawer() {
 async function runSearch() {
   const q = document.getElementById('search-input').value.trim();
   if (!q) return;
-  const results = document.getElementById('search-results');
-  results.innerHTML = '<div class="loading-state"><div class="spinner"></div>Searching…</div>';
+  const el = document.getElementById('search-results');
+  el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Searching…</div>';
   try {
-    const res = await api(`/search?q=${encodeURIComponent(q)}&limit=12`);
-    const items = res.results || [];
-    if (items.length === 0) { results.innerHTML = '<div class="empty-state"><h3>No matches found</h3><p>Try different keywords.</p></div>'; return; }
-    results.innerHTML = `<div class="results-grid">${items.map(r => `
-      <div class="contact-card" onclick="openContactDrawer('${r.contact_id||r.id}')">
-        <div class="contact-name">${esc(r.name||r.full_name||'Unknown')}</div>
-        <div class="contact-role">${esc(r.title||'')}${r.organization?` · ${esc(r.organization)}`:''}</div>
-        ${r.score?`<span class="contact-score">⊹ ${Math.round(r.score*100)}% match</span>`:''}
-        ${r.tags&&r.tags.length?`<div class="contact-tags">${r.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+    const res = await api('/search', { method:'POST', body: JSON.stringify({ query:q, top_k:12 }) });
+    const results = res.results || [];
+    if (!results.length) { el.innerHTML = '<div class="empty-state"><h3>No matches</h3><p>Try different keywords.</p></div>'; return; }
+    el.innerHTML = `<div class="results-grid">${results.map(r => `
+      <div class="contact-card" onclick="openContactDrawer('${esc(r.contact_id)}')">
+        <div class="contact-name">${esc(r.full_name)}</div>
+        <div class="contact-role">${esc(r.title_role||'')}${r.organization?' · '+esc(r.organization):''}</div>
+        <span class="contact-score">${Math.round(r.similarity*100)}% match</span>
+        <div class="contact-tags">
+          ${r.venture?`<span class="tag">${esc(r.venture)}</span>`:''}
+          ${r.relationship_health?`<span class="tag">${esc(r.relationship_health)}</span>`:''}
+        </div>
       </div>`).join('')}</div>`;
   } catch(e) {
-    results.innerHTML = `<div class="empty-state"><h3>Search failed</h3><p>${e.message}</p></div>`;
+    el.innerHTML = `<div class="empty-state"><p>${esc(e.message)}</p></div>`;
   }
 }
 
-// ── QUEUE ──────────────────────────────────────────────────────────────────
+// ── ACTIVATION QUEUE ───────────────────────────────────────────────────────
 async function loadQueue() {
-  const list = document.getElementById('queue-list');
-  list.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading queue…</div>';
+  const el = document.getElementById('queue-list');
+  el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading queue…</div>';
   try {
-    const res = await api('/follow-ups?status=Open&limit=50');
-    const items = res.data || [];
-    if (items.length === 0) { list.innerHTML = '<div class="empty-state"><h3>All clear</h3><p>No open follow-ups right now.</p></div>'; return; }
-    const today = new Date().toDateString();
-    list.innerHTML = items.map(f => {
-      const due = f.next_action_date ? new Date(f.next_action_date) : null;
-      const isOverdue = due && due < new Date() && due.toDateString() !== today;
-      const isToday = due && due.toDateString() === today;
-      const urgencyCls = isOverdue ? 'urgency-overdue' : isToday ? 'urgency-today' : '';
-      return `<div class="queue-item" onclick="openContactDrawer('${f.contact_id||''}')">
-        ${urgencyCls?`<div class="queue-urgency ${urgencyCls}"></div>`:''}
-        <div class="queue-info">
-          <div class="queue-name">${esc(f.contact_name||'Unknown')}</div>
-          <div class="queue-meta">${esc(f.venture||'')}${f.meeting_name?` · ${esc(f.meeting_name)}`:''}</div>
-          <div class="queue-action">${esc(f.next_action||'')}</div>
-        </div>
-        ${due?`<div style="font-size:11px;color:${isOverdue?'var(--critical)':'var(--text3)'};">${due.toLocaleDateString()}</div>`:''}
-      </div>`;
+    const [openRes, overdueRes] = await Promise.all([
+      api('/follow-ups/open'),
+      api('/follow-ups/overdue')
+    ]);
+    const open = openRes.data || [];
+    const overdue = overdueRes.data || [];
+    const overdueIds = new Set(overdue.map(f => f.follow_up_id));
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!open.length) {
+      el.innerHTML = '<div class="empty-state"><h3>Queue is clear</h3><p>No open follow-ups.</p></div>';
+      return;
+    }
+    el.innerHTML = open.map(f => {
+      const isOverdue = overdueIds.has(f.follow_up_id);
+      const isToday = f.next_action_date === today;
+      return `
+        <div class="queue-item" onclick="openContactDrawer('${esc(f.contact_id||'')}')">
+          <div class="queue-urgency ${isOverdue?'urgency-overdue':isToday?'urgency-today':''}"></div>
+          <div class="queue-info">
+            <div class="queue-name">${esc(f.contact_name)}</div>
+            <div class="queue-meta">${esc(f.venture||'')}${f.meeting_name?' · '+esc(f.meeting_name):''}</div>
+            <div class="queue-action">${esc(f.next_action||'')}</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">${esc(f.next_action_date||'')}</div>
+        </div>`;
     }).join('');
   } catch(e) {
-    list.innerHTML = `<div class="empty-state"><h3>Could not load queue</h3><p>${e.message}</p></div>`;
+    el.innerHTML = `<div class="empty-state"><p>${esc(e.message)}</p></div>`;
   }
 }
 
-// ── ANGLES ─────────────────────────────────────────────────────────────────
+// ── ACTIVATION ANGLES ──────────────────────────────────────────────────────
 async function loadAngles() {
-  const list = document.getElementById('angles-list');
-  list.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading angles…</div>';
+  const el = document.getElementById('angles-list');
+  el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading angles…</div>';
   try {
-    const res = await api('/angles');
-    const items = res.data || [];
-    if (items.length === 0) { list.innerHTML = '<div class="empty-state"><h3>No angles yet</h3><p>Add your first activation angle.</p></div>'; return; }
-    list.innerHTML = items.map(a => `
-      <div class="queue-item">
-        <div class="queue-info">
-          <div class="queue-name">${esc(a.angle_name||a.name||'Angle')}</div>
-          <div class="queue-meta">${esc(a.best_for||'')}</div>
-          ${a.description?`<div class="queue-action">${esc(a.description)}</div>`:''}
+    const res = await api('/activation-angles');
+    const angles = res.data || [];
+    if (!angles.length) {
+      el.innerHTML = '<div class="empty-state"><h3>No angles yet</h3><p>Create your first outreach framework.</p></div>';
+      return;
+    }
+    el.innerHTML = `<div class="content-grid">${angles.map(a => `
+      <div class="content-card">
+        <div class="content-card-top">
+          <div>
+            <div class="content-card-meta">${esc(a.best_for||'General')}</div>
+            <div class="content-card-name">${esc(a.angle_name)}</div>
+          </div>
         </div>
-      </div>`).join('');
+        <div class="content-card-angle">${esc(a.description||'')}</div>
+        ${a.template ? `<div style="font-size:11px;color:var(--text3);margin-bottom:8px;background:var(--surface2);padding:8px 10px;border-radius:8px;white-space:pre-wrap">${esc(a.template.substring(0,200))}${a.template.length>200?'…':''}</div>` : ''}
+      </div>`).join('')}</div>`;
   } catch(e) {
-    list.innerHTML = `<div class="empty-state"><h3>Could not load angles</h3><p>${e.message}</p></div>`;
+    el.innerHTML = `<div class="empty-state"><p>${esc(e.message)}</p></div>`;
   }
 }
 
-// ── ADD INITIATIVE ─────────────────────────────────────────────────────────
+// ── CONTENT REGISTRY ───────────────────────────────────────────────────────
+async function loadContent() {
+  try {
+    const res = await api('/content');
+    window._allContent = res.data || [];
+    renderContent();
+  } catch(e) {
+    document.getElementById('content-grid').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderContent() {
+  const q = (document.getElementById('content-search').value||'').toLowerCase();
+  const v = document.getElementById('content-venture').value;
+  const t = document.getElementById('content-type').value;
+  const s = document.getElementById('content-sync').value;
+  const all = window._allContent || [];
+  const filtered = all.filter(c => {
+    if (v && c.venture !== v) return false;
+    if (t && c.content_type !== t) return false;
+    if (s && c.prismm_sync !== s) return false;
+    if (q && !((c.content_name||'').toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    document.getElementById('content-grid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No content</h3><p>Add your first asset.</p></div>';
+    return;
+  }
+
+  const syncClass = s => ({ Pending:'prismm-sync-pending', Synced:'prismm-sync-synced', 'Needs Update':'prismm-sync-needs-update' }[s] || '');
+  const statusClass = s => ({ Active:'cs-active', Draft:'cs-draft', Idea:'cs-idea', 'In Progress':'cs-in-progress', Published:'cs-published', Archived:'cs-archived' }[s] || 'cs-idea');
+  const syncBadge = s => s ? `<span class="sync-badge sync-${(s||'none').toLowerCase().replace(' ','-')}">${esc(s)}</span>` : '';
+
+  document.getElementById('content-grid').innerHTML = filtered.map(c => `
+    <div class="content-card ${syncClass(c.prismm_sync)}" onclick="openContentDrawer('${esc(c.content_id)}')">
+      <div class="content-card-top">
+        <div>
+          <div class="content-card-meta">${esc(c.venture||'')}${c.content_type?' · '+esc(c.content_type):''}</div>
+          <div class="content-card-name">${esc(c.content_name)}</div>
+        </div>
+        <span class="content-status-badge ${statusClass(c.status)}">${esc(c.status||'Idea')}</span>
+      </div>
+      <div class="content-card-angle">${esc(c.activation_angle||c.notes||'')}</div>
+      <div class="content-card-footer">
+        ${c.prismm_sync ? syncBadge(c.prismm_sync) : ''}
+        ${c.content_type ? `<span class="type-badge">${esc(c.content_type)}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+async function openContentDrawer(contentId) {
+  document.getElementById('content-drawer-overlay').classList.add('open');
+  document.getElementById('content-drawer').classList.add('open');
+  document.getElementById('content-drawer-title').textContent = 'Loading…';
+  document.getElementById('content-drawer-sub').innerHTML = '';
+  document.getElementById('content-drawer-body').innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+  try {
+    const res = await api(`/content/${contentId}`);
+    const c = res.data;
+    document.getElementById('content-drawer-title').textContent = c.content_name||'';
+    document.getElementById('content-drawer-sub').innerHTML = [
+      c.venture ? `<span class="tag">${esc(c.venture)}</span>` : '',
+      c.content_type ? `<span class="tag">${esc(c.content_type)}</span>` : '',
+      c.status ? `<span class="tag">${esc(c.status)}</span>` : '',
+    ].join('');
+    document.getElementById('content-drawer-body').innerHTML = `
+      <div class="content-detail-section">
+        <div class="content-detail-label">Activation Angle</div>
+        <div class="content-detail-value">${esc(c.activation_angle||'—')}</div>
+      </div>
+      ${c.initiative_tags ? `<div class="content-detail-section"><div class="content-detail-label">Initiative Tags</div><div class="content-tags-row">${c.initiative_tags.split(',').map(t=>`<span class="tag">${esc(t.trim())}</span>`).join('')}</div></div>` : ''}
+      ${c.asset_link ? `<div class="content-detail-section"><div class="content-detail-label">Asset</div><div class="content-detail-value"><a href="${esc(c.asset_link)}" target="_blank">Open asset ↗</a></div></div>` : ''}
+      ${c.notes ? `<div class="content-detail-section"><div class="content-detail-label">Notes</div><div class="content-detail-value">${esc(c.notes)}</div></div>` : ''}
+      <div class="content-detail-section">
+        <div class="content-detail-label">Prismm Sync</div>
+        <div class="content-detail-value">${esc(c.prismm_sync||'None')}</div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('content-drawer-body').innerHTML = `<p style="color:var(--critical)">${esc(e.message)}</p>`;
+  }
+}
+
+function closeContentDrawer() {
+  document.getElementById('content-drawer-overlay').classList.remove('open');
+  document.getElementById('content-drawer').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════════════════════════════
+
+async function loadEvents() {
+  document.getElementById('events-grid').innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading events…</div>';
+  try {
+    const res = await api('/events');
+    allEvents = res.data || [];
+    renderEvents();
+  } catch(e) {
+    document.getElementById('events-grid').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function switchEventsTab(type) {
+  activeEventTab = type;
+  ['Hosting','Attending','Workshop'].forEach(t => {
+    const id = 'etab-' + t.toLowerCase();
+    document.getElementById(id)?.classList.toggle('active', t === type);
+  });
+  renderEvents();
+}
+
+function renderEvents() {
+  const filtered = allEvents.filter(e => e.event_type === activeEventTab);
+  const grid = document.getElementById('events-grid');
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>No ${activeEventTab.toLowerCase()} events</h3><p>Add your first event.</p></div>`;
+    return;
+  }
+
+  const statusClass = s => ({ Planning:'evs-planning', Confirmed:'evs-confirmed', Complete:'evs-complete', Cancelled:'evs-cancelled' }[s] || 'evs-planning');
+  const cardClass = s => ({ Planning:'es-planning', Confirmed:'es-confirmed', Complete:'es-complete', Cancelled:'es-cancelled' }[s] || 'es-planning');
+
+  grid.innerHTML = filtered.map(e => {
+    const confirmed = e.guest_summary?.confirmed || 0;
+    const total = e.guest_summary?.total || 0;
+    return `
+      <div class="event-card ${cardClass(e.status)}" onclick="openEventDetail('${esc(e.event_id)}')">
+        <div class="event-card-top">
+          <div>
+            <div class="event-card-meta">${esc(e.venture||'')}${e.location?' · '+esc(e.location):''}</div>
+            <div class="event-card-name">${esc(e.event_name)}</div>
+          </div>
+          <span class="event-status-badge ${statusClass(e.status)}">${esc(e.status||'Planning')}</span>
+        </div>
+        <div class="event-card-date">📅 ${esc(e.date||'TBD')}</div>
+        <div class="event-card-footer">
+          ${total > 0 ? `<span class="guest-badge">👥 ${confirmed}/${total}</span>` : ''}
+          ${e.initiative_id ? `<span class="tag">${esc(e.initiative_id)}</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function openEventDetail(eventId) {
+  document.getElementById('emodal-overlay').classList.add('open');
+  document.getElementById('emodal-title').textContent = 'Loading…';
+  document.getElementById('emodal-meta').innerHTML = '';
+  document.getElementById('emodal-body').innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading event…</div>';
+
+  try {
+    const res = await api(`/event/${eventId}`);
+    const e = res.data;
+    const guests = res.guests || [];
+    const summary = res.guest_summary || {};
+
+    document.getElementById('emodal-title').textContent = e.event_name || '';
+    const statusClass = s => ({ Planning:'evs-planning', Confirmed:'evs-confirmed', Complete:'evs-complete', Cancelled:'evs-cancelled' }[s] || 'evs-planning');
+    document.getElementById('emodal-meta').innerHTML = `
+      <span class="event-status-badge ${statusClass(e.status)}">${esc(e.status)}</span>
+      ${e.venture ? `<span class="imodal-meta-chip">${esc(e.venture)}</span>` : ''}
+      ${e.date ? `<span class="imodal-meta-chip">📅 ${esc(e.date)}</span>` : ''}
+      ${e.location ? `<span class="imodal-meta-chip">📍 ${esc(e.location)}</span>` : ''}
+      ${e.initiative_id ? `<span class="imodal-meta-chip">↗ ${esc(e.initiative_id)}</span>` : ''}
+    `;
+
+    document.getElementById('emodal-body').innerHTML = `
+      ${e.description ? `
+      <div class="emodal-section">
+        <div class="emodal-section-label">About this event</div>
+        <p style="font-size:13.5px;color:var(--text2);line-height:1.6">${esc(e.description)}</p>
+      </div>` : ''}
+
+      <div class="emodal-section">
+        <div class="emodal-section-label">
+          <span>Guest Pipeline</span>
+          <span style="font-size:11px;font-weight:400;color:var(--text3)">${summary.confirmed||0} confirmed · ${summary.attended||0} attended · ${summary.total||0} total</span>
+        </div>
+        <div id="emodal-guests">
+          ${guests.length ? guests.map(g => `
+            <div class="guest-row">
+              <div class="guest-avatar">${esc((g.full_name||'?')[0])}</div>
+              <div class="guest-info">
+                <div class="guest-name">${esc(g.full_name)}</div>
+                <div class="guest-role-text">${esc(g.role||'—')}</div>
+              </div>
+              <select class="guest-status-select" onchange="updateGuestStatus('${esc(g.guest_id)}', this.value)">
+                ${['Invited','Confirmed','Attended','No-show','Declined'].map(s =>
+                  `<option ${g.guest_status===s?'selected':''}>${s}</option>`
+                ).join('')}
+              </select>
+            </div>`).join('') : '<p style="font-size:13px;color:var(--text3);font-style:italic">No guests yet.</p>'}
+        </div>
+        <div class="add-guest-row" style="margin-top:14px">
+          <input type="text" id="new-guest-name" placeholder="Guest name">
+          <select id="new-guest-role">
+            <option>Attendee</option><option>Speaker</option><option>Panelist</option>
+            <option>Interviewee</option><option>Organizer</option><option>Sponsor</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="addGuest('${esc(eventId)}')">+ Add</button>
+        </div>
+      </div>
+
+      ${e.notes ? `
+      <div class="emodal-section">
+        <div class="emodal-section-label">Notes</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.6">${esc(e.notes)}</p>
+      </div>` : ''}
+
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-ghost btn-sm" onclick="quickStatusUpdate('${esc(eventId)}', 'Confirmed')">Mark Confirmed</button>
+        <button class="btn btn-ghost btn-sm" onclick="quickStatusUpdate('${esc(eventId)}', 'Complete')">Mark Complete</button>
+      </div>
+    `;
+  } catch(e2) {
+    document.getElementById('emodal-body').innerHTML = `<p style="color:var(--critical);padding:20px">${esc(e2.message)}</p>`;
+  }
+}
+
+async function addGuest(eventId) {
+  const name = document.getElementById('new-guest-name').value.trim();
+  const role = document.getElementById('new-guest-role').value;
+  if (!name) { toast('Enter a guest name'); return; }
+  try {
+    await api('/event-guest', { method:'POST', body: JSON.stringify({ event_id: eventId, full_name: name, role, guest_status: 'Invited' }) });
+    document.getElementById('new-guest-name').value = '';
+    toast('Guest added');
+    openEventDetail(eventId);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function updateGuestStatus(guestId, status) {
+  try {
+    await api(`/event-guest/${guestId}`, { method:'PATCH', body: JSON.stringify({ guest_status: status }) });
+    toast('Status updated');
+    const ev = allEvents.find(e => e.event_id === document.getElementById('emodal-title').dataset.eventId);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function quickStatusUpdate(eventId, status) {
+  try {
+    await api(`/event/${eventId}/status`, { method:'PATCH', body: JSON.stringify({ status }) });
+    const ev = allEvents.find(e => e.event_id === eventId);
+    if (ev) ev.status = status;
+    renderEvents();
+    toast(`Event marked ${status}`);
+    closeEModal();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+function closeEModal() { document.getElementById('emodal-overlay').classList.remove('open'); }
+function handleEModalOverlayClick(e) { if (e.target === document.getElementById('emodal-overlay')) closeEModal(); }
+
+// ── EVENT MODAL (CREATE) ───────────────────────────────────────────────────
+function openEventModal() {
+  document.getElementById('evt-type').value = activeEventTab;
+  document.getElementById('event-modal').classList.add('open');
+}
+function closeEventModal() { document.getElementById('event-modal').classList.remove('open'); }
+
+async function saveEvent() {
+  const name = document.getElementById('evt-name').value.trim();
+  if (!name) { toast('Event name is required'); return; }
+  try {
+    await api('/event', { method:'POST', body: JSON.stringify({
+      event_name: name,
+      event_type: document.getElementById('evt-type').value,
+      venture: document.getElementById('evt-venture').value,
+      date: document.getElementById('evt-date').value || null,
+      status: document.getElementById('evt-status').value,
+      location: document.getElementById('evt-location').value,
+      description: document.getElementById('evt-desc').value,
+      notes: document.getElementById('evt-notes').value,
+    })});
+    closeEventModal();
+    toast('Event created');
+    loadEvents();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// ── ADD INITIATIVE MODAL ───────────────────────────────────────────────────
 function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
 function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
 
 async function saveInitiative() {
   const name = document.getElementById('new-name').value.trim();
-  if (!name) { toast('Name is required'); return; }
+  if (!name) { toast('Initiative name is required'); return; }
   try {
     await api('/initiative', { method:'POST', body: JSON.stringify({
       initiative_name: name,
@@ -896,11 +1379,38 @@ async function saveInitiative() {
     })});
     closeAddModal();
     toast('Initiative created');
-    await loadBoard();
+    allInitiatives = [];
+    loadBoard();
   } catch(e) { toast('Error: ' + e.message); }
 }
 
-// ── ADD ANGLE ──────────────────────────────────────────────────────────────
+// ── CONTENT MODAL ──────────────────────────────────────────────────────────
+function openContentModal() { document.getElementById('content-modal').classList.add('open'); }
+function closeContentModal() { document.getElementById('content-modal').classList.remove('open'); }
+
+async function saveContent() {
+  const name = document.getElementById('cnt-name').value.trim();
+  if (!name) { toast('Content name is required'); return; }
+  try {
+    await api('/content', { method:'POST', body: JSON.stringify({
+      content_name: name,
+      content_type: document.getElementById('cnt-type').value,
+      venture: document.getElementById('cnt-venture').value,
+      status: document.getElementById('cnt-status').value,
+      prismm_sync: document.getElementById('cnt-sync').value,
+      approval_required: document.getElementById('cnt-approval').value,
+      initiative_tags: document.getElementById('cnt-tags').value,
+      activation_angle: document.getElementById('cnt-angle').value,
+      asset_link: document.getElementById('cnt-link').value,
+      notes: document.getElementById('cnt-notes').value,
+    })});
+    closeContentModal();
+    toast('Content saved');
+    loadContent();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// ── ANGLE MODAL ────────────────────────────────────────────────────────────
 function openAngleModal() { document.getElementById('angle-modal').classList.add('open'); }
 function closeAngleModal() { document.getElementById('angle-modal').classList.remove('open'); }
 
@@ -908,7 +1418,7 @@ async function saveAngle() {
   const name = document.getElementById('ang-name').value.trim();
   if (!name) { toast('Angle name is required'); return; }
   try {
-    await api('/angle', { method:'POST', body: JSON.stringify({
+    await api('/activation-angle', { method:'POST', body: JSON.stringify({
       angle_name: name,
       description: document.getElementById('ang-desc').value,
       template: document.getElementById('ang-template').value,
@@ -916,149 +1426,8 @@ async function saveAngle() {
     })});
     closeAngleModal();
     toast('Angle saved');
-    await loadAngles();
+    loadAngles();
   } catch(e) { toast('Error: ' + e.message); }
-}
-
-// ══════════════════════════════════════════════════════════════
-// CONTENT REGISTRY
-// ══════════════════════════════════════════════════════════════
-
-let allContent = [];
-
-const CONTENT_SEED = [
-  { 'Content ID':'C001', 'Content Name':'Kaleidoscope', 'Type':'Campaign Concept', 'Venture':'Prismm', 'Initiative Tags':'P017', 'Status':'In Progress', 'Activation Angle':"Visual identity + narrative framework for Prismm's community bank positioning", 'Asset Link':'', 'Approval Required':'Yes', 'Prismm Sync':'Pending', 'Notes':'Content asset, not a standalone initiative. Sub-assets get their own rows when discrete.', 'Last Updated':'2026-03-30' },
-  { 'Content ID':'C002', 'Content Name':'Silent Deposit Drain Article', 'Type':'Article', 'Venture':'Prismm', 'Initiative Tags':'P008', 'Status':'Draft', 'Activation Angle':'Educates community bank execs on dormant account risk; warms MoFu leads', 'Asset Link':'', 'Approval Required':'Yes', 'Prismm Sync':'Pending', 'Notes':'MoFu content asset. Martha to review before publishing.', 'Last Updated':'2026-03-30' },
-  { 'Content ID':'C003', 'Content Name':'AOBA Earned Media Piece', 'Type':'Article', 'Venture':'Prismm', 'Initiative Tags':'P008', 'Status':'Draft', 'Activation Angle':'Thought leadership play targeting AOBA audience; association credibility build', 'Asset Link':'', 'Approval Required':'Yes', 'Prismm Sync':'Needs Update', 'Notes':'Earned media target: AOBA publication. Confirm submission window.', 'Last Updated':'2026-03-30' },
-  { 'Content ID':'C004', 'Content Name':'Post-Conference Follow-Up Sequences', 'Type':'Sequence Variant', 'Venture':'Prismm', 'Initiative Tags':'P008', 'Status':'Active', 'Activation Angle':'Converts warm conference contacts to discovery calls; MoFu engine core', 'Asset Link':'', 'Approval Required':'No', 'Prismm Sync':'Synced', 'Notes':'These ARE the MoFu engine. P008 effectively complete via these sequences.', 'Last Updated':'2026-03-30' },
-  { 'Content ID':'C005', 'Content Name':'Climate Tech Exit Lab Introduction', 'Type':'Campaign Concept', 'Venture':'Black Tech Capital', 'Initiative Tags':'', 'Status':'Idea', 'Activation Angle':'Positions BTC as the operator-to-exit bridge for climate tech founders', 'Asset Link':'', 'Approval Required':'No', 'Prismm Sync':'', 'Notes':'Placeholder - build out when Climate Tech Exit Lab initiative is formalized.', 'Last Updated':'2026-03-30' },
-  { 'Content ID':'C006', 'Content Name':'ReRev Labs AI Education Newsletter', 'Type':'Newsletter Issue', 'Venture':'ReRev Labs', 'Initiative Tags':'', 'Status':'Idea', 'Activation Angle':'Thought leadership + top-of-funnel for consulting and automation sales', 'Asset Link':'', 'Approval Required':'No', 'Prismm Sync':'', 'Notes':'Recurring asset - each issue will get its own row when drafted.', 'Last Updated':'2026-03-30' },
-];
-
-async function loadContent() {
-  const grid = document.getElementById('content-grid');
-  grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading content...</div>';
-  try {
-    let rows;
-    try { const res = await api('/content'); rows = res.data || []; }
-    catch(e) { rows = CONTENT_SEED; }
-    allContent = rows;
-    document.getElementById('topbar-meta').textContent = allContent.length + ' assets';
-    renderContent();
-  } catch(e) {
-    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>Could not load content</h3><p>' + esc(e.message) + '</p></div>';
-  }
-}
-
-function renderContent() {
-  const q       = (document.getElementById('content-search')?.value || '').toLowerCase();
-  const venture = document.getElementById('content-venture')?.value || '';
-  const type    = document.getElementById('content-type')?.value || '';
-  const sync    = document.getElementById('content-sync')?.value || '';
-  const items = allContent.filter(c => {
-    if (venture && c['Venture'] !== venture) return false;
-    if (type    && c['Type']    !== type)    return false;
-    if (sync    && c['Prismm Sync'] !== sync) return false;
-    if (q) { const hay = [c['Content Name'],c['Activation Angle'],c['Notes'],c['Type'],c['Venture']].join(' ').toLowerCase(); if (!hay.includes(q)) return false; }
-    return true;
-  });
-  const grid = document.getElementById('content-grid');
-  if (items.length === 0) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No content found</h3><p>Try adjusting your filters.</p></div>'; return; }
-  grid.innerHTML = items.map(c => contentCard(c)).join('');
-}
-
-function syncCls(s) {
-  const m = { 'Pending':'sync-pending', 'Synced':'sync-synced', 'Needs Update':'sync-needs-update' };
-  return m[s] || 'sync-none';
-}
-function syncCardCls(s) {
-  const m = { 'Pending':'prismm-sync-pending', 'Synced':'prismm-sync-synced', 'Needs Update':'prismm-sync-needs-update' };
-  return m[s] || '';
-}
-function statusCls(s) {
-  const m = { 'Active':'cs-active','Draft':'cs-draft','Idea':'cs-idea','In Progress':'cs-in-progress','Published':'cs-published','Archived':'cs-archived' };
-  return m[s] || 'cs-idea';
-}
-
-function contentCard(c) {
-  const sync   = c['Prismm Sync'] || '';
-  const status = c['Status'] || '';
-  const tags   = (c['Initiative Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
-  const safeC  = encodeURIComponent(JSON.stringify(c));
-  const syncIcon = sync === 'Needs Update' ? '&#9888; ' : sync === 'Synced' ? '&#10003; ' : sync === 'Pending' ? '&#8679; ' : '';
-  return '<div class="content-card ' + syncCardCls(sync) + '" onclick="openContentDrawerEncoded(\'' + safeC + '\')">' +
-    '<div class="content-card-top"><div>' +
-    '<div class="content-card-meta">' + esc(c['Venture']||'') + ' &middot; ' + esc(c['Content ID']||'') + '</div>' +
-    '<div class="content-card-name">' + esc(c['Content Name']||'Untitled') + '</div></div>' +
-    (sync ? '<span class="sync-badge ' + syncCls(sync) + '">' + syncIcon + esc(sync) + '</span>' : '') +
-    '</div>' +
-    (c['Activation Angle'] ? '<div class="content-card-angle">' + esc(c['Activation Angle']) + '</div>' : '') +
-    '<div class="content-card-footer">' +
-    '<span class="content-status-badge ' + statusCls(status) + '">' + esc(status) + '</span>' +
-    '<span class="type-badge">' + esc(c['Type']||'') + '</span>' +
-    tags.map(t => '<span class="tag">' + esc(t) + '</span>').join('') +
-    '</div></div>';
-}
-
-function openContentDrawerEncoded(encoded) {
-  try { openContentDrawer(JSON.parse(decodeURIComponent(encoded))); } catch(e) { console.error(e); }
-}
-
-function openContentDrawer(c) {
-  const sync   = c['Prismm Sync'] || '';
-  const status = c['Status'] || '';
-  const tags   = (c['Initiative Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
-  const link   = c['Asset Link'] || '';
-  const syncIcon = sync === 'Needs Update' ? '&#9888; ' : sync === 'Synced' ? '&#10003; ' : sync === 'Pending' ? '&#8679; ' : '';
-  document.getElementById('content-drawer-title').textContent = c['Content Name'] || 'Content';
-  document.getElementById('content-drawer-sub').innerHTML =
-    '<span class="type-badge">' + esc(c['Type']||'') + '</span>' +
-    '<span class="content-status-badge ' + statusCls(status) + '">' + esc(status) + '</span>' +
-    (sync ? '<span class="sync-badge ' + syncCls(sync) + '">' + syncIcon + esc(sync) + '</span>' : '');
-  document.getElementById('content-drawer-body').innerHTML =
-    '<div class="content-detail-section"><div class="content-detail-label">Venture</div><div class="content-detail-value">' + esc(c['Venture']||'--') + '</div></div>' +
-    '<div class="content-detail-section"><div class="content-detail-label">Activation Angle</div><div class="content-detail-value">' + esc(c['Activation Angle']||'--') + '</div></div>' +
-    (tags.length ? '<div class="content-detail-section"><div class="content-detail-label">Initiative Tags</div><div class="content-tags-row">' + tags.map(t => '<span class="tag">' + esc(t) + '</span>').join('') + '</div></div>' : '') +
-    '<div class="content-detail-section"><div class="content-detail-label">Asset Link</div><div class="content-detail-value">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">Open asset &#8599;</a>' : '<em style="color:var(--text3)">Not linked yet</em>') + '</div></div>' +
-    '<div class="content-detail-section"><div class="content-detail-label">Approval Required</div><div class="content-detail-value">' + esc(c['Approval Required']||'--') + '</div></div>' +
-    (c['Notes'] ? '<div class="content-detail-section"><div class="content-detail-label">Notes</div><div class="content-detail-value">' + esc(c['Notes']) + '</div></div>' : '') +
-    '<div class="content-detail-section"><div class="content-detail-label">Last Updated</div><div class="content-detail-value" style="color:var(--text3)">' + esc(c['Last Updated']||'--') + '</div></div>';
-  document.getElementById('content-drawer-overlay').classList.add('open');
-  document.getElementById('content-drawer').classList.add('open');
-}
-
-function closeContentDrawer() {
-  document.getElementById('content-drawer-overlay').classList.remove('open');
-  document.getElementById('content-drawer').classList.remove('open');
-}
-
-function openContentModal() { document.getElementById('content-modal').classList.add('open'); }
-function closeContentModal() { document.getElementById('content-modal').classList.remove('open'); }
-
-async function saveContent() {
-  const name = document.getElementById('cnt-name').value.trim();
-  if (!name) { toast('Content name is required'); return; }
-  const today = new Date().toISOString().slice(0,10);
-  const nextId = 'C' + String(allContent.length + 1).padStart(3,'0');
-  const row = {
-    'Content ID': nextId, 'Content Name': name,
-    'Type': document.getElementById('cnt-type').value,
-    'Venture': document.getElementById('cnt-venture').value,
-    'Initiative Tags': document.getElementById('cnt-tags').value.trim(),
-    'Status': document.getElementById('cnt-status').value,
-    'Activation Angle': document.getElementById('cnt-angle').value.trim(),
-    'Asset Link': document.getElementById('cnt-link').value.trim(),
-    'Approval Required': document.getElementById('cnt-approval').value,
-    'Prismm Sync': document.getElementById('cnt-sync').value,
-    'Notes': document.getElementById('cnt-notes').value.trim(),
-    'Last Updated': today,
-  };
-  allContent.push(row);
-  renderContent();
-  closeContentModal();
-  toast(name + ' added to Content Registry');
-  ['cnt-name','cnt-tags','cnt-angle','cnt-link','cnt-notes'].forEach(id => document.getElementById(id).value = '');
-  try { await api('/content', { method:'POST', body: JSON.stringify(row) }); } catch(e) { /* endpoint TBD */ }
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────

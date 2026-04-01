@@ -24,3 +24,12 @@ CONFIG.API_KEY   = window.SC_API_KEY;
   document.addEventListener('DOMContentLoaded', inject);
   window.addEventListener('load', inject);
 })();
+
+// ── Brain Dump Push — April 1 2026 session ───────────────────────────────
+// Loads brain-dump-push.js which auto-runs once and pushes all
+// initiatives + sub-projects to Railway. Remove after confirmed push.
+(function() {
+  var s = document.createElement('script');
+  s.src = 'brain-dump-push.js?v=20260401';
+  document.head.appendChild(s);
+})();

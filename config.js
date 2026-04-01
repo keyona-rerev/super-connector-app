@@ -1,26 +1,25 @@
 // Super Connector App — Configuration
-// Set your Railway API key here before deploying
 const CONFIG = {
   API_BASE: "https://super-connector-api-production.up.railway.app",
   API_KEY: "sc_live_k3y_2026_scak",
 };
 
-// Load Contacts CRM extension (contacts-crm.js)
-// This bootstraps the new Contacts page without modifying index.html
-(function loadCrmExtension() {
+// ── Contacts CRM Auto-Loader ──────────────────────────────────────────────
+// Injects contacts-crm.js after the main app script has run.
+// Tries immediately, then on DOMContentLoaded, then on load — whichever fires.
+(function() {
+  var injected = false;
   function inject() {
-    if (document.getElementById('crm-extension-loaded')) return;
-    var marker = document.createElement('meta');
-    marker.id = 'crm-extension-loaded';
-    document.head.appendChild(marker);
+    if (injected) return;
+    injected = true;
     var s = document.createElement('script');
-    s.src = 'contacts-crm.js';
-    document.body.appendChild(s);
+    s.src = 'contacts-crm.js?v=' + Date.now(); // cache-bust
+    document.head.appendChild(s);
   }
-  // Wait until main app scripts have run (showPage needs to exist)
-  if (document.readyState === 'complete') {
+  // Try all three timing hooks so we never miss
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
     inject();
-  } else {
-    window.addEventListener('load', inject);
   }
+  document.addEventListener('DOMContentLoaded', inject);
+  window.addEventListener('load', inject);
 })();

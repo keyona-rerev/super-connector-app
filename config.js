@@ -5,18 +5,15 @@ const CONFIG = {
 };
 
 // ── Contacts CRM Auto-Loader ──────────────────────────────────────────────
-// Injects contacts-crm.js after the main app script has run.
-// Tries immediately, then on DOMContentLoaded, then on load — whichever fires.
 (function() {
   var injected = false;
   function inject() {
     if (injected) return;
     injected = true;
     var s = document.createElement('script');
-    s.src = 'contacts-crm.js?v=' + Date.now(); // cache-bust
+    s.src = 'contacts-crm.js?v=20260401d';
     document.head.appendChild(s);
   }
-  // Try all three timing hooks so we never miss
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     inject();
   }

@@ -5,28 +5,27 @@
  * Adds: browse grid, inline search (short=client-side, Enter=vector),
  * pagination, + New Contact modal, Edit from drawer, source field.
  *
- * Loaded via <script src="contacts-crm.js"></script> in index.html.
- * Injects its own CSS, HTML, nav item, and page div at DOMContentLoaded.
+ * Loaded via <script src="contacts-crm.js"></script> in index.html
+ * (must come AFTER config.js so CONFIG.API_KEY is available).
  */
 
 (function () {
   /* ── Constants ─────────────────────────────────────────── */
-  const API_BASE = 'https://super-connector-api-production.up.railway.app';
-  // API_KEY injected by existing app — re-use window.SC_API_KEY
+  const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) ||
+    'https://super-connector-api-production.up.railway.app';
   const hdrs = () => ({
     'Content-Type': 'application/json',
-    'X-API-Key': window.SC_API_KEY || '',
+    'X-API-Key': (window.CONFIG && window.CONFIG.API_KEY) || '',
   });
 
   const PAGE_SIZE = 50;
 
   /* ── State ─────────────────────────────────────────────── */
-  let crmContacts = [];        // current page contacts
+  let crmContacts = [];
   let crmOffset = 0;
-  let crmTotalGuess = 0;       // rough count from last fetch (count returned)
   let crmMode = 'browse';      // 'browse' | 'search'
-  let crmEditingContact = null; // contact being edited (null = new)
-  let crmSearchTimeout = null;
+  let crmEditingContact = null;
+  let crmLoaded = false;
 
   /* ── CSS Injection ─────────────────────────────────────── */
   const style = document.createElement('style');
@@ -59,27 +58,27 @@
     .crm-pagination { display:flex; align-items:center; justify-content:space-between; margin-top:24px; padding-top:20px; border-top:1px solid var(--border-soft); }
     .crm-page-info { font-size:12px; color:var(--text3); }
     .crm-page-controls { display:flex; gap:8px; }
-    .drawer-edit-btn { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); border:1px solid var(--border); background:var(--surface2); color:var(--text2); cursor:pointer; transition:all .12s; }
+    .drawer-edit-btn { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:500; padding:5px 12px; border-radius:var(--radius); border:1px solid var(--border); background:var(--surface2); color:var(--text2); cursor:pointer; transition:all .12s; margin-top:8px; }
     .drawer-edit-btn:hover { background:var(--border); color:var(--text); }
   `;
   document.head.appendChild(style);
 
   /* ── DOM Injection ─────────────────────────────────────── */
   function injectDOM() {
-    // 1. Nav item — insert before "Search Contacts" nav item
+    // 1. Nav item — insert before existing "Search Contacts" nav item
     const navSearch = document.getElementById('nav-search');
-    if (navSearch) {
-      const navContacts = document.createElement('button');
-      navContacts.className = 'nav-item';
-      navContacts.id = 'nav-contacts';
-      navContacts.innerHTML = '<span class="icon">⊞</span> Contacts';
-      navContacts.onclick = () => showPage('contacts');
-      navSearch.parentNode.insertBefore(navContacts, navSearch);
+    if (navSearch && !document.getElementById('nav-contacts')) {
+      const btn = document.createElement('button');
+      btn.className = 'nav-item';
+      btn.id = 'nav-contacts';
+      btn.innerHTML = '<span class="icon">⊞</span> Contacts';
+      btn.onclick = () => window.showPage('contacts');
+      navSearch.parentNode.insertBefore(btn, navSearch);
     }
 
     // 2. Contacts page div — insert before Search page
     const pageSearch = document.getElementById('page-search');
-    if (pageSearch) {
+    if (pageSearch && !document.getElementById('page-contacts')) {
       const div = document.createElement('div');
       div.className = 'page';
       div.id = 'page-contacts';
@@ -122,14 +121,15 @@
       pageSearch.parentNode.insertBefore(div, pageSearch);
     }
 
-    // 3. Contact add/edit modal — append to body
-    const modalHtml = `
+    // 3. Contact add/edit modal — append to body (only once)
+    if (!document.getElementById('contact-modal-overlay')) {
+      document.body.insertAdjacentHTML('beforeend', `
 <div class="modal-overlay" id="contact-modal-overlay">
   <div class="modal" style="max-width:600px">
     <h3 id="contact-modal-title">New Contact</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="field-group" style="grid-column:1/-1"><label>Full Name *</label><input type="text" id="cm-full-name" placeholder="Jane Smith"></div>
-      <div class="field-group"><label>Title / Role</label><input type="text" id="cm-title-role" placeholder="Co-founder & CEO"></div>
+      <div class="field-group"><label>Title / Role</label><input type="text" id="cm-title-role" placeholder="Co-founder &amp; CEO"></div>
       <div class="field-group"><label>Organization</label><input type="text" id="cm-organization" placeholder="Acme Inc."></div>
       <div class="field-group"><label>Venture</label>
         <select id="cm-venture"><option value="">None</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>DO GOOD X</option><option>NYC PIVOT</option><option>Personal</option></select>
@@ -152,27 +152,28 @@
       <button class="btn btn-primary" id="cm-save-btn" onclick="crmSaveContact()">Save Contact</button>
     </div>
   </div>
-</div>`;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
+</div>`);
+    }
 
-    // 4. Add Edit button to existing contact drawer header
-    const drawerSub = document.getElementById('contact-drawer-sub');
-    if (drawerSub) {
-      const editBtn = document.createElement('button');
-      editBtn.className = 'drawer-edit-btn';
-      editBtn.id = 'drawer-edit-btn';
-      editBtn.innerHTML = '✎ Edit';
-      editBtn.onclick = () => {
-        if (window._currentDrawerContact) {
-          crmOpenModal(window._currentDrawerContact);
-        }
-      };
-      drawerSub.parentNode.insertBefore(editBtn, drawerSub.nextSibling);
+    // 4. Add Edit button to existing contact drawer (below the subtitle div)
+    if (!document.getElementById('drawer-edit-btn')) {
+      const drawerHeader = document.querySelector('#contact-drawer .drawer-header');
+      if (drawerHeader) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'drawer-edit-btn';
+        editBtn.id = 'drawer-edit-btn';
+        editBtn.innerHTML = '✎ Edit Contact';
+        editBtn.onclick = () => {
+          if (window._currentDrawerContact) crmOpenModal(window._currentDrawerContact);
+        };
+        drawerHeader.appendChild(editBtn);
+      }
     }
   }
 
   /* ── Load contacts from Railway ────────────────────────── */
-  async function crmLoadContacts(offset = 0) {
+  async function crmLoadContacts(offset) {
+    offset = offset || 0;
     crmOffset = offset;
     crmMode = 'browse';
     updateModeUI();
@@ -194,13 +195,12 @@
       const data = await resp.json();
       let contacts = data.data || [];
 
-      // Client-side filter by dropdowns
-      if (venture) contacts = contacts.filter(c => (c.venture || '').toLowerCase().includes(venture.toLowerCase()));
+      if (venture) contacts = contacts.filter(c =>
+        (c.venture || '').toLowerCase().includes(venture.toLowerCase()));
       if (health)  contacts = contacts.filter(c => (c.relationship_health || '') === health);
       if (activ)   contacts = contacts.filter(c => (c.activation_potential || '') === activ);
 
       crmContacts = contacts;
-      crmTotalGuess = data.count || contacts.length;
       renderCrmGrid(contacts, false);
       updatePagination(offset, data.count);
     } catch (e) {
@@ -213,37 +213,44 @@
     const grid = document.getElementById('crm-grid');
     if (!grid) return;
     if (!contacts.length) {
-      grid.innerHTML = `<div class="empty-state"><h3>${isSearch ? 'No matches' : 'No contacts'}</h3><p>${isSearch ? 'Try a different query.' : 'Add your first contact.'}</p></div>`;
+      grid.innerHTML = `<div class="empty-state"><h3>${isSearch ? 'No matches' : 'No contacts yet'}</h3><p>${isSearch ? 'Try a different query.' : 'Add your first contact above.'}</p></div>`;
       return;
     }
     grid.innerHTML = contacts.map(c => {
-      const healthCls = crmHealthClass(c.relationship_health);
-      const healthBadge = c.relationship_health ? `<span class="crm-health-badge ${healthCls}">${c.relationship_health}</span>` : '';
-      const activBadge  = c.activation_potential ? `<span class="crm-activation-badge">${c.activation_potential}</span>` : '';
-      const srcBadge    = c.source ? `<span class="crm-source-badge">${escHtml(c.source)}</span>` : '';
-      const scoreBadge  = (isSearch && c.score) ? `<span class="crm-score-badge">${Math.round(c.score * 100)}%</span>` : '';
-      return `
-        <div class="crm-card" onclick="openContactDrawer(${JSON.stringify(c).replace(/"/g, '&quot;')})">
-          <div class="crm-card-name">${escHtml(c.full_name)}</div>
-          <div class="crm-card-role">${escHtml([c.title_role, c.organization].filter(Boolean).join(' · '))}</div>
-          <div class="crm-card-footer">
-            ${healthBadge}${activBadge}${srcBadge}${scoreBadge}
-          </div>
-        </div>`;
+      const healthCls   = crmHealthClass(c.relationship_health);
+      const healthBadge = c.relationship_health
+        ? `<span class="crm-health-badge ${healthCls}">${escHtml(c.relationship_health)}</span>` : '';
+      const activBadge  = c.activation_potential
+        ? `<span class="crm-activation-badge">${escHtml(c.activation_potential)}</span>` : '';
+      const srcBadge    = c.source
+        ? `<span class="crm-source-badge">${escHtml(c.source)}</span>` : '';
+      const scoreBadge  = (isSearch && c.score)
+        ? `<span class="crm-score-badge">${Math.round(c.score * 100)}%</span>` : '';
+      const role = [c.title_role, c.organization].filter(Boolean).join(' · ');
+      // Serialize contact for onclick — escape quotes
+      const contactJson = JSON.stringify(c).replace(/'/g, "\\'");
+      return `<div class="crm-card" onclick='crmOpenDrawer(${contactJson})'>
+        <div class="crm-card-name">${escHtml(c.full_name)}</div>
+        <div class="crm-card-role">${escHtml(role)}</div>
+        <div class="crm-card-footer">${healthBadge}${activBadge}${srcBadge}${scoreBadge}</div>
+      </div>`;
     }).join('');
   }
 
+  // Wrapper so onclick in grid can call openContactDrawer safely
+  window.crmOpenDrawer = function(contact) {
+    window._currentDrawerContact = contact;
+    if (window.openContactDrawer) window.openContactDrawer(contact);
+  };
+
   /* ── Search ─────────────────────────────────────────────── */
-  function crmOnInput(val) {
+  window.crmOnInput = function(val) {
     const clearBtn = document.getElementById('crm-search-clear');
     if (clearBtn) clearBtn.classList.toggle('visible', val.length > 0);
 
-    // Short query: client-side filter
+    if (val.length === 0) { crmLoadContacts(crmOffset); return; }
+
     if (val.length < 4) {
-      if (!val) {
-        crmLoadContacts(crmOffset);
-        return;
-      }
       const q = val.toLowerCase();
       const filtered = crmContacts.filter(c =>
         (c.full_name || '').toLowerCase().includes(q) ||
@@ -251,36 +258,32 @@
         (c.title_role || '').toLowerCase().includes(q)
       );
       renderCrmGrid(filtered, false);
-      document.getElementById('crm-pagination').style.display = 'none';
+      const pag = document.getElementById('crm-pagination');
+      if (pag) pag.style.display = 'none';
     }
-    // Longer query: debounce for vector
-  }
+  };
 
-  window.crmOnInput = crmOnInput;
-
-  async function crmRunSearch(query) {
-    if (!query.trim()) { crmLoadContacts(0); return; }
+  window.crmRunSearch = async function(query) {
+    if (!query || !query.trim()) { crmLoadContacts(0); return; }
     crmMode = 'search';
     updateModeUI();
     const grid = document.getElementById('crm-grid');
-    grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
-    document.getElementById('crm-pagination').style.display = 'none';
+    if (grid) grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
+    const pag = document.getElementById('crm-pagination');
+    if (pag) pag.style.display = 'none';
     try {
       const resp = await fetch(`${API_BASE}/search`, {
-        method: 'POST',
-        headers: hdrs(),
+        method: 'POST', headers: hdrs(),
         body: JSON.stringify({ query: query.trim(), top_k: 30 }),
       });
       const data = await resp.json();
       renderCrmGrid(data.results || [], true);
     } catch (e) {
-      grid.innerHTML = `<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`;
+      if (grid) grid.innerHTML = `<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`;
     }
-  }
+  };
 
-  window.crmRunSearch = crmRunSearch;
-
-  function crmClearSearch() {
+  window.crmClearSearch = function() {
     const inp = document.getElementById('crm-search-input');
     if (inp) inp.value = '';
     const clearBtn = document.getElementById('crm-search-clear');
@@ -288,89 +291,81 @@
     crmMode = 'browse';
     updateModeUI();
     crmLoadContacts(0);
-  }
+  };
 
-  window.crmClearSearch = crmClearSearch;
-
-  function crmFilterChanged() {
+  window.crmFilterChanged = function() {
     if (crmMode === 'browse') crmLoadContacts(0);
-  }
-
-  window.crmFilterChanged = crmFilterChanged;
+  };
 
   /* ── Pagination ─────────────────────────────────────────── */
   function updatePagination(offset, total) {
-    const pag = document.getElementById('crm-pagination');
+    const pag  = document.getElementById('crm-pagination');
     const info = document.getElementById('crm-page-info');
     const prev = document.getElementById('crm-prev-btn');
     const next = document.getElementById('crm-next-btn');
     if (!pag) return;
     pag.style.display = 'flex';
-    const start = offset + 1;
-    const end   = Math.min(offset + PAGE_SIZE, offset + (crmContacts.length));
-    if (info) info.textContent = `Showing ${start}–${end} of ~${total || '?'} contacts`;
+    if (info) info.textContent = `Showing ${offset + 1}–${offset + crmContacts.length} · ${total ? '~' + total + ' total' : ''}`;
     if (prev) prev.disabled = offset === 0;
     if (next) next.disabled = crmContacts.length < PAGE_SIZE;
   }
 
-  function crmPaginate(dir) {
+  window.crmPaginate = function(dir) {
     const newOffset = crmOffset + dir * PAGE_SIZE;
     if (newOffset < 0) return;
     crmLoadContacts(newOffset);
-    document.getElementById('crm-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+    const grid = document.getElementById('crm-grid');
+    if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
-  window.crmPaginate = crmPaginate;
-
-  /* ── Modal (Add / Edit) ─────────────────────────────────── */
+  /* ── Modal ──────────────────────────────────────────────── */
   function crmOpenModal(contactData) {
     crmEditingContact = contactData || null;
-    const title = document.getElementById('contact-modal-title');
+    const title   = document.getElementById('contact-modal-title');
     const saveBtn = document.getElementById('cm-save-btn');
-    if (title) title.textContent = contactData ? 'Edit Contact' : 'New Contact';
+    if (title)   title.textContent   = contactData ? 'Edit Contact' : 'New Contact';
     if (saveBtn) saveBtn.textContent = contactData ? 'Save Changes' : 'Save Contact';
 
-    const fields = {
-      'cm-full-name':    contactData?.full_name || '',
-      'cm-title-role':   contactData?.title_role || '',
-      'cm-organization': contactData?.organization || '',
-      'cm-venture':      contactData?.venture || '',
-      'cm-source':       contactData?.source || '',
-      'cm-how-we-met':   contactData?.how_we_met || '',
-      'cm-health':       contactData?.relationship_health || '',
-      'cm-activation':   contactData?.activation_potential || '',
-      'cm-what-building':contactData?.what_building || '',
-      'cm-what-need':    contactData?.what_need || '',
-      'cm-what-offer':   contactData?.what_offer || '',
-      'cm-notes':        contactData?.notes || '',
+    const map = {
+      'cm-full-name':     contactData?.full_name || '',
+      'cm-title-role':    contactData?.title_role || '',
+      'cm-organization':  contactData?.organization || '',
+      'cm-venture':       contactData?.venture || '',
+      'cm-source':        contactData?.source || '',
+      'cm-how-we-met':    contactData?.how_we_met || '',
+      'cm-health':        contactData?.relationship_health || '',
+      'cm-activation':    contactData?.activation_potential || '',
+      'cm-what-building': contactData?.what_building || '',
+      'cm-what-need':     contactData?.what_need || '',
+      'cm-what-offer':    contactData?.what_offer || '',
+      'cm-notes':         contactData?.notes || '',
     };
-    for (const [id, val] of Object.entries(fields)) {
+    for (const [id, val] of Object.entries(map)) {
       const el = document.getElementById(id);
       if (el) el.value = val;
     }
-
     const overlay = document.getElementById('contact-modal-overlay');
     if (overlay) overlay.classList.add('open');
   }
 
   window.crmOpenModal = crmOpenModal;
 
-  function crmCloseModal() {
+  window.crmCloseModal = function() {
     const overlay = document.getElementById('contact-modal-overlay');
     if (overlay) overlay.classList.remove('open');
     crmEditingContact = null;
-  }
+  };
 
-  window.crmCloseModal = crmCloseModal;
-
-  async function crmSaveContact() {
-    const fullName = document.getElementById('cm-full-name')?.value?.trim();
-    if (!fullName) { window.showToast?.('Full name is required'); return; }
-
+  window.crmSaveContact = async function() {
+    const fullName = (document.getElementById('cm-full-name')?.value || '').trim();
+    if (!fullName) {
+      if (window.showToast) window.showToast('Full name is required');
+      return;
+    }
     const saveBtn = document.getElementById('cm-save-btn');
     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
 
-    const isEdit = !!crmEditingContact;
+    const isEdit    = !!crmEditingContact;
     const contactId = isEdit ? crmEditingContact.contact_id : `C${Date.now()}`;
 
     const payload = {
@@ -396,30 +391,27 @@
       const resp = await fetch(url, { method, headers: hdrs(), body: JSON.stringify(payload) });
       const data = await resp.json();
       if (data.success) {
-        window.showToast?.(`Contact ${isEdit ? 'updated' : 'saved'} & vectorized`);
-        crmCloseModal();
+        if (window.showToast) window.showToast(`Contact ${isEdit ? 'updated' : 'saved'} ✓`);
+        window.crmCloseModal();
         if (window.closeContactDrawer) window.closeContactDrawer();
         crmLoadContacts(isEdit ? crmOffset : 0);
       } else {
-        window.showToast?.('Error: ' + JSON.stringify(data));
+        if (window.showToast) window.showToast('Error saving contact');
       }
     } catch (e) {
-      window.showToast?.('Save failed: ' + e.message);
+      if (window.showToast) window.showToast('Save failed: ' + e.message);
     } finally {
       if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = isEdit ? 'Save Changes' : 'Save Contact'; }
     }
-  }
-
-  window.crmSaveContact = crmSaveContact;
+  };
 
   /* ── Helpers ────────────────────────────────────────────── */
   function crmHealthClass(h) {
-    const map = { Strong: 'crm-health-strong', Good: 'crm-health-good', Neutral: 'crm-health-neutral', Dormant: 'crm-health-dormant', Cold: 'crm-health-cold' };
-    return map[h] || 'crm-health-neutral';
+    return { Strong: 'crm-health-strong', Good: 'crm-health-good', Neutral: 'crm-health-neutral', Dormant: 'crm-health-dormant', Cold: 'crm-health-cold' }[h] || 'crm-health-neutral';
   }
 
-  function escHtml(str) {
-    return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  function escHtml(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function updateModeUI() {
@@ -427,33 +419,26 @@
     if (badge) badge.classList.toggle('visible', crmMode === 'search');
   }
 
-  /* ── Hook into showPage ─────────────────────────────────── */
-  // Intercept existing showPage to load contacts on first visit
+  /* ── Patch showPage to handle 'contacts' ────────────────── */
   const _origShowPage = window.showPage;
-  let crmLoaded = false;
-  window.showPage = function (page) {
+  window.showPage = function(page) {
     _origShowPage && _origShowPage(page);
     if (page === 'contacts') {
-      // Update topbar
       const titleEl = document.getElementById('page-title');
       if (titleEl) titleEl.textContent = 'Contacts';
       const addBtn = document.getElementById('topbar-add-btn');
-      if (addBtn) {
-        addBtn.textContent = '+ New Contact';
-        addBtn.onclick = () => crmOpenModal(null);
-      }
+      if (addBtn) { addBtn.textContent = '+ New Contact'; addBtn.onclick = () => crmOpenModal(null); }
       if (!crmLoaded) { crmLoaded = true; crmLoadContacts(0); }
     }
   };
 
-  /* ── Patch openContactDrawer to expose current contact ───── */
+  /* ── Patch openContactDrawer to track current contact ───── */
   const _origOpenDrawer = window.openContactDrawer;
-  window.openContactDrawer = function (contact) {
+  window.openContactDrawer = function(contact) {
     window._currentDrawerContact = contact;
     _origOpenDrawer && _origOpenDrawer(contact);
   };
 
-  /* ── Expose loadContacts globally for nav shortcut ──────── */
   window.crmLoadContacts = crmLoadContacts;
 
   /* ── Init ───────────────────────────────────────────────── */

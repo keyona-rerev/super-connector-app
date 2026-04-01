@@ -1,0 +1,32 @@
+    /* ══ CONTACTS CRM ══ */
+    .crm-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .crm-search-wrap { position: relative; flex: 1; min-width: 220px; max-width: 420px; }
+    .crm-search-input { width: 100%; background: var(--surface); border: 1.5px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 13px; padding: 8px 36px 8px 12px; border-radius: var(--radius-lg); outline: none; transition: border-color 0.15s; }
+    .crm-search-input::placeholder { color: var(--text3); }
+    .crm-search-input:focus { border-color: var(--accent); }
+    .crm-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; display: none; }
+    .crm-search-clear.visible { display: block; }
+    .crm-mode-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); display: none; }
+    .crm-mode-badge.visible { display: inline-flex; }
+    .crm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
+    .crm-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 15px 17px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; position: relative; }
+    .crm-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+    .crm-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+    .crm-card-name { font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--text); line-height: 1.3; }
+    .crm-card-role { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+    .crm-card-footer { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .crm-health-badge { display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .crm-health-strong    { background: #EDF7ED; color: var(--complete-border); }
+    .crm-health-good      { background: var(--accent-dim); color: var(--accent); }
+    .crm-health-neutral   { background: var(--medium-bg); color: var(--medium); }
+    .crm-health-dormant   { background: var(--surface2); color: var(--text3); }
+    .crm-health-cold      { background: var(--critical-bg); color: var(--critical); }
+    .crm-activation-badge { display: inline-flex; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border-soft); }
+    .crm-source-badge { display: inline-flex; font-size: 10px; padding: 2px 8px; border-radius: 20px; background: var(--medium-bg); color: var(--medium); }
+    .crm-venture-badge { display: inline-flex; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); }
+    .crm-score-badge { display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); }
+    .crm-pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-soft); }
+    .crm-page-info { font-size: 12px; color: var(--text3); }
+    .crm-page-controls { display: flex; gap: 8px; }
+    .drawer-edit-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface2); color: var(--text2); cursor: pointer; transition: all 0.12s; }
+    .drawer-edit-btn:hover { background: var(--border); color: var(--text); }

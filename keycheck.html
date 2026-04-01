@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Key Check</title></head>
+<body>
+<h2>API Key Diagnostic</h2>
+<p id="out">Loading...</p>
+<script src="config.js"></script>
+<script>
+  // Wait for page to fully load, then check all possible key locations
+  window.onload = function() {
+    var out = document.getElementById('out');
+    var lines = [];
+    lines.push('window.API_KEY = ' + (typeof window.API_KEY !== 'undefined' ? '"' + window.API_KEY + '"' : 'NOT SET'));
+    lines.push('CONFIG.API_KEY = ' + (window.CONFIG ? '"' + window.CONFIG.API_KEY + '"' : 'CONFIG NOT SET'));
+    // List any global variable that looks like a key
+    var keyVars = Object.keys(window).filter(function(k) {
+      return /key|auth|token|api_/i.test(k) && typeof window[k] === 'string' && window[k].length > 5;
+    });
+    lines.push('Key-like globals: ' + JSON.stringify(keyVars));
+    keyVars.forEach(function(k) { lines.push('  ' + k + ' = "' + window[k] + '"'); });
+    out.innerHTML = lines.join('<br>');
+  };
+</script>
+</body>
+</html>

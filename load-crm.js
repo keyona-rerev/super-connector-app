@@ -1,6 +1,4 @@
-// load-crm.js — bootstraps the Contacts CRM extension
-// Add this to index.html: <script src="load-crm.js"></script>
-// Must come AFTER config.js and the main app script.
+// load-crm.js — bootstraps the Contacts CRM and Info extensions
 (function() {
   function load(src, onload) {
     var s = document.createElement('script');
@@ -8,10 +6,14 @@
     s.onload = onload;
     document.head.appendChild(s);
   }
-  // Load contacts-crm.js after DOM is ready
+  function init() {
+    load('contacts-crm.js', function() {
+      load('load-info.js');
+    });
+  }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { load('contacts-crm.js'); });
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    load('contacts-crm.js');
+    init();
   }
 })();

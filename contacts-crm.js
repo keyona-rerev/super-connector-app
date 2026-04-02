@@ -1,14 +1,13 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App v20260401j
- * Session 5 additions:
- * - Dashboard view (default): buckets + follow-up strip
- * - Browse All as secondary tab
- * - Bucket management in contact drawer (membership, add/remove, new bucket)
- * - Help panel (? button, slide-in, tabbed)
+ * Contacts CRM + Activation Hub — Super Connector App v20260401k
+ * Session 6 additions:
+ * - Inline quick-edit dropdowns for Health + Activation Potential directly in drawer
+ * - crmQuickSave() saves to Railway immediately on dropdown change
+ * - Edit All Fields button upgraded to primary button style
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
-  const _KEY     = 'sc_live_k3y_2026_scak'; // update here if key ever rotates
+  const _KEY     = 'sc_live_k3y_2026_scak';
 
   const hdrs = () => ({
     'Content-Type': 'application/json',
@@ -20,18 +19,12 @@
   let crmOffset    = 0;
   let crmMode      = 'browse';
   let crmEditing   = null;
-  let crmView      = 'dashboard'; // 'dashboard' | 'browse'
+  let crmView      = 'dashboard';
   let allBuckets   = [];
 
-  /* ─────────────────────────────────────────────────────────
-     CSS
-  ───────────────────────────────────────────────────────── */
   const css = document.createElement('style');
   css.textContent = `
-    /* Suppress index.html's native contact drawer entirely */
     #contact-drawer, .contact-drawer, .drawer-overlay { display: none !important; }
-
-    /* ── Toolbar ── */
     .crm-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
     .crm-search-wrap{position:relative;flex:1;min-width:220px;max-width:400px}
     .crm-search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:13px;padding:8px 34px 8px 12px;border-radius:var(--radius-lg);outline:none;transition:border-color .15s}
@@ -41,24 +34,16 @@
     .crm-clear.vis{display:block}
     .crm-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--accent-dim);color:var(--accent);display:none}
     .crm-badge.vis{display:inline-flex}
-
-    /* ── View tabs ── */
     .crm-view-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content;margin-bottom:24px}
     .crm-view-tab{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;font-family:var(--font-sans);transition:background .12s,color .12s}
     .crm-view-tab.active{background:var(--accent);color:#fff}
     .crm-view-tab:not(.active):hover{background:var(--surface2);color:var(--text)}
-
-    /* ── Dashboard panels ── */
     .crm-dashboard-panel{display:none}
     .crm-dashboard-panel.active{display:block}
-
-    /* ── Section headers ── */
     .crm-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     .crm-section-title{font-family:var(--font-serif);font-size:17px;font-weight:400;color:var(--text)}
     .crm-section-action{font-size:12px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:var(--font-sans);padding:0}
     .crm-section-action:hover{text-decoration:underline}
-
-    /* ── Bucket cards ── */
     .crm-buckets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:32px}
     .crm-bucket-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:box-shadow .15s,transform .1s,border-color .15s;position:relative}
     .crm-bucket-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--accent)}
@@ -71,8 +56,6 @@
     .crm-new-bucket-card{background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text3);font-size:13px;transition:border-color .15s,color .15s;min-height:90px}
     .crm-new-bucket-card:hover{border-color:var(--accent);color:var(--accent)}
     .crm-buckets-empty{color:var(--text3);font-size:13px;padding:20px 0 32px;font-style:italic}
-
-    /* ── Follow-up strip ── */
     .crm-fu-strip{margin-bottom:32px}
     .crm-fu-list{display:flex;flex-direction:column;gap:8px}
     .crm-fu-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
@@ -84,8 +67,6 @@
     .crm-fu-date.overdue{color:var(--critical);font-weight:600}
     .crm-fu-venture{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border-soft)}
     .crm-fu-empty{color:var(--text3);font-size:13px;padding:16px 0;font-style:italic}
-
-    /* ── Browse grid ── */
     .crm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:12px}
     .crm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;cursor:pointer;transition:box-shadow .15s,transform .1s,border-color .15s}
     .crm-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--accent)}
@@ -104,36 +85,28 @@
     .crm-pag{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-soft)}
     .crm-pag-info{font-size:12px;color:var(--text3)}
     .crm-pag-btns{display:flex;gap:8px}
-
-    /* ── Activation tabs ── */
     .activ-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content}
     .activ-tab{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;font-family:var(--font-sans);transition:background .12s,color .12s}
     .activ-tab.active{background:var(--accent);color:#fff}
     .activ-tab:not(.active):hover{background:var(--surface2);color:var(--text)}
     .activ-panel{display:none}
     .activ-panel.active{display:block}
-
-    /* ── CRM Drawer ── */
     #crm-drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:95vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:1000;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex !important;flex-direction:column}
     #crm-drawer.open{transform:translateX(0)}
     .crm-drawer-header{display:flex;align-items:flex-start;justify-content:space-between;padding:24px 24px 0;gap:12px}
     .crm-drawer-name{font-family:var(--font-serif);font-size:22px;font-weight:400;color:var(--text);line-height:1.2;flex:1}
     .crm-drawer-close{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
     .crm-drawer-close:hover{color:var(--text)}
-    .crm-drawer-meta{padding:6px 24px 16px;font-size:13px;color:var(--text2)}
-    .crm-drawer-badges{display:flex;flex-wrap:wrap;gap:5px;padding:0 24px 16px}
+    .crm-drawer-meta{padding:6px 24px 12px;font-size:13px;color:var(--text2)}
+    .crm-drawer-badges{padding:0 24px 16px}
     .crm-drawer-body{padding:0 24px 8px;flex:1}
     .crm-drawer-section{margin-bottom:20px}
     .crm-drawer-section-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
     .crm-drawer-section-value{font-size:13px;color:var(--text);line-height:1.6}
     .crm-drawer-section-value.empty{color:var(--text3);font-style:italic}
     .crm-drawer-actions{display:flex;gap:8px;padding:16px 24px 24px;border-top:1px solid var(--border-soft)}
-    .crm-drawer-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .12s}
-    .crm-drawer-edit-btn:hover{background:var(--border);color:var(--text)}
     #crm-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:999}
     #crm-drawer-overlay.open{display:block}
-
-    /* ── Drawer bucket panel ── */
     .crm-drawer-buckets{padding:0 24px 20px;border-top:1px solid var(--border-soft);margin-top:4px}
     .crm-drawer-buckets-title{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:16px 0 10px}
     .crm-drawer-bucket-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
@@ -149,8 +122,6 @@
     .crm-drawer-new-bucket-input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:12px;padding:6px 10px;border-radius:var(--radius);outline:none}
     .crm-drawer-new-bucket-input:focus{border-color:var(--accent)}
     .crm-drawer-new-bucket-input::placeholder{color:var(--text3)}
-
-    /* ── Help panel ── */
     #help-panel{position:fixed;top:0;right:0;height:100%;width:400px;max-width:95vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:1001;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
     #help-panel.open{transform:translateX(0)}
     .help-header{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 0}
@@ -176,16 +147,10 @@
   `;
   document.head.appendChild(css);
 
-  /* ─────────────────────────────────────────────────────────
-     COLOUR HELPERS
-  ───────────────────────────────────────────────────────── */
   const BUCKET_COLORS = ['#6B7FF0','#F06B9D','#F0A06B','#6BC47F','#A06BF0','#6BC4C4','#F0D06B'];
   function bucketColor(b) { return (b && b.color) ? b.color : BUCKET_COLORS[(b && b.bucket_id ? b.bucket_id.charCodeAt(4) : 0) % BUCKET_COLORS.length]; }
   const hMap = {Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
 
-  /* ─────────────────────────────────────────────────────────
-     INJECT DRAWER
-  ───────────────────────────────────────────────────────── */
   function injectDrawer() {
     if (document.getElementById('crm-drawer')) return;
     document.body.insertAdjacentHTML('beforeend', `
@@ -213,14 +178,11 @@
           </div>
         </div>
         <div class="crm-drawer-actions">
-          <button class="crm-drawer-edit-btn" onclick="if(window._crmDrawerContact)crmOpenModal(window._crmDrawerContact)">✎ Edit Contact</button>
+          <button class="btn btn-primary btn-sm" onclick="if(window._crmDrawerContact)crmOpenModal(window._crmDrawerContact)" style="flex:1">✎ Edit All Fields</button>
         </div>
       </div>`);
   }
 
-  /* ─────────────────────────────────────────────────────────
-     DRAWER OPEN / CLOSE
-  ───────────────────────────────────────────────────────── */
   function openCrmDrawer(c) {
     if (!c) return;
     window._crmDrawerContact = c;
@@ -231,13 +193,34 @@
     sv('crm-drawer-name', c.full_name || '—');
     sv('crm-drawer-meta', [c.title_role, c.organization].filter(Boolean).join(' · '));
 
-    const badges = [];
-    if (c.relationship_health) badges.push(`<span class="crm-hb ${hMap[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>`);
-    if (c.activation_potential) badges.push(`<span class="crm-ab">${esc(c.activation_potential)} activation</span>`);
-    if (c.venture) badges.push(`<span class="crm-sb">${esc(c.venture)}</span>`);
-    if (c.source) badges.push(`<span class="crm-sb">${esc(c.source)}</span>`);
+    // Inline quick-edit dropdowns for the two most-edited fields
     const bd = document.getElementById('crm-drawer-badges');
-    if (bd) bd.innerHTML = badges.join('');
+    if (bd) bd.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">Health</label>
+          <select id="crm-quick-health" onchange="crmQuickSave('relationship_health',this.value)"
+            style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font-sans);cursor:pointer;outline:none">
+            <option value="">— unknown —</option>
+            <option>Strong</option><option>Good</option><option>Neutral</option><option>Dormant</option><option>Cold</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">Activation</label>
+          <select id="crm-quick-activation" onchange="crmQuickSave('activation_potential',this.value)"
+            style="font-size:12px;font-weight:500;padding:4px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font-sans);cursor:pointer;outline:none">
+            <option value="">— unknown —</option>
+            <option>High</option><option>Medium</option><option>Low</option><option>None</option>
+          </select>
+        </div>
+        ${c.venture ? `<span class="crm-sb" style="align-self:flex-end;margin-bottom:2px">${esc(c.venture)}</span>` : ''}
+        ${c.source ? `<span class="crm-sb" style="align-self:flex-end;margin-bottom:2px">${esc(c.source)}</span>` : ''}
+      </div>`;
+    // Set current values
+    const qh = document.getElementById('crm-quick-health');
+    const qa = document.getElementById('crm-quick-activation');
+    if (qh) qh.value = c.relationship_health || '';
+    if (qa) qa.value = c.activation_potential || '';
 
     const sections = [
       { label: 'How We Met',            value: c.how_we_met },
@@ -254,7 +237,6 @@
         .join('') || '<div class="crm-drawer-section"><div class="crm-drawer-section-value empty">No additional details on file.</div></div>';
     }
 
-    // Render bucket membership
     renderDrawerBuckets(c.contact_id);
 
     document.getElementById('crm-drawer').classList.add('open');
@@ -270,33 +252,24 @@
     document.body.style.overflow = '';
   };
 
-  /* ─────────────────────────────────────────────────────────
-     DRAWER BUCKET PANEL
-  ───────────────────────────────────────────────────────── */
   async function renderDrawerBuckets(contactId) {
-    const tagsEl  = document.getElementById('crm-drawer-bucket-tags');
-    const selEl   = document.getElementById('crm-drawer-bucket-select');
+    const tagsEl = document.getElementById('crm-drawer-bucket-tags');
+    const selEl  = document.getElementById('crm-drawer-bucket-select');
     if (!tagsEl || !selEl) return;
-
-    // Fetch membership for this contact
     let memberOf = [];
     try {
       const r = await fetch(`${API_BASE}/contact/${contactId}/buckets`, { headers: hdrs() });
       const d = await r.json();
       memberOf = d.data || [];
-    } catch(e) { /* silent */ }
-
-    // Render tags
+    } catch(e) { }
     tagsEl.innerHTML = memberOf.length
       ? memberOf.map(b => `
           <span class="crm-drawer-bucket-tag" data-bucket-id="${esc(b.bucket_id)}">
             <span class="crm-drawer-bucket-tag-dot" style="background:${bucketColor(b)}"></span>
             ${esc(b.name||b.bucket_id)}
-            <button class="crm-drawer-bucket-tag-remove" onclick="crmDrawerRemoveBucket('${esc(b.bucket_id)}')" title="Remove from bucket">×</button>
+            <button class="crm-drawer-bucket-tag-remove" onclick="crmDrawerRemoveBucket('${esc(b.bucket_id)}')" title="Remove">×</button>
           </span>`).join('')
       : '<span style="font-size:11px;color:var(--text3);font-style:italic">Not in any bucket yet</span>';
-
-    // Populate dropdown with buckets NOT already a member
     const memberIds = new Set(memberOf.map(b => b.bucket_id));
     const available = allBuckets.filter(b => !memberIds.has(b.bucket_id));
     selEl.innerHTML = '<option value="">Add to bucket…</option>' +
@@ -306,15 +279,10 @@
   window.crmDrawerAddBucket = async function () {
     const c = window._crmDrawerContact; if (!c) return;
     const sel = document.getElementById('crm-drawer-bucket-select');
-    const bucketId = sel && sel.value;
-    if (!bucketId) return;
+    const bucketId = sel && sel.value; if (!bucketId) return;
     try {
-      await fetch(`${API_BASE}/bucket/${bucketId}/members`, {
-        method: 'POST', headers: hdrs(), body: JSON.stringify({ contact_id: c.contact_id })
-      });
-      await loadBuckets();
-      renderDrawerBuckets(c.contact_id);
-      renderBucketCards();
+      await fetch(`${API_BASE}/bucket/${bucketId}/members`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ contact_id: c.contact_id }) });
+      await loadBuckets(); renderDrawerBuckets(c.contact_id); renderBucketCards();
     } catch(e) { toast('Failed to add to bucket'); }
   };
 
@@ -322,65 +290,46 @@
     const c = window._crmDrawerContact; if (!c) return;
     try {
       await fetch(`${API_BASE}/bucket/${bucketId}/members/${c.contact_id}`, { method: 'DELETE', headers: hdrs() });
-      await loadBuckets();
-      renderDrawerBuckets(c.contact_id);
-      renderBucketCards();
+      await loadBuckets(); renderDrawerBuckets(c.contact_id); renderBucketCards();
     } catch(e) { toast('Failed to remove from bucket'); }
   };
 
   window.crmDrawerCreateBucket = async function () {
     const inp = document.getElementById('crm-drawer-new-bucket-name');
-    const name = inp && inp.value.trim();
-    if (!name) return;
+    const name = inp && inp.value.trim(); if (!name) return;
     try {
-      await fetch(`${API_BASE}/bucket`, {
-        method: 'POST', headers: hdrs(), body: JSON.stringify({ name })
-      });
+      await fetch(`${API_BASE}/bucket`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ name }) });
       if (inp) inp.value = '';
-      await loadBuckets();
-      renderDrawerBuckets(window._crmDrawerContact && window._crmDrawerContact.contact_id);
-      renderBucketCards();
+      await loadBuckets(); renderDrawerBuckets(window._crmDrawerContact && window._crmDrawerContact.contact_id); renderBucketCards();
       toast('Bucket created ✓');
     } catch(e) { toast('Failed to create bucket'); }
   };
 
-  /* ─────────────────────────────────────────────────────────
-     INJECT MAIN DOM
-  ───────────────────────────────────────────────────────── */
   function injectDOM() {
     injectDrawer();
     injectHelpPanel();
 
-    // Nav button
     const navSearch = document.getElementById('nav-search');
     if (navSearch && !document.getElementById('nav-contacts')) {
       const btn = document.createElement('button');
-      btn.className = 'nav-item';
-      btn.id = 'nav-contacts';
+      btn.className = 'nav-item'; btn.id = 'nav-contacts';
       btn.innerHTML = '<span class="icon">⊞</span> Contacts';
       btn.onclick = () => goContacts();
       navSearch.parentNode.insertBefore(btn, navSearch);
       navSearch.style.display = 'none';
     }
 
-    // Page scaffold
     if (!document.getElementById('page-contacts')) {
       const ref = document.getElementById('page-search');
       if (ref) {
         const div = document.createElement('div');
-        div.className = 'page';
-        div.id = 'page-contacts';
-        div.style.display = 'none';
+        div.className = 'page'; div.id = 'page-contacts'; div.style.display = 'none';
         div.innerHTML = `
-          <!-- View tabs -->
           <div class="crm-view-tabs">
             <button class="crm-view-tab active" id="crm-tab-dashboard" onclick="crmSwitchView('dashboard')">Overview</button>
-            <button class="crm-view-tab"        id="crm-tab-browse"    onclick="crmSwitchView('browse')">Browse All</button>
+            <button class="crm-view-tab" id="crm-tab-browse" onclick="crmSwitchView('browse')">Browse All</button>
           </div>
-
-          <!-- DASHBOARD PANEL -->
           <div class="crm-dashboard-panel active" id="crm-panel-dashboard">
-            <!-- Buckets section -->
             <div class="crm-section-head">
               <span class="crm-section-title">Buckets</span>
               <button class="crm-section-action" onclick="crmNewBucketModal()">+ New Bucket</button>
@@ -388,8 +337,6 @@
             <div class="crm-buckets-grid" id="crm-buckets-grid">
               <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading buckets…</div>
             </div>
-
-            <!-- Follow-up strip -->
             <div class="crm-fu-strip">
               <div class="crm-section-head">
                 <span class="crm-section-title">Open Follow-Ups</span>
@@ -400,8 +347,6 @@
               </div>
             </div>
           </div>
-
-          <!-- BROWSE PANEL -->
           <div class="crm-dashboard-panel" id="crm-panel-browse">
             <div class="crm-toolbar">
               <div class="crm-search-wrap">
@@ -420,13 +365,11 @@
               </select>
               <select class="filter-select" id="crm-fh" onchange="crmFilter()">
                 <option value="">All Health</option>
-                <option>Strong</option><option>Good</option>
-                <option>Neutral</option><option>Dormant</option><option>Cold</option>
+                <option>Strong</option><option>Good</option><option>Neutral</option><option>Dormant</option><option>Cold</option>
               </select>
               <select class="filter-select" id="crm-fa" onchange="crmFilter()">
                 <option value="">All Activation</option>
-                <option>High</option><option>Medium</option>
-                <option>Low</option><option>None</option>
+                <option>High</option><option>Medium</option><option>Low</option><option>None</option>
               </select>
             </div>
             <div class="crm-grid" id="crm-grid">
@@ -444,32 +387,27 @@
       }
     }
 
-    // Activation tabs
     const navAngles = document.getElementById('nav-angles');
     if (navAngles) navAngles.style.display = 'none';
-    const pageQueue  = document.getElementById('page-queue');
+    const pageQueue = document.getElementById('page-queue');
     const pageAngles = document.getElementById('page-angles');
     if (pageQueue && !document.getElementById('activ-tab-bar')) {
       const tabBar = document.createElement('div');
-      tabBar.className = 'activ-tabs';
-      tabBar.id = 'activ-tab-bar';
+      tabBar.className = 'activ-tabs'; tabBar.id = 'activ-tab-bar';
       tabBar.innerHTML = `
-        <button class="activ-tab active" id="activ-tab-queue"  onclick="activTab('queue')">Activation Queue</button>
-        <button class="activ-tab"        id="activ-tab-angles" onclick="activTab('angles')">Activation Angles</button>`;
+        <button class="activ-tab active" id="activ-tab-queue" onclick="activTab('queue')">Activation Queue</button>
+        <button class="activ-tab" id="activ-tab-angles" onclick="activTab('angles')">Activation Angles</button>`;
       const queuePanel = document.createElement('div');
-      queuePanel.className = 'activ-panel active';
-      queuePanel.id = 'activ-panel-queue';
+      queuePanel.className = 'activ-panel active'; queuePanel.id = 'activ-panel-queue';
       const queueInner = document.getElementById('queue-list');
       if (queueInner) { queueInner.parentNode.insertBefore(queuePanel, queueInner); queuePanel.appendChild(queueInner); }
       const anglesPanel = document.createElement('div');
-      anglesPanel.className = 'activ-panel';
-      anglesPanel.id = 'activ-panel-angles';
+      anglesPanel.className = 'activ-panel'; anglesPanel.id = 'activ-panel-angles';
       if (pageAngles) { while (pageAngles.firstChild) anglesPanel.appendChild(pageAngles.firstChild); pageAngles.style.display = 'none'; }
       pageQueue.insertBefore(tabBar, pageQueue.firstChild);
       pageQueue.appendChild(anglesPanel);
     }
 
-    // Edit modal
     if (!document.getElementById('crm-modal')) {
       document.body.insertAdjacentHTML('beforeend', `
 <div class="modal-overlay" id="crm-modal">
@@ -497,7 +435,6 @@
 </div>`);
     }
 
-    // New bucket modal
     if (!document.getElementById('crm-bucket-modal')) {
       document.body.insertAdjacentHTML('beforeend', `
 <div class="modal-overlay" id="crm-bucket-modal">
@@ -524,33 +461,24 @@
     loadDashboard();
   }
 
-  /* ─────────────────────────────────────────────────────────
-     VIEW SWITCHING
-  ───────────────────────────────────────────────────────── */
   window.crmSwitchView = function (view) {
     crmView = view;
     ['dashboard','browse'].forEach(v => {
-      const tab   = document.getElementById('crm-tab-'+v);
+      const tab = document.getElementById('crm-tab-'+v);
       const panel = document.getElementById('crm-panel-'+v);
       const active = v === view;
-      if (tab)   tab.classList.toggle('active', active);
+      if (tab) tab.classList.toggle('active', active);
       if (panel) panel.classList.toggle('active', active);
     });
     if (view === 'browse' && crmContacts.length === 0) crmLoad(0);
   };
 
-  /* ─────────────────────────────────────────────────────────
-     DASHBOARD LOAD
-  ───────────────────────────────────────────────────────── */
   async function loadDashboard() {
     await Promise.all([loadBuckets(), loadFollowUps()]);
     renderBucketCards();
     renderFollowUpStrip();
   }
 
-  /* ─────────────────────────────────────────────────────────
-     BUCKETS
-  ───────────────────────────────────────────────────────── */
   async function loadBuckets() {
     try {
       const r = await fetch(`${API_BASE}/buckets`, { headers: hdrs() });
@@ -560,15 +488,11 @@
   }
 
   async function renderBucketCards() {
-    const grid = document.getElementById('crm-buckets-grid');
-    if (!grid) return;
-
+    const grid = document.getElementById('crm-buckets-grid'); if (!grid) return;
     if (!allBuckets.length) {
       grid.innerHTML = `<div class="crm-buckets-empty">No buckets yet. Create one to start grouping your contacts.</div>`;
       return;
     }
-
-    // For each bucket, fetch first few member names if count > 0
     const cards = await Promise.all(allBuckets.map(async b => {
       let previewNames = '';
       if (b.count > 0) {
@@ -577,7 +501,7 @@
           const d = await r.json();
           const names = (d.data || []).slice(0, 3).map(c => c.full_name).filter(Boolean);
           previewNames = names.join(', ') + (b.count > 3 ? ` +${b.count - 3} more` : '');
-        } catch(e) { /* silent */ }
+        } catch(e) { }
       }
       const color = bucketColor(b);
       return `
@@ -591,12 +515,10 @@
           <div class="crm-bucket-members">${previewNames || (b.count === 0 ? 'Empty' : '')}</div>
         </div>`;
     }));
-
     grid.innerHTML = cards.join('') + `<div class="crm-new-bucket-card" onclick="crmNewBucketModal()">+ New Bucket</div>`;
   }
 
   window.crmOpenBucket = async function (bucketId) {
-    // Switch to browse, filter to bucket members
     crmSwitchView('browse');
     const grid = document.getElementById('crm-grid');
     if (grid) grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading bucket…</div>`;
@@ -605,21 +527,15 @@
       const r = await fetch(`${API_BASE}/bucket/${bucketId}/contacts`, { headers: hdrs() });
       const d = await r.json();
       const bucket = allBuckets.find(b => b.bucket_id === bucketId);
-      crmContacts = d.data || [];
-      crmMode = 'bucket';
+      crmContacts = d.data || []; crmMode = 'bucket';
       renderGrid(crmContacts, false);
-      // Show bucket name as badge
       showBadge(true, bucket ? `Bucket: ${bucket.name}` : 'Bucket view');
     } catch(e) {
       if (grid) grid.innerHTML = `<div class="empty-state"><h3>Could not load bucket</h3><p>${e.message}</p></div>`;
     }
   };
 
-  /* ─────────────────────────────────────────────────────────
-     FOLLOW-UPS
-  ───────────────────────────────────────────────────────── */
   let openFollowUps = [];
-
   async function loadFollowUps() {
     try {
       const r = await fetch(`${API_BASE}/follow-ups/open`, { headers: hdrs() });
@@ -629,16 +545,15 @@
   }
 
   function renderFollowUpStrip() {
-    const el = document.getElementById('crm-fu-list');
-    if (!el) return;
+    const el = document.getElementById('crm-fu-list'); if (!el) return;
     if (!openFollowUps.length) {
       el.innerHTML = '<div class="crm-fu-empty">No open follow-ups. You\'re all caught up ✓</div>';
       return;
     }
     const today = new Date().toISOString().slice(0, 10);
     el.innerHTML = openFollowUps.slice(0, 10).map(f => {
-      const date     = f.next_action_date || '';
-      const overdue  = date && date < today;
+      const date = f.next_action_date || '';
+      const overdue = date && date < today;
       const dateLabel = date ? (overdue ? `Overdue · ${date}` : date) : '';
       return `
         <div class="crm-fu-row ${overdue ? 'crm-fu-overdue' : ''}" onclick="crmFollowUpClick('${esc(f.contact_id||'')}')">
@@ -649,46 +564,36 @@
         </div>`;
     }).join('');
     if (openFollowUps.length > 10) {
-      el.innerHTML += `<div style="font-size:12px;color:var(--text3);padding:8px 0 0">${openFollowUps.length - 10} more — switch to Browse All to see contacts</div>`;
+      el.innerHTML += `<div style="font-size:12px;color:var(--text3);padding:8px 0 0">${openFollowUps.length - 10} more — switch to Browse All</div>`;
     }
   }
 
   window.crmFollowUpClick = async function (contactId) {
     if (!contactId) return;
-    // Try to find in already-loaded contacts, else fetch
     let c = crmContacts.find(x => x.contact_id === contactId);
     if (!c) {
       try {
         const r = await fetch(`${API_BASE}/contact/${contactId}`, { headers: hdrs() });
-        const d = await r.json();
-        c = d.data;
+        const d = await r.json(); c = d.data;
       } catch(e) { return; }
     }
     if (c) openCrmDrawer(c);
   };
 
-  /* ─────────────────────────────────────────────────────────
-     BUCKET MODAL
-  ───────────────────────────────────────────────────────── */
   window.crmNewBucketModal = function () {
     sv2('cbm-name', ''); sv2('cbm-desc', '');
     const hiddenColor = document.getElementById('cbm-color');
     if (hiddenColor) hiddenColor.value = BUCKET_COLORS[0];
-    // Reset color swatches
     document.querySelectorAll('[data-color]').forEach(s => s.style.borderColor = 'transparent');
     const first = document.querySelector(`[data-color="${BUCKET_COLORS[0]}"]`);
     if (first) first.style.borderColor = '#333';
     const m = document.getElementById('crm-bucket-modal'); if (m) m.classList.add('open');
   };
-  window.crmCloseBucketModal = function () {
-    const m = document.getElementById('crm-bucket-modal'); if (m) m.classList.remove('open');
-  };
+  window.crmCloseBucketModal = function () { const m = document.getElementById('crm-bucket-modal'); if (m) m.classList.remove('open'); };
   window.crmBucketPickColor = function (color) {
     const hiddenColor = document.getElementById('cbm-color');
     if (hiddenColor) hiddenColor.value = color;
-    document.querySelectorAll('[data-color]').forEach(s => {
-      s.style.borderColor = s.dataset.color === color ? '#333' : 'transparent';
-    });
+    document.querySelectorAll('[data-color]').forEach(s => { s.style.borderColor = s.dataset.color === color ? '#333' : 'transparent'; });
   };
   window.crmSaveBucket = async function () {
     const name = (gv('cbm-name')||'').trim();
@@ -696,21 +601,12 @@
     const btn = document.getElementById('crm-bucket-save-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
     try {
-      await fetch(`${API_BASE}/bucket`, {
-        method: 'POST', headers: hdrs(),
-        body: JSON.stringify({ name, description: gv('cbm-desc'), color: gv('cbm-color') })
-      });
-      window.crmCloseBucketModal();
-      await loadBuckets();
-      renderBucketCards();
-      toast('Bucket created ✓');
+      await fetch(`${API_BASE}/bucket`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ name, description: gv('cbm-desc'), color: gv('cbm-color') }) });
+      window.crmCloseBucketModal(); await loadBuckets(); renderBucketCards(); toast('Bucket created ✓');
     } catch(e) { toast('Failed to create bucket'); }
     finally { if (btn) { btn.disabled = false; btn.textContent = 'Create Bucket'; } }
   };
 
-  /* ─────────────────────────────────────────────────────────
-     HELP PANEL
-  ───────────────────────────────────────────────────────── */
   function injectHelpPanel() {
     if (document.getElementById('help-panel')) return;
     document.body.insertAdjacentHTML('beforeend', `
@@ -730,61 +626,45 @@
             <h4>Adding a contact</h4>
             <p>Use <strong>+ New Contact</strong> in the top bar, or let T018 auto-create contacts from meeting transcripts.</p>
             <p>Only add <strong>warm contacts</strong> here — people you've actually met or been introduced to. Cold outreach targets go in Apollo / Pipedrive only.</p>
+            <h4>Editing a contact</h4>
+            <p>Open any contact card. Use the <strong>Health</strong> and <strong>Activation</strong> dropdowns in the drawer to update those fields instantly — no modal needed. For everything else, use <strong>✎ Edit All Fields</strong>.</p>
             <h4>Field standards</h4>
             <table class="help-field-table">
               <tr><td>Full Name</td><td>Required. First + Last.</td></tr>
               <tr><td>Venture</td><td>Must match exactly: <em>ReRev Labs · Prismm · Black Tech Capital · Sekhmetic · DO GOOD X · NYC PIVOT · Personal</em></td></tr>
               <tr><td>Relationship Health</td><td>Strong → Good → Neutral → Dormant → Cold. Be honest.</td></tr>
               <tr><td>Activation Potential</td><td>How likely to act on an outreach now. High = reach out this week.</td></tr>
-              <tr><td>Source</td><td>Where you met — event name, platform, referral name. T018 fills this from transcripts.</td></tr>
+              <tr><td>Source</td><td>Where you met — event name, platform, referral name.</td></tr>
               <tr><td>How We Met</td><td>Narrative context — "panel intro", "warm intro via Bryan".</td></tr>
               <tr><td>What Building / Need / Offer</td><td>Powers semantic search. The more detail, the better the matches.</td></tr>
             </table>
             <h4>Buckets</h4>
             <p>Buckets are your custom groupings — "BTC Advisors", "Prismm Warm Leads", "Follow Up This Week". A contact can be in multiple buckets. Add/remove from the contact drawer.</p>
             <h4>Semantic search</h4>
-            <p>Type a query and press <strong>Enter</strong> to run a semantic search across all contacts. Try "climate tech founder in NYC" or "someone who needs AI training".</p>
+            <p>Type a query and press <strong>Enter</strong> to run a semantic search. Try "climate tech founder in NYC" or "someone who needs AI training".</p>
           </div>
           <div class="help-panel-content" id="help-initiatives">
             <h4>What is an initiative?</h4>
-            <p>An initiative is any project, goal, or campaign you're running — e.g. "BTC Climate Exit Lab Q2", "Prismm Credit Union Pilot", "ReRev AI Workshop Series".</p>
+            <p>An initiative is any project, goal, or campaign you're running.</p>
             <h4>Sub-projects</h4>
-            <p>Scoped workstreams under an initiative. Each can have its own status, owner, and dependencies. Examples: "Outreach to 10 advisors", "Build demo deck", "Set up data room".</p>
+            <p>Scoped workstreams under an initiative. Each can have its own status, owner, and dependencies.</p>
             <h4>Stakeholders</h4>
-            <p>A stakeholder is a contact linked to a specific initiative with a role (Advisor, Interview Subject, Sponsor Prospect, etc.) and an action needed. Use the Initiatives page to manage these.</p>
-            <h4>Status values</h4>
-            <p>Brain Dump → Planning → Active → Paused → Complete</p>
-            <h4>Priority values</h4>
-            <p>Critical → High → Medium → Low → Parked</p>
+            <p>A stakeholder is a contact linked to a specific initiative with a role and an action needed.</p>
+            <h4>Status values</h4><p>Brain Dump → Planning → Active → Paused → Complete</p>
+            <h4>Priority values</h4><p>Critical → High → Medium → Low → Parked</p>
           </div>
           <div class="help-panel-content" id="help-input">
             <h4>T018 — Post-Meeting Intelligence Engine</h4>
-            <p>Drop a meeting transcript or Gemini notes doc into the <strong>Transcripts folder</strong> in Google Drive. T018 runs every 5 minutes and automatically:</p>
-            <ul>
-              <li>Extracts action items → Google Tasks (routed by venture)</li>
-              <li>Creates or updates contact records → Railway</li>
-              <li>Drafts follow-up emails → Gmail Drafts</li>
-              <li>Writes follow-up records → Railway</li>
-              <li>Sends a digest email to keyona@rerev.io</li>
-            </ul>
-            <h4>Direct API</h4>
-            <p>All Railway endpoints accept <code>POST /contact</code> for upserting contacts and <code>POST /follow-up</code> for follow-ups. Use <code>X-API-Key</code> header for auth.</p>
+            <p>Drop a meeting transcript into the Transcripts folder in Google Drive. T018 runs every 5 minutes and automatically extracts action items, updates contacts, drafts follow-up emails, and sends a digest.</p>
             <h4>Manual entry</h4>
-            <p>Use the <strong>+ New Contact</strong> button in the top bar. The contact is vectorized and stored to Railway immediately on save.</p>
-            <h4>Google Contacts import</h4>
-            <p>Use the <em>GoogleImport</em> tab in the Super Connector sheet as a staging area, then bulk-push via the GAS bridge or direct API bulk endpoint.</p>
+            <p>Use the <strong>+ New Contact</strong> button. The contact is vectorized and stored to Railway immediately on save.</p>
           </div>
         </div>
       </div>`);
   }
 
-  window.helpToggle = function () {
-    const p = document.getElementById('help-panel');
-    if (p) p.classList.toggle('open');
-  };
-  window.helpClose = function () {
-    const p = document.getElementById('help-panel'); if (p) p.classList.remove('open');
-  };
+  window.helpToggle = function () { const p = document.getElementById('help-panel'); if (p) p.classList.toggle('open'); };
+  window.helpClose = function () { const p = document.getElementById('help-panel'); if (p) p.classList.remove('open'); };
   window.helpTab = function (tab) {
     document.querySelectorAll('.help-tab').forEach((t, i) => {
       const tabs = ['contacts','initiatives','input'];
@@ -796,9 +676,6 @@
     });
   };
 
-  /* ─────────────────────────────────────────────────────────
-     NAV / PAGE ROUTING
-  ───────────────────────────────────────────────────────── */
   function goContacts() {
     document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
     const pg = document.getElementById('page-contacts'); if (pg) pg.style.display = '';
@@ -807,7 +684,6 @@
     const title = document.getElementById('page-title'); if (title) title.textContent = 'Contacts';
     const addBtn = document.getElementById('topbar-add-btn');
     if (addBtn) { addBtn.textContent = '+ New Contact'; addBtn.onclick = () => crmOpenModal(null); }
-    // Refresh dashboard data each time we land on the page
     loadDashboard();
   }
 
@@ -826,9 +702,6 @@
     window.closeContactDrawer = window.crmCloseDrawer;
   }
 
-  /* ─────────────────────────────────────────────────────────
-     BROWSE — LOAD / RENDER / PAGINATE
-  ───────────────────────────────────────────────────────── */
   async function crmLoad(offset) {
     offset = offset || 0;
     crmOffset = offset; crmMode = 'browse'; showBadge(false);
@@ -844,7 +717,7 @@
       if (fh) cx = cx.filter(c => (c.relationship_health||'') === fh);
       if (fa) cx = cx.filter(c => (c.activation_potential||'') === fa);
       crmContacts = cx; renderGrid(cx, false); updatePag(offset, data.count);
-    } catch (e) {
+    } catch(e) {
       if (grid) grid.innerHTML = `<div class="empty-state"><h3>Could not load contacts</h3><p>${e.message}</p></div>`;
     }
   }
@@ -856,7 +729,7 @@
       grid.innerHTML = `<div class="empty-state"><h3>${isSearch?'No matches':'No contacts'}</h3><p>${isSearch?'Try a different query.':'Use + New Contact to add one.'}</p></div>`;
       grid._contacts = []; return;
     }
-    grid.innerHTML = cx.map((c,i) => {
+    grid.innerHTML = cx.map((c, i) => {
       const hb = c.relationship_health ? `<span class="crm-hb ${hMap[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>` : '';
       const ab = c.activation_potential ? `<span class="crm-ab">${esc(c.activation_potential)}</span>` : '';
       const sb = c.source ? `<span class="crm-sb">${esc(c.source)}</span>` : '';
@@ -868,112 +741,127 @@
   }
 
   window.crmCardClick = function (el) {
-    if (el && el.stopPropagation) el.stopPropagation();
     const grid = document.getElementById('crm-grid'); if (!grid||!grid._contacts) return;
     const c = grid._contacts[parseInt(el.dataset.cidx, 10)]; if (!c) return;
     openCrmDrawer(c);
   };
 
   window.crmInput = function (v) {
-    const cl = document.getElementById('crm-clear'); if (cl) cl.classList.toggle('vis', v.length>0);
+    const cl = document.getElementById('crm-clear'); if (cl) cl.classList.toggle('vis', v.length > 0);
     if (!v) { crmLoad(crmOffset); return; }
     if (v.length < 4) {
       const q = v.toLowerCase();
       renderGrid(crmContacts.filter(c => (c.full_name||'').toLowerCase().includes(q)||(c.organization||'').toLowerCase().includes(q)||(c.title_role||'').toLowerCase().includes(q)), false);
-      const p = document.getElementById('crm-pag'); if (p) p.style.display='none';
+      const p = document.getElementById('crm-pag'); if (p) p.style.display = 'none';
     }
   };
 
   window.crmSearch = async function (q) {
     if (!q||!q.trim()) { crmLoad(0); return; }
-    crmMode='search'; showBadge(true);
+    crmMode = 'search'; showBadge(true);
     const grid = document.getElementById('crm-grid');
-    if (grid) grid.innerHTML=`<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
-    const p = document.getElementById('crm-pag'); if (p) p.style.display='none';
+    if (grid) grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Searching…</div>`;
+    const p = document.getElementById('crm-pag'); if (p) p.style.display = 'none';
     try {
-      const resp = await fetch(`${API_BASE}/search`,{method:'POST',headers:hdrs(),body:JSON.stringify({query:q.trim(),top_k:30})});
-      const data = await resp.json(); renderGrid(data.results||[], true);
-    } catch(e) { if(grid) grid.innerHTML=`<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`; }
+      const resp = await fetch(`${API_BASE}/search`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ query: q.trim(), top_k: 30 }) });
+      const data = await resp.json(); renderGrid(data.results || [], true);
+    } catch(e) { if (grid) grid.innerHTML = `<div class="empty-state"><h3>Search error</h3><p>${e.message}</p></div>`; }
   };
 
   window.crmReset = function () {
-    const inp=document.getElementById('crm-q'); if(inp) inp.value='';
-    const cl=document.getElementById('crm-clear'); if(cl) cl.classList.remove('vis');
-    crmMode='browse'; showBadge(false); crmLoad(0);
+    const inp = document.getElementById('crm-q'); if (inp) inp.value = '';
+    const cl = document.getElementById('crm-clear'); if (cl) cl.classList.remove('vis');
+    crmMode = 'browse'; showBadge(false); crmLoad(0);
   };
-  window.crmFilter = function () { if (crmMode==='browse') crmLoad(0); };
+  window.crmFilter = function () { if (crmMode === 'browse') crmLoad(0); };
 
   function updatePag(offset, total) {
-    const p=document.getElementById('crm-pag'),info=document.getElementById('crm-pag-info'),prev=document.getElementById('crm-prev'),next=document.getElementById('crm-next');
-    if(!p) return; p.style.display='flex';
-    if(info) info.textContent=`${offset+1}–${Math.min(offset+crmContacts.length, total||999)}${total?' of '+total:''}`;
-    if(prev) prev.disabled=offset===0; if(next) next.disabled=crmContacts.length<PAGE_SIZE;
+    const p = document.getElementById('crm-pag'), info = document.getElementById('crm-pag-info');
+    const prev = document.getElementById('crm-prev'), next = document.getElementById('crm-next');
+    if (!p) return; p.style.display = 'flex';
+    if (info) info.textContent = `${offset+1}–${Math.min(offset+crmContacts.length, total||999)}${total ? ' of '+total : ''}`;
+    if (prev) prev.disabled = offset === 0;
+    if (next) next.disabled = crmContacts.length < PAGE_SIZE;
   }
-  window.crmPage = function(dir) { const n=crmOffset+dir*PAGE_SIZE; if(n<0) return; crmLoad(n); const g=document.getElementById('crm-grid'); if(g) g.scrollIntoView({behavior:'smooth',block:'start'}); };
-
-  /* ─────────────────────────────────────────────────────────
-     CONTACT MODAL (new / edit)
-  ───────────────────────────────────────────────────────── */
-  function crmOpenModal(c) {
-    crmEditing=c||null;
-    sv('crm-modal-title',c?'Edit Contact':'New Contact'); sv('crm-save-btn',c?'Save Changes':'Save Contact');
-    sv2('cm-name',c?.full_name||''); sv2('cm-role',c?.title_role||''); sv2('cm-org',c?.organization||'');
-    sv2('cm-ven',c?.venture||''); sv2('cm-src',c?.source||''); sv2('cm-hwm',c?.how_we_met||'');
-    sv2('cm-hlth',c?.relationship_health||''); sv2('cm-act',c?.activation_potential||'');
-    sv2('cm-bld',c?.what_building||''); sv2('cm-need',c?.what_need||''); sv2('cm-offer',c?.what_offer||''); sv2('cm-notes',c?.notes||'');
-    const m=document.getElementById('crm-modal'); if(m) m.classList.add('open');
-  }
-  window.crmOpenModal = crmOpenModal;
-  window.crmCloseModal = function () { const m=document.getElementById('crm-modal'); if(m) m.classList.remove('open'); crmEditing=null; };
-
-  window.crmSave = async function () {
-    const name=(gv('cm-name')||'').trim(); if(!name){toast('Full name is required');return;}
-    const sb=document.getElementById('crm-save-btn'); if(sb){sb.disabled=true;sb.textContent='Saving…';}
-    const isEdit=!!crmEditing, id=isEdit?crmEditing.contact_id:'C'+Date.now();
-    const payload={contact_id:id,full_name:name,title_role:gv('cm-role'),organization:gv('cm-org'),venture:gv('cm-ven'),source:gv('cm-src'),how_we_met:gv('cm-hwm'),relationship_health:gv('cm-hlth'),activation_potential:gv('cm-act'),what_building:gv('cm-bld'),what_need:gv('cm-need'),what_offer:gv('cm-offer'),notes:gv('cm-notes')};
-    try {
-      const resp=await fetch(isEdit?`${API_BASE}/contact/${id}`:`${API_BASE}/contact`,{method:isEdit?'PUT':'POST',headers:hdrs(),body:JSON.stringify(payload)});
-      const data=await resp.json();
-      if(data.success){
-        toast(`Contact ${isEdit?'updated':'saved'} ✓`);
-        window.crmCloseModal(); window.crmCloseDrawer();
-        if(isEdit) openCrmDrawer({...crmEditing,...payload});
-        crmLoad(isEdit?crmOffset:0);
-      } else { toast('Error saving contact'); }
-    } catch(e){toast('Save failed: '+e.message);}
-    finally{if(sb){sb.disabled=false;sb.textContent=isEdit?'Save Changes':'Save Contact';}}
+  window.crmPage = function (dir) {
+    const n = crmOffset + dir * PAGE_SIZE; if (n < 0) return; crmLoad(n);
+    const g = document.getElementById('crm-grid'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  /* ─────────────────────────────────────────────────────────
-     ACTIVATION TABS
-  ───────────────────────────────────────────────────────── */
+  /* ── QUICK-SAVE: inline drawer dropdowns save directly to Railway ── */
+  window.crmQuickSave = async function (field, value) {
+    const c = window._crmDrawerContact;
+    if (!c || !c.contact_id) return;
+    const updated = { ...c, [field]: value };
+    window._crmDrawerContact = updated;
+    const idx = crmContacts.findIndex(x => x.contact_id === c.contact_id);
+    if (idx >= 0) crmContacts[idx] = updated;
+    try {
+      const resp = await fetch(`${API_BASE}/contact/${c.contact_id}`, {
+        method: 'PUT', headers: hdrs(), body: JSON.stringify(updated)
+      });
+      const data = await resp.json();
+      if (data.success || data.contact_id) {
+        toast(`${field === 'relationship_health' ? 'Health' : 'Activation'} updated ✓`);
+      } else {
+        toast('Save failed');
+      }
+    } catch(e) { toast('Save error: ' + e.message); }
+  };
+
+  /* ── FULL EDIT MODAL ── */
+  function crmOpenModal(c) {
+    crmEditing = c || null;
+    sv('crm-modal-title', c ? 'Edit Contact' : 'New Contact');
+    sv('crm-save-btn', c ? 'Save Changes' : 'Save Contact');
+    sv2('cm-name', c?.full_name||''); sv2('cm-role', c?.title_role||''); sv2('cm-org', c?.organization||'');
+    sv2('cm-ven', c?.venture||''); sv2('cm-src', c?.source||''); sv2('cm-hwm', c?.how_we_met||'');
+    sv2('cm-hlth', c?.relationship_health||''); sv2('cm-act', c?.activation_potential||'');
+    sv2('cm-bld', c?.what_building||''); sv2('cm-need', c?.what_need||''); sv2('cm-offer', c?.what_offer||''); sv2('cm-notes', c?.notes||'');
+    const m = document.getElementById('crm-modal'); if (m) m.classList.add('open');
+  }
+  window.crmOpenModal = crmOpenModal;
+  window.crmCloseModal = function () { const m = document.getElementById('crm-modal'); if (m) m.classList.remove('open'); crmEditing = null; };
+
+  window.crmSave = async function () {
+    const name = (gv('cm-name')||'').trim(); if (!name) { toast('Full name is required'); return; }
+    const sb = document.getElementById('crm-save-btn'); if (sb) { sb.disabled = true; sb.textContent = 'Saving…'; }
+    const isEdit = !!crmEditing, id = isEdit ? crmEditing.contact_id : 'C'+Date.now();
+    const payload = { contact_id: id, full_name: name, title_role: gv('cm-role'), organization: gv('cm-org'), venture: gv('cm-ven'), source: gv('cm-src'), how_we_met: gv('cm-hwm'), relationship_health: gv('cm-hlth'), activation_potential: gv('cm-act'), what_building: gv('cm-bld'), what_need: gv('cm-need'), what_offer: gv('cm-offer'), notes: gv('cm-notes') };
+    try {
+      const resp = await fetch(isEdit ? `${API_BASE}/contact/${id}` : `${API_BASE}/contact`, { method: isEdit ? 'PUT' : 'POST', headers: hdrs(), body: JSON.stringify(payload) });
+      const data = await resp.json();
+      if (data.success) {
+        toast(`Contact ${isEdit ? 'updated' : 'saved'} ✓`);
+        window.crmCloseModal(); window.crmCloseDrawer();
+        if (isEdit) openCrmDrawer({ ...crmEditing, ...payload });
+        crmLoad(isEdit ? crmOffset : 0);
+      } else { toast('Error saving contact'); }
+    } catch(e) { toast('Save failed: ' + e.message); }
+    finally { if (sb) { sb.disabled = false; sb.textContent = isEdit ? 'Save Changes' : 'Save Contact'; } }
+  };
+
   window.activTab = function (which) {
     ['queue','angles'].forEach(t => {
       const isActive = t === which;
-      const tab   = document.getElementById('activ-tab-'+t);
+      const tab = document.getElementById('activ-tab-'+t);
       const panel = document.getElementById('activ-panel-'+t);
-      if (tab)   tab.classList.toggle('active', isActive);
+      if (tab) tab.classList.toggle('active', isActive);
       if (panel) panel.classList.toggle('active', isActive);
     });
     if (which === 'angles' && window.loadAngles) window.loadAngles();
   };
 
-  /* ─────────────────────────────────────────────────────────
-     UTILS
-  ───────────────────────────────────────────────────────── */
-  function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  function gv(id){const e=document.getElementById(id);return e?e.value:'';}
-  function sv(id,t){const e=document.getElementById(id);if(e)e.textContent=t;}
-  function sv2(id,v){const e=document.getElementById(id);if(e)e.value=v;}
-  function showBadge(on,label){const b=document.getElementById('crm-badge');if(b){b.classList.toggle('vis',on);if(label)b.textContent=label;else if(!on)b.textContent='⊹ Semantic results';}}
-  function toast(msg){if(window.showToast)window.showToast(msg);else console.log('[CRM]',msg);}
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function gv(id) { const e = document.getElementById(id); return e ? e.value : ''; }
+  function sv(id, t) { const e = document.getElementById(id); if (e) e.textContent = t; }
+  function sv2(id, v) { const e = document.getElementById(id); if (e) e.value = v; }
+  function showBadge(on, label) { const b = document.getElementById('crm-badge'); if (b) { b.classList.toggle('vis', on); if (label) b.textContent = label; else if (!on) b.textContent = '⊹ Semantic results'; } }
+  function toast(msg) { if (window.showToast) window.showToast(msg); else console.log('[CRM]', msg); }
 
-  /* ─────────────────────────────────────────────────────────
-     BOOT
-  ───────────────────────────────────────────────────────── */
-  let attempts=0;
-  (function tryInit(){
-    if(window.showPage||attempts>30){injectDOM();patchShowPage();patchDrawer();}
-    else{attempts++;setTimeout(tryInit,100);}
+  let attempts = 0;
+  (function tryInit() {
+    if (window.showPage || attempts > 30) { injectDOM(); patchShowPage(); patchDrawer(); }
+    else { attempts++; setTimeout(tryInit, 100); }
   })();
 })();

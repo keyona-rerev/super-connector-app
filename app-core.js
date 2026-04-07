@@ -1,5 +1,5 @@
 // Super Connector — Core page logic (showPage, renderBoard, events, content, etc.)
-// Extracted from index.html inline script, restored 2026-04-07
+// Restored 2026-04-07 — orgs case added directly to showPage
 const API_BASE = window.SC_API_BASE || 'https://super-connector-api-production.up.railway.app';
 const API_KEY = window.SC_API_KEY || 'sc_live_k3y_2026_scak';
 const hdrs = () => ({ 'Content-Type': 'application/json', 'X-API-Key': API_KEY });
@@ -78,12 +78,24 @@ function showPage(page) {
   const nav = document.getElementById('nav-' + page);
   if (nav) nav.classList.add('active');
   const addBtn = document.getElementById('topbar-add-btn');
-  const titles = { board: 'Initiatives Board', search: 'Search Contacts', queue: 'Activation Queue', angles: 'Activation Angles', content: 'Content Registry', events: 'Events' };
+  const titles = {
+    board: 'Initiatives Board',
+    search: 'Search Contacts',
+    orgs: 'Organizations',
+    queue: 'Activation Queue',
+    angles: 'Activation Angles',
+    content: 'Content Registry',
+    events: 'Events'
+  };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'board') { addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
   else if (page === 'content') { addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; }
   else if (page === 'events') { addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; }
   else { addBtn.textContent = ''; addBtn.onclick = null; }
+  // Trigger data load for pages that need it
+  if (page === 'orgs' && typeof window.orgsLoad === 'function') window.orgsLoad();
+  if (page === 'content') renderContent();
+  if (page === 'events') renderEvents();
 }
 
 let currentIModal = null;
@@ -261,7 +273,7 @@ async function saveContent() {
   const payload = { content_name: name, content_type: document.getElementById('cnt-type')?.value||'', venture: document.getElementById('cnt-venture')?.value||'', status: document.getElementById('cnt-status')?.value||'Idea', prismm_sync: document.getElementById('cnt-sync')?.value||'', approval_required: document.getElementById('cnt-approval')?.value||'No', initiative_tags: document.getElementById('cnt-tags')?.value||'', activation_angle: document.getElementById('cnt-angle')?.value||'', asset_link: document.getElementById('cnt-link')?.value||'', notes: document.getElementById('cnt-notes')?.value||'' };
   try {
     await fetch(`${API_BASE}/content`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
-    closeContentModal(); showToast('Content saved'); renderContent();
+    closeContentModal(); showToast('Content saved'); allContent = []; renderContent();
   } catch(e) { showToast('Error: ' + e.message); }
 }
 
@@ -358,7 +370,7 @@ async function renderEvents() {
     const r = await fetch(`${API_BASE}/events?type=${encodeURIComponent(currentEventType)}`, { headers: hdrs() });
     const d = await r.json();
     const events = d.data || [];
-    if (!events.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No events</h3><p>Create your first event.</p></div>'; return; }
+    if (!events.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No events yet</h3><p>Create your first event.</p></div>'; return; }
     grid.innerHTML = events.map(e => {
       const statusCls = { Planning: 'es-planning', Confirmed: 'es-confirmed', Complete: 'es-complete', Cancelled: 'es-cancelled' };
       return `<div class="event-card ${statusCls[e.status]||'es-planning'}" onclick="showToast('Event detail coming soon')">

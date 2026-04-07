@@ -1,5 +1,5 @@
-// Super Connector — Core page logic (showPage, renderBoard, events, content, etc.)
-// Restored 2026-04-07 — orgs case added directly to showPage
+// Super Connector — Core page logic
+// v20260407c — queue, angles, events wired; all showPage data loads fixed
 const API_BASE = window.SC_API_BASE || 'https://super-connector-api-production.up.railway.app';
 const API_KEY = window.SC_API_KEY || 'sc_live_k3y_2026_scak';
 const hdrs = () => ({ 'Content-Type': 'application/json', 'X-API-Key': API_KEY });
@@ -79,23 +79,79 @@ function showPage(page) {
   if (nav) nav.classList.add('active');
   const addBtn = document.getElementById('topbar-add-btn');
   const titles = {
-    board: 'Initiatives Board',
-    search: 'Search Contacts',
-    orgs: 'Organizations',
-    queue: 'Activation Queue',
-    angles: 'Activation Angles',
-    content: 'Content Registry',
-    events: 'Events'
+    board: 'Initiatives Board', search: 'Search Contacts', orgs: 'Organizations',
+    queue: 'Activation Queue', angles: 'Activation Angles',
+    content: 'Content Registry', events: 'Events'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'board') { addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
   else if (page === 'content') { addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; }
   else if (page === 'events') { addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; }
   else { addBtn.textContent = ''; addBtn.onclick = null; }
-  // Trigger data load for pages that need it
+  // Per-page data loaders
   if (page === 'orgs' && typeof window.orgsLoad === 'function') window.orgsLoad();
   if (page === 'content') renderContent();
   if (page === 'events') renderEvents();
+  if (page === 'queue') renderQueue();
+  if (page === 'angles') renderAngles();
+}
+
+// ── ACTIVATION QUEUE ──────────────────────────────────────────────────────────
+async function renderQueue() {
+  // contacts-crm.js may have restructured the queue into tabs — find the real list container
+  const el = document.getElementById('queue-list') || document.getElementById('activ-panel-queue');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading follow-ups...</div>';
+  try {
+    const r = await fetch(`${API_BASE}/follow-ups/open`, { headers: hdrs() });
+    const d = await r.json();
+    const items = d.data || [];
+    if (!items.length) {
+      el.innerHTML = '<div class="empty-state"><h3>All caught up</h3><p>No open follow-ups right now.</p></div>';
+      return;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    el.innerHTML = items.map(f => {
+      const date = f.next_action_date || '';
+      const overdue = date && date < today;
+      return `<div class="queue-item">
+        <div class="queue-urgency ${overdue ? 'urgency-overdue' : date === today ? 'urgency-today' : ''}" style="background:${overdue ? 'var(--critical)' : date === today ? 'var(--high)' : 'var(--border)'}"></div>
+        <div class="queue-info">
+          <div class="queue-name">${f.contact_name || f.contact_id || '—'}</div>
+          <div class="queue-meta">${f.venture || ''}</div>
+          <div class="queue-action">${f.next_action || f.notes || ''}</div>
+        </div>
+        ${date ? `<div style="font-size:11px;color:${overdue ? 'var(--critical)' : 'var(--text3)'];font-weight:${overdue ? '600' : '400'}">${overdue ? 'Overdue · ' : ''}${date}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state"><h3>Could not load</h3><p>${e.message}</p></div>`;
+  }
+}
+
+// ── ACTIVATION ANGLES ─────────────────────────────────────────────────────────
+async function renderAngles() {
+  const el = document.getElementById('angles-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading angles...</div>';
+  try {
+    const r = await fetch(`${API_BASE}/activation-angles`, { headers: hdrs() });
+    const d = await r.json();
+    const angles = d.data || [];
+    if (!angles.length) {
+      el.innerHTML = '<div class="empty-state"><h3>No angles yet</h3><p>Create your first activation angle to define outreach approaches.</p></div>';
+      return;
+    }
+    el.innerHTML = angles.map(a => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:10px">
+        <div style="font-family:var(--font-serif);font-size:15px;font-weight:400;color:var(--text);margin-bottom:4px">${a.angle_name}</div>
+        ${a.best_for ? `<div style="font-size:11px;color:var(--accent);margin-bottom:8px">Best for: ${a.best_for}</div>` : ''}
+        ${a.description ? `<div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:8px">${a.description}</div>` : ''}
+        ${a.template ? `<div style="font-size:12px;color:var(--text2);background:var(--surface2);border-radius:var(--radius);padding:10px 12px;white-space:pre-wrap;line-height:1.5">${a.template}</div>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state"><h3>Could not load</h3><p>${e.message}</p></div>`;
+  }
 }
 
 let currentIModal = null;
@@ -221,7 +277,7 @@ async function runSearch() {
     const r = await fetch(`${API_BASE}/search`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ query: q, top_k: 12 }) });
     const d = await r.json();
     const results = d.results || [];
-    if (!results.length) { document.getElementById('search-results').innerHTML = '<div class="empty-state"><h3>No results</h3><p>Try different keywords or a more descriptive phrase.</p></div>'; return; }
+    if (!results.length) { document.getElementById('search-results').innerHTML = '<div class="empty-state"><h3>No results</h3><p>Try different keywords.</p></div>'; return; }
     document.getElementById('search-results').innerHTML = `<div class="results-grid">${results.map(c => `
       <div class="contact-card" onclick="openContactProfile && openContactProfile(${JSON.stringify(c).replace(/"/g,'&quot;')})">
         <div class="contact-name">${c.full_name||'Unknown'}</div>
@@ -246,9 +302,7 @@ async function saveInitiative() {
   const payload = { initiative_name: name, venture: document.getElementById('new-venture')?.value||'', priority: document.getElementById('new-priority')?.value||'Medium', status: document.getElementById('new-status')?.value||'Brain Dump', phoebe_cadence: document.getElementById('new-cadence')?.value||'Weekly', goal: document.getElementById('new-goal')?.value||'', brain_dump: document.getElementById('new-braindump')?.value||'' };
   try {
     await fetch(`${API_BASE}/initiative`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
-    closeAddModal();
-    showToast('Initiative created');
-    await loadBoard();
+    closeAddModal(); showToast('Initiative created'); await loadBoard();
   } catch(e) { showToast('Error: ' + e.message); }
 }
 
@@ -285,7 +339,7 @@ async function saveAngle() {
   const payload = { angle_name: name, description: document.getElementById('ang-desc')?.value||'', template: document.getElementById('ang-template')?.value||'', best_for: document.getElementById('ang-best')?.value||'' };
   try {
     await fetch(`${API_BASE}/activation-angle`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
-    closeAngleModal(); showToast('Angle saved');
+    closeAngleModal(); showToast('Angle saved'); renderAngles();
   } catch(e) { showToast('Error: ' + e.message); }
 }
 

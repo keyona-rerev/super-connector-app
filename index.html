@@ -1,3 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super Connector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #F5F4EF; --surface: #FDFCF8; --surface2: #F0EFE9;
+      --border: #E5E3DA; --border-soft: #EDEBE4;
+      --text: #1A1916; --text2: #6B6860; --text3: #9C9A93;
+      --accent: #D97757; --accent-dim: #FAF0EB; --accent2: #8B7355;
+      --critical: #C0392B; --critical-bg: #FDF2F2;
+      --high: #D97757; --high-bg: #FAF0EB;
+      --medium: #7B8FA1; --medium-bg: #EEF2F6;
+      --low: #9C9A93; --low-bg: #F5F4EF;
+      --active-border: #D97757; --planning-border: #7B8FA1;
+      --blocked-border: #C0392B; --complete-border: #5A8A5A; --dump-border: #B0ADA4;
+      --radius: 10px; --radius-lg: 14px;
+      --shadow: 0 1px 3px rgba(26,25,22,0.07), 0 4px 12px rgba(26,25,22,0.04);
+      --shadow-md: 0 2px 8px rgba(26,25,22,0.09), 0 8px 24px rgba(26,25,22,0.06);
+      --shadow-lg: 0 8px 32px rgba(26,25,22,0.14), 0 24px 64px rgba(26,25,22,0.08);
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-sans: 'DM Sans', -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .shell { display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+    .sidebar-logo { padding: 22px 20px 18px; border-bottom: 1px solid var(--border-soft); }
+    .sidebar-logo h1 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; color: var(--text); letter-spacing: -0.01em; }
+    .sidebar-logo span { color: var(--accent); }
+    .sidebar-logo p { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 0.03em; }
+    .nav-section { padding: 16px 12px 8px; }
+    .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 0 8px; margin-bottom: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; font-size: 13.5px; font-weight: 400; color: var(--text2); transition: background 0.12s, color 0.12s; border: none; background: none; width: 100%; text-align: left; }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+    .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
+    .sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid var(--border-soft); }
+    .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); }
+    .topbar { height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; }
+    .topbar-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; letter-spacing: -0.02em; }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+    .page { flex: 1; overflow-y: auto; padding: 28px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius); border: none; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+    .btn-primary { background: var(--accent); color: #fff; } .btn-primary:hover { opacity: 0.88; }
+    .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); } .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+    .btn-sm { font-size: 12px; padding: 5px 10px; } .btn-xs { font-size: 11px; padding: 4px 9px; border-radius: 8px; }
+    .badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+    .badge-critical { background: var(--critical-bg); color: var(--critical); } .badge-high { background: var(--high-bg); color: var(--high); }
+    .badge-medium { background: var(--medium-bg); color: var(--medium); } .badge-low { background: var(--low-bg); color: var(--low); }
+    .badge-parked { background: var(--low-bg); color: var(--low); }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .dot-active { background: var(--active-border); } .dot-planning { background: var(--planning-border); }
+    .dot-blocked { background: var(--critical); } .dot-complete { background: var(--complete-border); } .dot-dump { background: var(--dump-border); }
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.65s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 80px 20px; color: var(--text3); font-size: 13px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
+    .empty-state h3 { font-family: var(--font-serif); font-size: 20px; font-weight: 400; color: var(--text2); margin-bottom: 6px; }
+    .empty-state p { font-size: 13px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: var(--bg); font-size: 13px; padding: 10px 16px; border-radius: var(--radius); z-index: 9999; transform: translateY(8px); opacity: 0; transition: all 0.2s; box-shadow: var(--shadow-md); pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .board-filters { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .filter-input { flex: 1; min-width: 200px; max-width: 320px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 13px; padding: 7px 12px; border-radius: var(--radius); outline: none; transition: border-color 0.15s; }
+    .filter-input::placeholder { color: var(--text3); } .filter-input:focus { border-color: var(--accent); }
+    .filter-select { background: var(--surface); border: 1px solid var(--border); color: var(--text2); font-family: var(--font-sans); font-size: 13px; padding: 7px 10px; border-radius: var(--radius); outline: none; cursor: pointer; }
+    .board-columns { display: grid; grid-template-columns: repeat(5, minmax(220px, 1fr)); gap: 16px; align-items: start; overflow-x: auto; padding-bottom: 20px; }
+    .board-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 2px; }
+    .board-col-title { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text2); }
+    .board-col-count { font-size: 11px; font-weight: 600; background: var(--surface2); color: var(--text3); padding: 1px 7px; border-radius: 20px; }
+    .initiative-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; position: relative; overflow: hidden; }
+    .initiative-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+    .initiative-card.col-active::before { background: var(--active-border); } .initiative-card.col-planning::before { background: var(--planning-border); }
+    .initiative-card.col-blocked::before { background: var(--critical); } .initiative-card.col-complete::before { background: var(--complete-border); }
+    .initiative-card.col-dump::before { background: var(--dump-border); }
+    .initiative-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+    .card-venture { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+    .card-name { font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--text); margin-bottom: 6px; line-height: 1.35; }
+    .card-goal { font-size: 12px; color: var(--text2); margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .imodal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.55); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 32px 24px; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+    .imodal-overlay.open { opacity: 1; pointer-events: all; }
+    .imodal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 1100px; height: 88vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); overflow: hidden; transform: translateY(20px) scale(0.98); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .imodal-overlay.open .imodal { transform: translateY(0) scale(1); }
+    .imodal-header { padding: 28px 36px 24px; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; background: var(--surface); }
+    .imodal-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .imodal-title-group { flex: 1; min-width: 0; }
+    .imodal-venture { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .imodal-title { font-family: var(--font-serif); font-size: 28px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.2; color: var(--text); margin-bottom: 10px; }
+    .imodal-goal { font-size: 14px; color: var(--text2); line-height: 1.55; max-width: 680px; }
+    .imodal-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text2); flex-shrink: 0; transition: background 0.12s, color 0.12s; }
+    .imodal-close:hover { background: var(--border); color: var(--text); }
+    .imodal-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .imodal-meta-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border-soft); padding: 4px 10px; border-radius: 20px; }
+    .imodal-meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .imodal-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .pipeline-section { flex-shrink: 0; border-bottom: 1px solid var(--border-soft); }
+    .pipeline-header { padding: 14px 36px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .pipeline-header:hover { background: rgba(26,25,22,0.02); }
+    .pipeline-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
+    .pipeline-toggle { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font-sans); padding: 3px 8px; border-radius: 6px; transition: background 0.12s, color 0.12s; }
+    .pipeline-toggle-icon { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+    .pipeline-section.collapsed .pipeline-toggle-icon { transform: rotate(-90deg); }
+    .pipeline-track { display: flex; align-items: flex-start; gap: 0; overflow-x: auto; overflow-y: hidden; padding: 4px 36px 16px; flex-shrink: 0; scrollbar-width: thin; max-height: 280px; transition: max-height 0.25s ease, opacity 0.2s, padding 0.2s; }
+    .pipeline-section.collapsed .pipeline-track { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; pointer-events: none; overflow: hidden; }
+    .pipeline-node { width: 156px; flex-shrink: 0; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 14px 12px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s; }
+    .pipeline-node:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(217,119,87,0.15); transform: translateY(-2px); }
+    .pipeline-node.active { border-color: var(--accent); background: var(--accent-dim); box-shadow: 0 2px 12px rgba(217,119,87,0.2); }
+    .pipeline-node.parallel-child { border-style: dashed; }
+    .node-number { width: 22px; height: 22px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); color: var(--text3); font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+    .pipeline-node.active .node-number { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .node-name { font-size: 12.5px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
+    .node-status { font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+    .node-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); }
+    .node-status-dot.ns-active { background: var(--active-border); } .node-status-dot.ns-planning { background: var(--planning-border); } .node-status-dot.ns-complete { background: var(--complete-border); }
+    .pipeline-arrow { display: flex; align-items: center; flex-shrink: 0; padding: 0 6px; margin-top: 22px; }
+    .arrow-line { height: 1.5px; background: var(--border); flex: 1; }
+    .arrow-head { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid var(--border); }
+    .parallel-group-wrap { display: flex; flex-direction: column; flex-shrink: 0; }
+    .parallel-label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); text-align: center; margin-bottom: 6px; }
+    .parallel-group { display: flex; flex-direction: column; gap: 8px; }
+    .module-detail { flex: 1; min-height: 0; overflow: hidden; background: var(--bg); }
+    .module-detail.empty { display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 13px; font-style: italic; }
+    .module-detail-inner { display: grid; grid-template-columns: 300px 1fr; height: 100%; }
+    .module-info-panel { padding: 24px 28px; border-right: 1px solid var(--border-soft); overflow-y: auto; }
+    .module-info-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
+    .module-info-section { margin-bottom: 20px; }
+    .module-info-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+    .module-info-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+    .stakeholder-profile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-top: 8px; }
+    .stakeholder-profile-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+    .module-actions { padding: 24px 28px; overflow-y: auto; }
+    .module-actions-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .module-actions-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+    .match-result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.15s, box-shadow 0.12s; }
+    .match-result-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+    .match-result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .match-result-identity { flex: 1; min-width: 0; }
+    .match-result-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .match-result-role { font-size: 12px; color: var(--text2); }
+    .match-result-score { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+    .match-result-why { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
+    .action-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .action-chip { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; border: 1px solid; cursor: pointer; transition: all 0.12s; background: transparent; font-family: var(--font-sans); }
+    .action-chip.outreach { color: var(--accent); border-color: var(--accent); } .action-chip.interview { color: var(--medium); border-color: var(--medium); }
+    .action-chip.followup { color: var(--complete-border); border-color: var(--complete-border); } .action-chip.advisor { color: var(--accent2); border-color: var(--accent2); }
+    .action-chip:hover { opacity: 0.75; transform: translateY(-1px); }
+    .contacts-loading { display: flex; align-items: center; gap: 10px; padding: 20px 0; color: var(--text3); font-size: 13px; }
+    .contacts-empty { padding: 30px 0; text-align: center; color: var(--text3); font-size: 13px; font-style: italic; }
+    .search-hero { max-width: 620px; margin: 0 auto 32px; text-align: center; padding-top: 8px; }
+    .search-hero h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; }
+    .search-hero p { font-size: 13px; color: var(--text2); }
+    .search-box-wrap { display: flex; gap: 8px; max-width: 620px; margin: 0 auto 32px; }
+    .search-box { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); color: var(--text); font-family: var(--font-sans); font-size: 14px; padding: 12px 16px; outline: none; transition: border-color 0.15s; box-shadow: var(--shadow); }
+    .search-box::placeholder { color: var(--text3); } .search-box:focus { border-color: var(--accent); }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; }
+    .contact-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+    .contact-name { font-family: var(--font-serif); font-size: 16px; font-weight: 400; color: var(--text); margin-bottom: 2px; }
+    .contact-role { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+    .contact-score { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 20px; }
+    .contact-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+    .tag { font-size: 11px; padding: 2px 8px; background: var(--surface2); color: var(--text2); border-radius: 20px; border: 1px solid var(--border); }
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.3); backdrop-filter: blur(2px); z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 480px; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -4px 0 24px rgba(26,25,22,0.12); z-index: 301; overflow-y: auto; transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+    .drawer-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .drawer-title { font-family: var(--font-serif); font-size: 22px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.25; }
+    .drawer-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text2); flex-shrink: 0; transition: background 0.12s; }
+    .drawer-close:hover { background: var(--border); }
+    .drawer-body { padding: 24px 28px; }
+    .detail-section { margin-bottom: 28px; }
+    .detail-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); }
+    .detail-field { margin-bottom: 14px; }
+    .detail-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+    .detail-field p { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+    .field-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .initiative-link { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border-soft); margin-bottom: 8px; }
+    .initiative-link-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .initiative-link-role { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .queue-item { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+    .queue-item:hover { box-shadow: var(--shadow-md); border-color: var(--accent); }
+    .queue-urgency { width: 3px; border-radius: 3px; align-self: stretch; flex-shrink: 0; }
+    .urgency-overdue { background: var(--critical); } .urgency-today { background: var(--high); }
+    .queue-info { flex: 1; min-width: 0; }
+    .queue-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+    .queue-meta { font-size: 12px; color: var(--text2); }
+    .queue-action { font-size: 12px; color: var(--accent); margin-top: 2px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.45); backdrop-filter: blur(3px); z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-md); transform: translateY(12px); transition: transform 0.2s; }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal h3 { font-family: var(--font-serif); font-size: 22px; font-weight: 400; margin-bottom: 20px; letter-spacing: -0.02em; }
+    .field-group { margin-bottom: 16px; }
+    .field-group label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+    .field-group input, .field-group select, .field-group textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 13px; padding: 8px 12px; border-radius: var(--radius); outline: none; transition: border-color 0.15s; }
+    .field-group input:focus, .field-group select:focus, .field-group textarea:focus { border-color: var(--accent); }
+    .field-group textarea { resize: vertical; min-height: 80px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .content-filters { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .content-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; position: relative; overflow: hidden; }
+    .content-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--border); }
+    .content-card.prismm-sync-pending::before { background: var(--high); }
+    .content-card.prismm-sync-synced::before { background: var(--complete-border); }
+    .content-card.prismm-sync-needs-update::before { background: var(--critical); }
+    .content-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+    .content-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .content-card-meta { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+    .content-card-name { font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--text); line-height: 1.35; }
+    .content-card-angle { font-size: 12px; color: var(--text2); margin: 8px 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+    .content-card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .sync-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.03em; }
+    .sync-pending { background: var(--high-bg); color: var(--high); } .sync-synced { background: #EDF7ED; color: var(--complete-border); }
+    .sync-needs-update { background: var(--critical-bg); color: var(--critical); } .sync-none { background: var(--surface2); color: var(--text3); }
+    .type-badge { display: inline-flex; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border-soft); }
+    .content-status-badge { display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .cs-active { background: var(--accent-dim); color: var(--accent); } .cs-draft { background: var(--medium-bg); color: var(--medium); }
+    .cs-idea { background: var(--surface2); color: var(--text3); } .cs-in-progress { background: #EEF6FF; color: #4A7FB5; }
+    .cs-published { background: #EDF7ED; color: var(--complete-border); } .cs-archived { background: var(--low-bg); color: var(--low); }
+    .content-detail-section { margin-bottom: 22px; }
+    .content-detail-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-soft); }
+    .content-detail-value { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+    .content-detail-value a { color: var(--accent); text-decoration: none; } .content-detail-value a:hover { text-decoration: underline; }
+    .content-tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .events-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 4px; width: fit-content; }
+    .events-tab { padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; border: none; background: none; font-family: var(--font-sans); transition: background 0.12s, color 0.12s; }
+    .events-tab.active { background: var(--accent); color: #fff; }
+    .events-tab:not(.active):hover { background: var(--surface2); color: var(--text); }
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .event-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s; position: relative; overflow: hidden; }
+    .event-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+    .event-card.es-planning::before { background: var(--planning-border); } .event-card.es-confirmed::before { background: var(--complete-border); }
+    .event-card.es-complete::before { background: var(--dump-border); } .event-card.es-cancelled::before { background: var(--critical); }
+    .event-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+    .event-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .event-card-meta { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+    .event-card-name { font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
+    .event-card-date { font-size: 12px; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+    .event-card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .guest-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--medium-bg); color: var(--medium); }
+    .event-status-badge { display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .evs-planning { background: var(--medium-bg); color: var(--medium); } .evs-confirmed { background: #EDF7ED; color: var(--complete-border); }
+    .evs-complete { background: var(--surface2); color: var(--text3); } .evs-cancelled { background: var(--critical-bg); color: var(--critical); }
+    .emodal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.55); backdrop-filter: blur(4px); z-index: 250; display: flex; align-items: center; justify-content: center; padding: 32px 24px; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+    .emodal-overlay.open { opacity: 1; pointer-events: all; }
+    .emodal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 860px; max-height: 88vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); overflow: hidden; transform: translateY(20px) scale(0.98); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .emodal-overlay.open .emodal { transform: translateY(0) scale(1); }
+    .emodal-header { padding: 28px 36px 20px; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; }
+    .emodal-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .emodal-title { font-family: var(--font-serif); font-size: 26px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.2; color: var(--text); }
+    .emodal-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text2); flex-shrink: 0; transition: background 0.12s; }
+    .emodal-close:hover { background: var(--border); }
+    .emodal-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .emodal-body { flex: 1; overflow-y: auto; padding: 28px 36px; }
+    .emodal-section { margin-bottom: 28px; }
+    .emodal-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; }
+    .guest-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; }
+    .guest-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-size: 13px; flex-shrink: 0; }
+    .guest-info { flex: 1; min-width: 0; }
+    .guest-name { font-size: 13px; font-weight: 500; color: var(--text); } .guest-role-text { font-size: 11px; color: var(--text2); }
+    .guest-status-select { font-size: 11px; font-family: var(--font-sans); background: var(--bg); border: 1px solid var(--border); color: var(--text2); padding: 3px 8px; border-radius: 6px; cursor: pointer; outline: none; }
+    .add-guest-row { display: flex; gap: 8px; margin-top: 10px; }
+    .add-guest-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 13px; padding: 8px 12px; border-radius: var(--radius); outline: none; }
+    .add-guest-row select { background: var(--bg); border: 1px solid var(--border); color: var(--text2); font-family: var(--font-sans); font-size: 13px; padding: 8px 10px; border-radius: var(--radius); outline: none; cursor: pointer; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>Super<span>Connector</span></h1><p>Keyona Meeks · ReRev Labs</p></div>
+    <nav class="nav-section">
+      <div class="nav-label">Workspace</div>
+      <button class="nav-item active" onclick="showPage('board')" id="nav-board"><span class="icon">&#9672;</span> Initiatives</button>
+      <button class="nav-item" onclick="showPage('search')" id="nav-search"><span class="icon">&#8889;</span> Search Contacts</button>
+      <button class="nav-item" onclick="showPage('queue')" id="nav-queue"><span class="icon">&#9678;</span> Activation Queue</button>
+      <button class="nav-item" onclick="showPage('angles')" id="nav-angles"><span class="icon">&#9671;</span> Activation Angles</button>
+      <button class="nav-item" onclick="showPage('content')" id="nav-content"><span class="icon">&#9643;</span> Content Registry</button>
+      <button class="nav-item" onclick="showPage('events')" id="nav-events"><span class="icon">&#9672;</span> Events</button>
+    </nav>
+    <div class="nav-section">
+      <div class="nav-label">Ventures</div>
+      <button class="nav-item" onclick="filterVenture('ReRev Labs')" id="nav-rerev"><span class="icon" style="color:#D97757">&#9679;</span> ReRev Labs</button>
+      <button class="nav-item" onclick="filterVenture('Prismm')" id="nav-prismm"><span class="icon" style="color:#7B8FA1">&#9679;</span> Prismm</button>
+      <button class="nav-item" onclick="filterVenture('Black Tech Capital')" id="nav-btc"><span class="icon" style="color:#5A8A5A">&#9679;</span> Black Tech Capital</button>
+      <button class="nav-item" onclick="filterVenture('Sekhmetic')" id="nav-sekh"><span class="icon" style="color:#8B7355">&#9679;</span> Sekhmetic</button>
+    </div>
+    <div class="sidebar-bottom"><button class="nav-item" onclick="showPage('board'); filterVenture('')"><span class="icon">&#8634;</span> Clear Filter</button></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Initiatives Board</div>
+      <div class="topbar-actions">
+        <span id="topbar-meta" style="font-size:12px;color:var(--text3)"></span>
+        <button class="btn btn-primary btn-sm" id="topbar-add-btn" onclick="openAddModal()">+ New Initiative</button>
+      </div>
+    </div>
+    <div class="page" id="page-board">
+      <div class="board-filters">
+        <input class="filter-input" type="text" id="board-search" placeholder="Search initiatives..." oninput="renderBoard()">
+        <select class="filter-select" id="board-priority" onchange="renderBoard()">
+          <option value="">All Priorities</option>
+          <option>Critical</option><option>High</option><option>Medium</option><option>Low</option><option>Parked</option>
+        </select>
+      </div>
+      <div class="board-columns" id="board-columns"><div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading initiatives...</div></div>
+    </div>
+    <div class="page" id="page-search" style="display:none">
+      <div class="search-hero"><h2>Find the right person.</h2><p>Describe who you're looking for -- the vector database finds the closest matches.</p></div>
+      <div class="search-box-wrap">
+        <input class="search-box" id="search-input" type="text" placeholder="e.g. climate tech founder who has exited..." onkeydown="if(event.key==='Enter') runSearch()">
+        <button class="btn btn-primary" onclick="runSearch()">Search</button>
+      </div>
+      <div id="search-results"></div>
+    </div>
+    <div class="page" id="page-queue" style="display:none"><div id="queue-list"><div class="loading-state"><div class="spinner"></div>Loading queue...</div></div></div>
+    <div class="page" id="page-angles" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><div></div><button class="btn btn-primary btn-sm" onclick="openAngleModal()">+ New Angle</button></div>
+      <div id="angles-list"><div class="loading-state"><div class="spinner"></div>Loading angles...</div></div>
+    </div>
+    <div class="page" id="page-content" style="display:none">
+      <div class="content-filters">
+        <input class="filter-input" type="text" id="content-search" placeholder="Search content..." oninput="renderContent()">
+        <select class="filter-select" id="content-venture" onchange="renderContent()"><option value="">All Ventures</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option></select>
+        <select class="filter-select" id="content-type" onchange="renderContent()"><option value="">All Types</option><option>Article</option><option>Campaign Concept</option><option>Gifting Moment</option><option>Sequence Variant</option><option>Data Drop</option><option>Collab Hook</option><option>Case Study</option><option>Demo</option><option>Newsletter Issue</option><option>Event Recap</option></select>
+        <select class="filter-select" id="content-sync" onchange="renderContent()"><option value="">All Sync Status</option><option value="Pending">Prismm Pending</option><option value="Synced">Synced</option><option value="Needs Update">Needs Update</option></select>
+      </div>
+      <div class="content-grid" id="content-grid"><div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading content...</div></div>
+    </div>
+    <div class="page" id="page-events" style="display:none">
+      <div class="events-tabs">
+        <button class="events-tab active" id="etab-hosting" onclick="switchEventsTab('Hosting')">Hosting</button>
+        <button class="events-tab" id="etab-attending" onclick="switchEventsTab('Attending')">Attending</button>
+        <button class="events-tab" id="etab-workshop" onclick="switchEventsTab('Workshop')">Workshops</button>
+      </div>
+      <div class="events-grid" id="events-grid"><div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading events...</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="imodal-overlay" id="imodal-overlay" onclick="handleIModalOverlayClick(event)">
+  <div class="imodal" id="imodal">
+    <div class="imodal-header">
+      <div class="imodal-header-top">
+        <div class="imodal-title-group">
+          <div class="imodal-venture" id="imodal-venture"></div>
+          <div class="imodal-title" id="imodal-title">Loading...</div>
+          <div class="imodal-goal" id="imodal-goal"></div>
+        </div>
+        <button class="imodal-close" onclick="closeIModal()">x</button>
+      </div>
+      <div class="imodal-meta" id="imodal-meta"></div>
+    </div>
+    <div class="imodal-body">
+      <div class="pipeline-section" id="pipeline-section">
+        <div class="pipeline-header" onclick="togglePipeline()">
+          <div class="pipeline-label">Sub-project pipeline</div>
+          <button class="pipeline-toggle" onclick="togglePipeline(); event.stopPropagation()">
+            <span class="pipeline-toggle-icon">v</span>
+            <span id="pipeline-toggle-label">Collapse</span>
+          </button>
+        </div>
+        <div class="pipeline-track" id="pipeline-track"><div class="loading-state" style="padding:20px"><div class="spinner"></div></div></div>
+      </div>
+      <div class="module-detail empty" id="module-detail"><span>Select a module to see details and matched contacts</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeContactDrawer()"></div>
+<div class="drawer" id="contact-drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-top"><div class="drawer-title" id="contact-drawer-title">Contact</div><button class="drawer-close" onclick="closeContactDrawer()">x</button></div>
+    <div id="contact-drawer-sub" style="font-size:13px;color:var(--text2)"></div>
+  </div>
+  <div class="drawer-body" id="contact-drawer-body"></div>
+</div>
+
+<div class="drawer-overlay" id="content-drawer-overlay" onclick="closeContentDrawer()"></div>
+<div class="drawer" id="content-drawer" style="z-index:302">
+  <div class="drawer-header">
+    <div class="drawer-header-top"><div class="drawer-title" id="content-drawer-title">Content</div><button class="drawer-close" onclick="closeContentDrawer()">x</button></div>
+    <div id="content-drawer-sub" style="font-size:12px;color:var(--text2);display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+  </div>
+  <div class="drawer-body" id="content-drawer-body"></div>
+</div>
+
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h3>New Initiative</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="field-group" style="grid-column:1/-1"><label>Initiative Name *</label><input type="text" id="new-name" placeholder="BTC Climate Tech Exit Lab"></div>
+      <div class="field-group"><label>Venture</label><select id="new-venture"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
+      <div class="field-group"><label>Priority</label><select id="new-priority"><option>Medium</option><option>Critical</option><option>High</option><option>Low</option><option>Parked</option></select></div>
+      <div class="field-group"><label>Status</label><select id="new-status"><option>Brain Dump</option><option>Planning</option><option>Active</option><option>Paused</option><option>Complete</option></select></div>
+      <div class="field-group"><label>Phoebe Cadence</label><select id="new-cadence"><option>Weekly</option><option>Daily</option><option>Every 2-3 days</option><option>Biweekly</option><option>Monthly</option><option>None</option></select></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Goal</label><input type="text" id="new-goal" placeholder="What does success look like?"></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Brain Dump</label><textarea id="new-braindump" placeholder="Raw thinking, context, ideas..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button><button class="btn btn-primary" onclick="saveInitiative()">Create Initiative</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="content-modal">
+  <div class="modal">
+    <h3>New Content Asset</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="field-group" style="grid-column:1/-1"><label>Content Name *</label><input type="text" id="cnt-name" placeholder="Silent Deposit Drain Article"></div>
+      <div class="field-group"><label>Type</label><select id="cnt-type"><option>Article</option><option>Campaign Concept</option><option>Gifting Moment</option><option>Sequence Variant</option><option>Data Drop</option><option>Collab Hook</option><option>Case Study</option><option>Demo</option><option>Newsletter Issue</option><option>Event Recap</option></select></div>
+      <div class="field-group"><label>Venture</label><select id="cnt-venture"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option></select></div>
+      <div class="field-group"><label>Status</label><select id="cnt-status"><option>Idea</option><option>Draft</option><option>In Progress</option><option>Active</option><option>Published</option><option>Archived</option></select></div>
+      <div class="field-group"><label>Prismm Sync</label><select id="cnt-sync"><option value="">None</option><option value="Pending">Pending</option><option value="Synced">Synced</option><option value="Needs Update">Needs Update</option></select></div>
+      <div class="field-group"><label>Approval Required</label><select id="cnt-approval"><option>No</option><option>Yes</option></select></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Initiative Tags</label><input type="text" id="cnt-tags" placeholder="P008, P017"></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Activation Angle</label><textarea id="cnt-angle" placeholder="What this content is meant to do and for whom..." style="min-height:64px"></textarea></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Asset Link</label><input type="text" id="cnt-link" placeholder="https://docs.google.com/..."></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Notes</label><textarea id="cnt-notes" placeholder="Any additional context..." style="min-height:60px"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeContentModal()">Cancel</button><button class="btn btn-primary" onclick="saveContent()">Save Content</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="angle-modal">
+  <div class="modal">
+    <h3>New Activation Angle</h3>
+    <div class="field-group"><label>Angle Name *</label><input type="text" id="ang-name" placeholder="Free Value Exchange Cold Email"></div>
+    <div class="field-group"><label>Description</label><textarea id="ang-desc" placeholder="How this approach works..."></textarea></div>
+    <div class="field-group"><label>Template / Script</label><textarea id="ang-template" rows="5" placeholder="The actual outreach template or framework..."></textarea></div>
+    <div class="field-group"><label>Best For</label><input type="text" id="ang-best" placeholder="What kinds of initiatives this works well for"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeAngleModal()">Cancel</button><button class="btn btn-primary" onclick="saveAngle()">Save Angle</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <h3>New Event</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="field-group" style="grid-column:1/-1"><label>Event Name *</label><input type="text" id="evt-name" placeholder="BTC Networking Mixer"></div>
+      <div class="field-group"><label>Type</label><select id="evt-type"><option>Hosting</option><option>Attending</option><option>Workshop</option></select></div>
+      <div class="field-group"><label>Venture</label><select id="evt-venture"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
+      <div class="field-group"><label>Date</label><input type="date" id="evt-date"></div>
+      <div class="field-group"><label>Status</label><select id="evt-status"><option>Planning</option><option>Confirmed</option><option>Complete</option><option>Cancelled</option></select></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Location</label><input type="text" id="evt-location" placeholder="Birmingham, AL / Virtual"></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Description</label><textarea id="evt-desc" placeholder="What is this event?" style="min-height:64px"></textarea></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Notes</label><textarea id="evt-notes" placeholder="Internal notes..." style="min-height:52px"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Create Event</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="config.js"></script>
 <script src="contacts-crm.js"></script>
 <script src="load-crm.js"></script>
 <script src="contact-profile.js"></script>
+<script src="load-info.js"></script>
+<script>
+const API_BASE = window.SC_API_BASE || 'https://super-connector-api-production.up.railway.app';
+const API_KEY = window.SC_API_KEY || 'sc_live_k3y_2026_scak';
+const hdrs = () => ({ 'Content-Type': 'application/json', 'X-API-Key': API_KEY });
+
+function showToast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+let allInitiatives = [];
+let currentVenture = '';
+
+async function loadBoard() {
+  try {
+    const r = await fetch(`${API_BASE}/initiatives`, { headers: hdrs() });
+    const d = await r.json();
+    allInitiatives = d.data || [];
+    renderBoard();
+  } catch(e) {
+    document.getElementById('board-columns').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Could not load</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function renderBoard() {
+  const q = (document.getElementById('board-search')?.value || '').toLowerCase();
+  const p = document.getElementById('board-priority')?.value || '';
+  let data = allInitiatives;
+  if (currentVenture) data = data.filter(i => i.venture === currentVenture);
+  if (q) data = data.filter(i => (i.initiative_name||'').toLowerCase().includes(q) || (i.goal||'').toLowerCase().includes(q));
+  if (p) data = data.filter(i => i.priority === p);
+  const cols = { 'Brain Dump': [], 'Planning': [], 'Active': [], 'Paused': [], 'Complete': [] };
+  data.forEach(i => { const s = i.status || 'Brain Dump'; if (cols[s]) cols[s].push(i); else cols['Brain Dump'].push(i); });
+  const colDefs = [
+    { key: 'Brain Dump', label: 'Brain Dump', cls: 'col-dump' },
+    { key: 'Planning', label: 'Planning', cls: 'col-planning' },
+    { key: 'Active', label: 'Active', cls: 'col-active' },
+    { key: 'Paused', label: 'Paused', cls: 'col-blocked' },
+    { key: 'Complete', label: 'Complete', cls: 'col-complete' },
+  ];
+  document.getElementById('board-columns').innerHTML = colDefs.map(col => `
+    <div>
+      <div class="board-col-header">
+        <div class="board-col-title"><span class="status-dot dot-${col.cls.replace('col-','')}" style="background:var(--${col.cls.replace('col-','')}-border,var(--dump-border))"></span>${col.label}</div>
+        <span class="board-col-count">${cols[col.key].length}</span>
+      </div>
+      ${cols[col.key].map(i => `
+        <div class="initiative-card ${col.cls}" onclick="openIModal('${i.initiative_id}')">
+          ${i.venture ? `<div class="card-venture">${i.venture}</div>` : ''}
+          <div class="card-name">${i.initiative_name}</div>
+          ${i.goal ? `<div class="card-goal">${i.goal}</div>` : ''}
+          <div class="card-footer">
+            <span class="badge badge-${(i.priority||'medium').toLowerCase()}">${i.priority||'Medium'}</span>
+            ${i.phoebe_cadence && i.phoebe_cadence !== 'None' ? `<span style="font-size:10px;color:var(--text3)">${i.phoebe_cadence}</span>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+  const total = data.length;
+  document.getElementById('topbar-meta').textContent = `${total} initiative${total !== 1 ? 's' : ''}${currentVenture ? ' · ' + currentVenture : ''}`;
+}
+
+function filterVenture(v) {
+  currentVenture = v;
+  renderBoard();
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-board').classList.add('active');
+}
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.style.display = '';
+  const nav = document.getElementById('nav-' + page);
+  if (nav) nav.classList.add('active');
+  const addBtn = document.getElementById('topbar-add-btn');
+  const titles = { board: 'Initiatives Board', search: 'Search Contacts', queue: 'Activation Queue', angles: 'Activation Angles', content: 'Content Registry', events: 'Events' };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  if (page === 'board') { addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
+  else if (page === 'content') { addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; }
+  else if (page === 'events') { addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; }
+  else { addBtn.textContent = ''; addBtn.onclick = null; }
+}
+
+let currentIModal = null;
+async function openIModal(initiativeId) {
+  currentIModal = initiativeId;
+  const overlay = document.getElementById('imodal-overlay');
+  overlay.classList.add('open');
+  document.getElementById('imodal-title').textContent = 'Loading...';
+  document.getElementById('imodal-goal').textContent = '';
+  document.getElementById('imodal-venture').textContent = '';
+  document.getElementById('imodal-meta').innerHTML = '';
+  document.getElementById('pipeline-track').innerHTML = '<div class="loading-state" style="padding:20px"><div class="spinner"></div></div>';
+  document.getElementById('module-detail').className = 'module-detail empty';
+  document.getElementById('module-detail').innerHTML = '<span>Select a module to see details and matched contacts</span>';
+  try {
+    const r = await fetch(`${API_BASE}/initiative/${initiativeId}`, { headers: hdrs() });
+    const d = await r.json();
+    const ini = d.data || {};
+    document.getElementById('imodal-title').textContent = ini.initiative_name || '';
+    document.getElementById('imodal-goal').textContent = ini.goal || '';
+    document.getElementById('imodal-venture').textContent = ini.venture || '';
+    const statusColors = { Active: 'var(--active-border)', Planning: 'var(--planning-border)', 'Brain Dump': 'var(--dump-border)', Paused: 'var(--critical)', Complete: 'var(--complete-border)' };
+    document.getElementById('imodal-meta').innerHTML = `
+      <div class="imodal-meta-chip"><span class="dot" style="background:${statusColors[ini.status]||'var(--dump-border)'}"></span>${ini.status||'Brain Dump'}</div>
+      <div class="imodal-meta-chip">${ini.priority||'Medium'} priority</div>
+      ${ini.phoebe_cadence && ini.phoebe_cadence !== 'None' ? `<div class="imodal-meta-chip">Phoebe: ${ini.phoebe_cadence}</div>` : ''}
+      ${ini.timeline ? `<div class="imodal-meta-chip">${ini.timeline}</div>` : ''}`;
+    renderPipeline(d.sub_projects || [], d.stakeholders || []);
+  } catch(e) {
+    document.getElementById('imodal-title').textContent = 'Error loading initiative';
+  }
+}
+
+function handleIModalOverlayClick(e) { if (e.target === document.getElementById('imodal-overlay')) closeIModal(); }
+function closeIModal() { document.getElementById('imodal-overlay').classList.remove('open'); currentIModal = null; }
+
+function renderPipeline(subProjects, stakeholders) {
+  const track = document.getElementById('pipeline-track');
+  if (!subProjects.length) { track.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);font-style:italic">No sub-projects yet.</div>'; return; }
+  const statusMap = { 'Not Started': '', 'In Progress': 'ns-active', 'Blocked': '', 'Complete': 'ns-complete' };
+  track.innerHTML = subProjects.map((sp, i) => `
+    ${i > 0 ? '<div class="pipeline-arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>' : ''}
+    <div class="pipeline-node" onclick="openModuleDetail('${sp.sub_project_id}', ${JSON.stringify(subProjects).replace(/'/g,"&#39;")}, ${JSON.stringify(stakeholders).replace(/'/g,"&#39;")})">
+      <div class="node-number">${i + 1}</div>
+      <div class="node-name">${sp.sub_project_name}</div>
+      <div class="node-status"><div class="node-status-dot ${statusMap[sp.status]||''}"></div>${sp.status||'Not Started'}</div>
+    </div>`).join('');
+}
+
+function togglePipeline() {
+  const section = document.getElementById('pipeline-section');
+  const label = document.getElementById('pipeline-toggle-label');
+  section.classList.toggle('collapsed');
+  label.textContent = section.classList.contains('collapsed') ? 'Expand' : 'Collapse';
+}
+
+async function openModuleDetail(subProjectId, subProjects, stakeholders) {
+  document.querySelectorAll('.pipeline-node').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const sp = subProjects.find(s => s.sub_project_id === subProjectId);
+  if (!sp) return;
+  const detail = document.getElementById('module-detail');
+  detail.className = 'module-detail';
+  detail.innerHTML = `<div class="module-detail-inner"><div class="module-info-panel"><div class="module-info-title">${sp.sub_project_name}</div>
+    ${sp.description ? `<div class="module-info-section"><div class="module-info-label">Description</div><div class="module-info-text">${sp.description}</div></div>` : ''}
+    ${sp.dependencies ? `<div class="module-info-section"><div class="module-info-label">Dependencies</div><div class="module-info-text">${sp.dependencies}</div></div>` : ''}
+    ${sp.notes ? `<div class="module-info-section"><div class="module-info-label">Notes</div><div class="module-info-text">${sp.notes}</div></div>` : ''}
+    <div class="module-info-section"><div class="module-info-label">Status</div>
+    <select onchange="updateSubProjectStatus('${sp.sub_project_id}', this.value, ${JSON.stringify(sp).replace(/'/g,"&#39;")})" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-family:var(--font-sans);cursor:pointer">
+      ${['Not Started','In Progress','Blocked','Complete'].map(s => `<option ${sp.status===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    </div>
+    <div class="module-actions"><div class="module-actions-header"><div class="module-actions-title">Matched contacts</div></div>
+    <div id="module-matches"><div class="contacts-loading"><div class="spinner"></div>Finding matches...</div></div></div></div>`;
+  loadModuleMatches(sp, stakeholders);
+}
+
+async function loadModuleMatches(sp, stakeholders) {
+  try {
+    const query = [sp.sub_project_name, sp.description, sp.notes].filter(Boolean).join(' ');
+    const r = await fetch(`${API_BASE}/search`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ query, top_k: 6 }) });
+    const d = await r.json();
+    const results = d.results || [];
+    const container = document.getElementById('module-matches');
+    if (!container) return;
+    if (!results.length) { container.innerHTML = '<div class="contacts-empty">No strong matches found</div>'; return; }
+    container.innerHTML = results.map(c => {
+      const stk = stakeholders.find(s => s.contact_id === c.contact_id);
+      return `<div class="match-result-card">
+        <div class="match-result-top">
+          <div class="match-result-identity">
+            <div class="match-result-name">${c.full_name||'Unknown'}</div>
+            <div class="match-result-role">${[c.title_role, c.organization].filter(Boolean).join(' · ')}</div>
+          </div>
+          <span class="match-result-score">${Math.round((c.score||c.similarity||0)*100)}%</span>
+        </div>
+        ${c.what_building ? `<div class="match-result-why">${c.what_building}</div>` : ''}
+        ${stk ? `<div style="font-size:11px;color:var(--complete-border);margin-bottom:8px">Already linked: ${stk.role||'Stakeholder'}</div>` : ''}
+        <div class="action-chips">
+          <button class="action-chip outreach" onclick="showToast('Draft outreach coming soon')">Outreach</button>
+          ${!stk ? `<button class="action-chip advisor" onclick="showToast('Link as stakeholder coming soon')">Link</button>` : ''}
+        </div></div>`;
+    }).join('');
+  } catch(e) {
+    const c = document.getElementById('module-matches');
+    if (c) c.innerHTML = `<div class="contacts-empty">Error: ${e.message}</div>`;
+  }
+}
+
+async function updateSubProjectStatus(spId, status, spData) {
+  try {
+    const updated = { ...spData, status };
+    await fetch(`${API_BASE}/sub-project/${spId}`, { method: 'PUT', headers: hdrs(), body: JSON.stringify(updated) });
+    showToast(`Status updated to ${status}`);
+  } catch(e) { showToast('Failed to update status'); }
+}
+
+async function runSearch() {
+  const q = document.getElementById('search-input')?.value?.trim();
+  if (!q) return;
+  document.getElementById('search-results').innerHTML = '<div class="loading-state"><div class="spinner"></div>Searching...</div>';
+  try {
+    const r = await fetch(`${API_BASE}/search`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ query: q, top_k: 12 }) });
+    const d = await r.json();
+    const results = d.results || [];
+    if (!results.length) { document.getElementById('search-results').innerHTML = '<div class="empty-state"><h3>No results</h3><p>Try different keywords or a more descriptive phrase.</p></div>'; return; }
+    document.getElementById('search-results').innerHTML = `<div class="results-grid">${results.map(c => `
+      <div class="contact-card" onclick="openContactProfile && openContactProfile(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        <div class="contact-name">${c.full_name||'Unknown'}</div>
+        <div class="contact-role">${[c.title_role,c.organization].filter(Boolean).join(' · ')}</div>
+        ${c.what_building ? `<div style="font-size:12px;color:var(--text2);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${c.what_building}</div>` : ''}
+        <div class="contact-tags">
+          <span class="contact-score">${Math.round((c.score||c.similarity||0)*100)}%</span>
+          ${c.relationship_health ? `<span class="tag">${c.relationship_health}</span>` : ''}
+          ${c.venture ? `<span class="tag">${c.venture}</span>` : ''}
+        </div>
+      </div>`).join('')}</div>`;
+  } catch(e) {
+    document.getElementById('search-results').innerHTML = `<div class="empty-state"><h3>Error</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+async function saveInitiative() {
+  const name = document.getElementById('new-name')?.value?.trim();
+  if (!name) { showToast('Name is required'); return; }
+  const payload = { initiative_name: name, venture: document.getElementById('new-venture')?.value||'', priority: document.getElementById('new-priority')?.value||'Medium', status: document.getElementById('new-status')?.value||'Brain Dump', phoebe_cadence: document.getElementById('new-cadence')?.value||'Weekly', goal: document.getElementById('new-goal')?.value||'', brain_dump: document.getElementById('new-braindump')?.value||'' };
+  try {
+    await fetch(`${API_BASE}/initiative`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
+    closeAddModal();
+    showToast('Initiative created');
+    await loadBoard();
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+function openContactDrawer(contact) {
+  if (window.openContactProfile) { window.openContactProfile(contact); return; }
+  const d = document.getElementById('contact-drawer');
+  const o = document.getElementById('drawer-overlay');
+  document.getElementById('contact-drawer-title').textContent = contact.full_name || 'Contact';
+  document.getElementById('contact-drawer-sub').textContent = [contact.title_role, contact.organization].filter(Boolean).join(' · ');
+  const body = document.getElementById('contact-drawer-body');
+  const fields = [['How We Met', contact.how_we_met], ['What Building', contact.what_building], ['What Need', contact.what_need], ['What Offer', contact.what_offer], ['Notes', contact.notes], ['Health', contact.relationship_health], ['Activation', contact.activation_potential]];
+  body.innerHTML = fields.filter(([,v]) => v).map(([k,v]) => `<div class="detail-field"><label>${k}</label><p>${v}</p></div>`).join('');
+  d.classList.add('open'); o.classList.add('open');
+}
+function closeContactDrawer() { document.getElementById('contact-drawer')?.classList.remove('open'); document.getElementById('drawer-overlay')?.classList.remove('open'); }
+
+function openContentModal() { document.getElementById('content-modal').classList.add('open'); }
+function closeContentModal() { document.getElementById('content-modal').classList.remove('open'); }
+async function saveContent() {
+  const name = document.getElementById('cnt-name')?.value?.trim();
+  if (!name) { showToast('Name is required'); return; }
+  const payload = { content_name: name, content_type: document.getElementById('cnt-type')?.value||'', venture: document.getElementById('cnt-venture')?.value||'', status: document.getElementById('cnt-status')?.value||'Idea', prismm_sync: document.getElementById('cnt-sync')?.value||'', approval_required: document.getElementById('cnt-approval')?.value||'No', initiative_tags: document.getElementById('cnt-tags')?.value||'', activation_angle: document.getElementById('cnt-angle')?.value||'', asset_link: document.getElementById('cnt-link')?.value||'', notes: document.getElementById('cnt-notes')?.value||'' };
+  try {
+    await fetch(`${API_BASE}/content`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
+    closeContentModal(); showToast('Content saved'); renderContent();
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+function openAngleModal() { document.getElementById('angle-modal').classList.add('open'); }
+function closeAngleModal() { document.getElementById('angle-modal').classList.remove('open'); }
+async function saveAngle() {
+  const name = document.getElementById('ang-name')?.value?.trim();
+  if (!name) { showToast('Name is required'); return; }
+  const payload = { angle_name: name, description: document.getElementById('ang-desc')?.value||'', template: document.getElementById('ang-template')?.value||'', best_for: document.getElementById('ang-best')?.value||'' };
+  try {
+    await fetch(`${API_BASE}/activation-angle`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
+    closeAngleModal(); showToast('Angle saved');
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+function openEventModal() { document.getElementById('event-modal').classList.add('open'); }
+function closeEventModal() { document.getElementById('event-modal').classList.remove('open'); }
+async function saveEvent() {
+  const name = document.getElementById('evt-name')?.value?.trim();
+  if (!name) { showToast('Name is required'); return; }
+  const payload = { event_name: name, event_type: document.getElementById('evt-type')?.value||'Hosting', venture: document.getElementById('evt-venture')?.value||'', date: document.getElementById('evt-date')?.value||null, status: document.getElementById('evt-status')?.value||'Planning', location: document.getElementById('evt-location')?.value||'', description: document.getElementById('evt-desc')?.value||'', notes: document.getElementById('evt-notes')?.value||'' };
+  try {
+    await fetch(`${API_BASE}/event`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
+    closeEventModal(); showToast('Event created');
+    if (document.getElementById('page-events').style.display !== 'none') renderEvents();
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+function openContentDrawer(content) {
+  const d = document.getElementById('content-drawer');
+  const o = document.getElementById('content-drawer-overlay');
+  document.getElementById('content-drawer-title').textContent = content.content_name || 'Content';
+  const sub = document.getElementById('content-drawer-sub');
+  const syncClass = { Pending: 'sync-pending', Synced: 'sync-synced', 'Needs Update': 'sync-needs-update' };
+  sub.innerHTML = [
+    content.content_type ? `<span class="type-badge">${content.content_type}</span>` : '',
+    content.status ? `<span class="content-status-badge cs-${(content.status||'').toLowerCase().replace(/\s+/g,'-')}">${content.status}</span>` : '',
+    content.prismm_sync ? `<span class="sync-badge ${syncClass[content.prismm_sync]||'sync-none'}">${content.prismm_sync}</span>` : '',
+  ].filter(Boolean).join('');
+  const body = document.getElementById('content-drawer-body');
+  const sections = [['Venture', content.venture], ['Initiative Tags', content.initiative_tags], ['Activation Angle', content.activation_angle], ['Asset Link', content.asset_link ? `<a href="${content.asset_link}" target="_blank">${content.asset_link}</a>` : ''], ['Notes', content.notes]];
+  body.innerHTML = sections.filter(([,v]) => v).map(([k,v]) => `<div class="content-detail-section"><div class="content-detail-label">${k}</div><div class="content-detail-value">${v}</div></div>`).join('');
+  d.classList.add('open'); o.classList.add('open');
+}
+function closeContentDrawer() { document.getElementById('content-drawer')?.classList.remove('open'); document.getElementById('content-drawer-overlay')?.classList.remove('open'); }
+
+let allContent = [];
+async function renderContent() {
+  if (!allContent.length) {
+    try { const r = await fetch(`${API_BASE}/content`, { headers: hdrs() }); const d = await r.json(); allContent = d.data || []; } catch(e) { allContent = []; }
+  }
+  const q = (document.getElementById('content-search')?.value||'').toLowerCase();
+  const v = document.getElementById('content-venture')?.value||'';
+  const t = document.getElementById('content-type')?.value||'';
+  const s = document.getElementById('content-sync')?.value||'';
+  let data = allContent;
+  if (q) data = data.filter(c => (c.content_name||'').toLowerCase().includes(q)||(c.activation_angle||'').toLowerCase().includes(q));
+  if (v) data = data.filter(c => c.venture === v);
+  if (t) data = data.filter(c => c.content_type === t);
+  if (s) data = data.filter(c => c.prismm_sync === s);
+  const grid = document.getElementById('content-grid');
+  if (!grid) return;
+  if (!data.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No content</h3><p>Add your first content asset.</p></div>'; return; }
+  const syncClass = { Pending: 'sync-pending', Synced: 'sync-synced', 'Needs Update': 'sync-needs-update' };
+  grid.innerHTML = data.map(c => `
+    <div class="content-card prismm-sync-${(c.prismm_sync||'').toLowerCase().replace(/\s+/g,'-')}" onclick="openContentDrawer(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+      <div class="content-card-top">
+        <div><div class="content-card-meta">${c.venture||''}${c.content_type?' · '+c.content_type:''}</div><div class="content-card-name">${c.content_name}</div></div>
+        <span class="content-status-badge cs-${(c.status||'idea').toLowerCase().replace(/\s+/g,'-')}">${c.status||'Idea'}</span>
+      </div>
+      ${c.activation_angle ? `<div class="content-card-angle">${c.activation_angle}</div>` : ''}
+      <div class="content-card-footer">
+        ${c.prismm_sync ? `<span class="sync-badge ${syncClass[c.prismm_sync]||'sync-none'}">${c.prismm_sync}</span>` : ''}
+        ${c.initiative_tags ? `<span class="type-badge">${c.initiative_tags}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+let currentEventType = 'Hosting';
+async function switchEventsTab(type) {
+  currentEventType = type;
+  ['Hosting','Attending','Workshop'].forEach(t => {
+    const tab = document.getElementById(`etab-${t.toLowerCase()}`);
+    if (tab) tab.classList.toggle('active', t === type);
+  });
+  renderEvents();
+}
+
+async function renderEvents() {
+  const grid = document.getElementById('events-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading events...</div>';
+  try {
+    const r = await fetch(`${API_BASE}/events?type=${encodeURIComponent(currentEventType)}`, { headers: hdrs() });
+    const d = await r.json();
+    const events = d.data || [];
+    if (!events.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No events</h3><p>Create your first event.</p></div>'; return; }
+    grid.innerHTML = events.map(e => {
+      const statusCls = { Planning: 'es-planning', Confirmed: 'es-confirmed', Complete: 'es-complete', Cancelled: 'es-cancelled' };
+      return `<div class="event-card ${statusCls[e.status]||'es-planning'}" onclick="openEventDetail('${e.event_id}')">
+        <div class="event-card-top"><div><div class="event-card-meta">${e.venture||''}</div><div class="event-card-name">${e.event_name}</div></div>
+        <span class="event-status-badge evs-${(e.status||'planning').toLowerCase()}">${e.status||'Planning'}</span></div>
+        ${e.date ? `<div class="event-card-date">&#128197; ${new Date(e.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>` : ''}
+        ${e.location ? `<div class="event-card-date">&#128205; ${e.location}</div>` : ''}
+        <div class="event-card-footer"></div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Error</h3><p>${e.message}</p></div>`;
+  }
+}
+
+async function openEventDetail(eventId) {
+  showToast('Event detail view coming soon');
+}
+
+loadBoard();
+</script>
+</body>
+</html>

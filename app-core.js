@@ -1,5 +1,5 @@
 // Super Connector — Core page logic
-// v20260407d — fixed renderQueue syntax bug; all pages wire correctly
+// v20260407e — showPage uses display:block not '' to fix blank pages
 const API_BASE = window.SC_API_BASE || 'https://super-connector-api-production.up.railway.app';
 const API_KEY = window.SC_API_KEY || 'sc_live_k3y_2026_scak';
 const hdrs = () => ({ 'Content-Type': 'application/json', 'X-API-Key': API_KEY });
@@ -71,21 +71,23 @@ function filterVenture(v) {
 }
 
 function showPage(page) {
+  // Hide all pages
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  // Show the target page — use explicit 'block' so removal of display:none actually works
   const pg = document.getElementById('page-' + page);
-  if (pg) pg.style.display = '';
+  if (pg) pg.style.display = 'block';
   const nav = document.getElementById('nav-' + page);
   if (nav) nav.classList.add('active');
   const addBtn = document.getElementById('topbar-add-btn');
   const titles = {
     board: 'Initiatives Board', search: 'Search Contacts', orgs: 'Organizations',
     queue: 'Activation Queue', angles: 'Activation Angles',
-    content: 'Content Registry', events: 'Events'
+    content: 'Assets', events: 'Events'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'board')   { addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
-  else if (page === 'content') { addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; }
+  else if (page === 'content') { addBtn.textContent = '+ New Asset'; addBtn.onclick = openContentModal; }
   else if (page === 'events')  { addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; }
   else { addBtn.textContent = ''; addBtn.onclick = null; }
   // Per-page loaders
@@ -98,7 +100,6 @@ function showPage(page) {
 
 // ── ACTIVATION QUEUE ──────────────────────────────────────────────────────────
 async function renderQueue() {
-  // contacts-crm.js may have moved #queue-list into #activ-panel-queue — check both
   const el = document.getElementById('queue-list') || document.getElementById('activ-panel-queue');
   if (!el) return;
   el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading follow-ups...</div>';
@@ -116,8 +117,6 @@ async function renderQueue() {
       const overdue = date && date < today;
       const isToday = date === today;
       const urgencyColor = overdue ? 'var(--critical)' : isToday ? 'var(--high)' : 'var(--border)';
-      const dateColor = overdue ? 'var(--critical)' : 'var(--text3)';
-      const dateWeight = overdue ? '600' : '400';
       return `<div class="queue-item">
         <div class="queue-urgency" style="background:${urgencyColor}"></div>
         <div class="queue-info">
@@ -125,7 +124,7 @@ async function renderQueue() {
           <div class="queue-meta">${f.venture || ''}</div>
           <div class="queue-action">${f.next_action || f.notes || ''}</div>
         </div>
-        ${date ? `<div style="font-size:11px;color:${dateColor};font-weight:${dateWeight};white-space:nowrap">${overdue ? 'Overdue · ' : ''}${date}</div>` : ''}
+        ${date ? `<div style="font-size:11px;color:${overdue?'var(--critical)':'var(--text3)'};font-weight:${overdue?'600':'400'};white-space:nowrap">${overdue?'Overdue · ':''}${date}</div>` : ''}
       </div>`;
     }).join('');
   } catch(e) {
@@ -331,7 +330,7 @@ async function saveContent() {
   const payload = { content_name: name, content_type: document.getElementById('cnt-type')?.value||'', venture: document.getElementById('cnt-venture')?.value||'', status: document.getElementById('cnt-status')?.value||'Idea', prismm_sync: document.getElementById('cnt-sync')?.value||'', approval_required: document.getElementById('cnt-approval')?.value||'No', initiative_tags: document.getElementById('cnt-tags')?.value||'', activation_angle: document.getElementById('cnt-angle')?.value||'', asset_link: document.getElementById('cnt-link')?.value||'', notes: document.getElementById('cnt-notes')?.value||'' };
   try {
     await fetch(`${API_BASE}/content`, { method: 'POST', headers: hdrs(), body: JSON.stringify(payload) });
-    closeContentModal(); showToast('Content saved'); allContent = []; renderContent();
+    closeContentModal(); showToast('Asset saved'); allContent = []; renderContent();
   } catch(e) { showToast('Error: ' + e.message); }
 }
 
@@ -394,7 +393,7 @@ async function renderContent() {
   if (s) data = data.filter(c => c.prismm_sync === s);
   const grid = document.getElementById('content-grid');
   if (!grid) return;
-  if (!data.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No content</h3><p>Add your first content asset.</p></div>'; return; }
+  if (!data.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No assets yet</h3><p>Add your first asset.</p></div>'; return; }
   const syncClass = { Pending: 'sync-pending', Synced: 'sync-synced', 'Needs Update': 'sync-needs-update' };
   grid.innerHTML = data.map(c => `
     <div class="content-card prismm-sync-${(c.prismm_sync||'').toLowerCase().replace(/\s+/g,'-')}" onclick="openContentDrawer(${JSON.stringify(c).replace(/"/g,'&quot;')})">

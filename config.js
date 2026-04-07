@@ -12,7 +12,7 @@ CONFIG.API_KEY   = window.SC_API_KEY;
     if (injected) return;
     injected = true;
     var s = document.createElement('script');
-    s.src = 'contacts-crm.js?v=20260401f';
+    s.src = 'contacts-crm.js?v=20260407e';
     document.head.appendChild(s);
   }
   if (document.readyState === 'complete' || document.readyState === 'interactive') {

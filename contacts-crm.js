@@ -1,6 +1,7 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App v20260407c
- * 2026-04-07 change: removed grid/list display toggle buttons from browse and bucket views
+ * Contacts CRM + Activation Hub — Super Connector App v20260407d
+ * Fix: bucket card names now wrap instead of truncating
+ * Fix: crm-bucket-card-header now aligns to flex-start so dot stays top-aligned on wrap
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
@@ -46,10 +47,10 @@
     .crm-buckets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:32px}
     .crm-bucket-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:box-shadow .15s,transform .1s,border-color .15s;position:relative}
     .crm-bucket-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--accent)}
-    .crm-bucket-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .crm-bucket-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-    .crm-bucket-name{font-size:14px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .crm-bucket-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--accent-dim);color:var(--accent)}
+    .crm-bucket-card-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+    .crm-bucket-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+    .crm-bucket-name{font-size:14px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+    .crm-bucket-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--accent-dim);color:var(--accent);flex-shrink:0;margin-top:1px}
     .crm-bucket-members{font-size:11px;color:var(--text3);line-height:1.5;min-height:16px}
     .crm-bucket-desc{font-size:11px;color:var(--text3);margin-top:6px;line-height:1.4}
     .crm-new-bucket-card{background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text3);font-size:13px;transition:border-color .15s,color .15s;min-height:90px}

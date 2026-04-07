@@ -453,16 +453,29 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="field-group" style="grid-column:1/-1"><label>Event Name *</label><input type="text" id="evt-name" placeholder="BTC Networking Mixer"></div>
       <div class="field-group"><label>Type</label><select id="evt-type"><option>Hosting</option><option>Attending</option><option>Workshop</option></select></div>
-      <div class="field-group"><label>Venture</label><select id="evt-venue"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
+      <div class="field-group"><label>Venue / Location</label><select id="evt-venue"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
       <div class="field-group"><label>Date</label><input type="date" id="evt-date"></div>
       <div class="field-group"><label>Status</label><select id="evt-status"><option>Planning</option><option>Confirmed</option><option>Complete</option><option>Cancelled</option></select></div>
-      <div class="field-group" style="grid-column:1/-1"><label>Location</label><input type="text" id="evt-location" placeholder="Birmingham, AL / Virtual"></div>
-      <div class="field-group" style="grid-column:1/-1"><label>Description</label><textarea id="evt-desc" placeholder="What is this event?" style="min-height:64px"></textarea></div>
-      <div class="field-group" style="grid-column:1/-1"><label>Notes</label><textarea id="evt-notes" placeholder="Internal notes..." style="min-height:52px"></textarea></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Description</label><textarea id="evt-desc" style="min-height:60px" placeholder="What is this event about?"></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Save Event</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Create Event</button></div>
   </div>
 </div>
+
+<div class="emodal-overlay" id="emodal-overlay" onclick="handleEModalOverlayClick(event)">
+  <div class="emodal" id="emodal">
+    <div class="emodal-header">
+      <div class="emodal-header-top">
+        <div class="emodal-title" id="emodal-title">Event</div>
+        <button class="emodal-close" onclick="closeEModal()">x</button>
+      </div>
+      <div class="emodal-meta" id="emodal-meta"></div>
+    </div>
+    <div class="emodal-body" id="emodal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 // ── ORGANIZATIONS PAGE ────────────────────────────────────────────────────────
@@ -478,7 +491,7 @@
   window.orgsLoad = async function() {
     const el = document.getElementById('orgs-list');
     if (!el) return;
-    el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading organizations…</div>';
+    el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading organizations&#8230;</div>';
     try {
       const r = await fetch(`${API_BASE}/organizations`, { headers: hdrs() });
       const d = await r.json();
@@ -522,12 +535,12 @@
             <tr style="border-bottom:0.5px solid var(--border-soft);cursor:pointer;transition:background .1s"
               onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''"
               onclick="orgsOpenDrawer(${JSON.stringify(JSON.stringify(o))})">
-              <td style="padding:11px 12px 11px 0;font-size:13px;font-weight:500;color:var(--text)">${esc(o.name||'—')}</td>
+              <td style="padding:11px 12px 11px 0;font-size:13px;font-weight:500;color:var(--text)">${esc(o.name||'&#8212;')}</td>
               <td style="padding:11px 12px 11px 0">
-                ${o.org_type ? `<span style="font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489">${esc(o.org_type)}</span>` : '<span style="color:var(--text3);font-size:12px">—</span>'}
+                ${o.org_type ? `<span style="font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489">${esc(o.org_type)}</span>` : '<span style="color:var(--text3);font-size:12px">&#8212;</span>'}
               </td>
-              <td style="padding:11px 12px 11px 0;font-size:12px;color:var(--text2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.org_focus||'—')}</td>
-              <td style="padding:11px 0;font-size:11px;color:var(--text3)">${o.last_enriched ? esc(o.last_enriched) : '—'}</td>
+              <td style="padding:11px 12px 11px 0;font-size:12px;color:var(--text2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.org_focus||'&#8212;')}</td>
+              <td style="padding:11px 0;font-size:11px;color:var(--text3)">${o.last_enriched ? esc(o.last_enriched) : '&#8212;'}</td>
             </tr>`).join('')}
         </tbody>
       </table>`;
@@ -535,14 +548,13 @@
 
   window.orgsOpenDrawer = function(orgJson) {
     const o = JSON.parse(orgJson);
-    // Reuse the contact drawer for org detail
     const drawer = document.getElementById('contact-drawer');
     const overlay = document.getElementById('drawer-overlay');
     const title = document.getElementById('contact-drawer-title');
     const sub = document.getElementById('contact-drawer-sub');
     const body = document.getElementById('contact-drawer-body');
     if (!drawer) return;
-    if (title) title.textContent = o.name || '—';
+    if (title) title.textContent = o.name || '&#8212;';
     if (sub) sub.innerHTML = o.org_type ? `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489">${esc(o.org_type)}</span>` : '';
     if (body) body.innerHTML = `
       ${o.description ? `<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Description</div><div style="font-size:13px;color:var(--text);line-height:1.6">${esc(o.description)}</div></div>` : ''}
@@ -552,8 +564,9 @@
       ${o.website ? `<div style="margin-bottom:20px"><a href="${esc(o.website)}" target="_blank" style="font-size:13px;color:var(--accent)">${esc(o.website)}</a></div>` : ''}
       ${o.last_enriched ? `<div style="font-size:11px;color:var(--text3)">Last enriched: ${esc(o.last_enriched)}</div>` : ''}
       ${!o.description && !o.org_focus && !o.recent_activity ? `<div style="font-size:13px;color:var(--text3);font-style:italic">No enrichment data yet. Open a contact from this org and click "Create org profile" on the Org Profile tab.</div>` : ''}`;
+    drawer.style.removeProperty('display');
     drawer.classList.add('open');
-    if (overlay) overlay.classList.add('open');
+    if (overlay) { overlay.style.removeProperty('display'); overlay.classList.add('open'); }
     document.body.style.overflow = 'hidden';
   };
 })();
@@ -561,7 +574,6 @@
 
 <script src="load-info.js"></script>
 <script src="load-crm.js"></script>
-<script src="contacts-crm.js"></script>
 <script src="contact-profile.js"></script>
 <script src="search-patch.js"></script>
 <script src="brain-dump-push.js"></script>

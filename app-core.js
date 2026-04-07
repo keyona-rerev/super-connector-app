@@ -1,5 +1,5 @@
 // Super Connector — Core page logic
-// v20260407c — queue, angles, events wired; all showPage data loads fixed
+// v20260407d — fixed renderQueue syntax bug; all pages wire correctly
 const API_BASE = window.SC_API_BASE || 'https://super-connector-api-production.up.railway.app';
 const API_KEY = window.SC_API_KEY || 'sc_live_k3y_2026_scak';
 const hdrs = () => ({ 'Content-Type': 'application/json', 'X-API-Key': API_KEY });
@@ -37,10 +37,10 @@ function renderBoard() {
   data.forEach(i => { const s = i.status || 'Brain Dump'; if (cols[s]) cols[s].push(i); else cols['Brain Dump'].push(i); });
   const colDefs = [
     { key: 'Brain Dump', label: 'Brain Dump', cls: 'col-dump' },
-    { key: 'Planning', label: 'Planning', cls: 'col-planning' },
-    { key: 'Active', label: 'Active', cls: 'col-active' },
-    { key: 'Paused', label: 'Paused', cls: 'col-blocked' },
-    { key: 'Complete', label: 'Complete', cls: 'col-complete' },
+    { key: 'Planning',   label: 'Planning',   cls: 'col-planning' },
+    { key: 'Active',     label: 'Active',     cls: 'col-active' },
+    { key: 'Paused',     label: 'Paused',     cls: 'col-blocked' },
+    { key: 'Complete',   label: 'Complete',   cls: 'col-complete' },
   ];
   document.getElementById('board-columns').innerHTML = colDefs.map(col => `
     <div>
@@ -84,21 +84,21 @@ function showPage(page) {
     content: 'Content Registry', events: 'Events'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
-  if (page === 'board') { addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
+  if (page === 'board')   { addBtn.textContent = '+ New Initiative'; addBtn.onclick = openAddModal; }
   else if (page === 'content') { addBtn.textContent = '+ New Content'; addBtn.onclick = openContentModal; }
-  else if (page === 'events') { addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; }
+  else if (page === 'events')  { addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; }
   else { addBtn.textContent = ''; addBtn.onclick = null; }
-  // Per-page data loaders
-  if (page === 'orgs' && typeof window.orgsLoad === 'function') window.orgsLoad();
+  // Per-page loaders
+  if (page === 'orgs'    && typeof window.orgsLoad === 'function') window.orgsLoad();
   if (page === 'content') renderContent();
-  if (page === 'events') renderEvents();
-  if (page === 'queue') renderQueue();
-  if (page === 'angles') renderAngles();
+  if (page === 'events')  renderEvents();
+  if (page === 'queue')   renderQueue();
+  if (page === 'angles')  renderAngles();
 }
 
 // ── ACTIVATION QUEUE ──────────────────────────────────────────────────────────
 async function renderQueue() {
-  // contacts-crm.js may have restructured the queue into tabs — find the real list container
+  // contacts-crm.js may have moved #queue-list into #activ-panel-queue — check both
   const el = document.getElementById('queue-list') || document.getElementById('activ-panel-queue');
   if (!el) return;
   el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading follow-ups...</div>';
@@ -114,14 +114,18 @@ async function renderQueue() {
     el.innerHTML = items.map(f => {
       const date = f.next_action_date || '';
       const overdue = date && date < today;
+      const isToday = date === today;
+      const urgencyColor = overdue ? 'var(--critical)' : isToday ? 'var(--high)' : 'var(--border)';
+      const dateColor = overdue ? 'var(--critical)' : 'var(--text3)';
+      const dateWeight = overdue ? '600' : '400';
       return `<div class="queue-item">
-        <div class="queue-urgency ${overdue ? 'urgency-overdue' : date === today ? 'urgency-today' : ''}" style="background:${overdue ? 'var(--critical)' : date === today ? 'var(--high)' : 'var(--border)'}"></div>
+        <div class="queue-urgency" style="background:${urgencyColor}"></div>
         <div class="queue-info">
           <div class="queue-name">${f.contact_name || f.contact_id || '—'}</div>
           <div class="queue-meta">${f.venture || ''}</div>
           <div class="queue-action">${f.next_action || f.notes || ''}</div>
         </div>
-        ${date ? `<div style="font-size:11px;color:${overdue ? 'var(--critical)' : 'var(--text3)'];font-weight:${overdue ? '600' : '400'}">${overdue ? 'Overdue · ' : ''}${date}</div>` : ''}
+        ${date ? `<div style="font-size:11px;color:${dateColor};font-weight:${dateWeight};white-space:nowrap">${overdue ? 'Overdue · ' : ''}${date}</div>` : ''}
       </div>`;
     }).join('');
   } catch(e) {
@@ -139,7 +143,7 @@ async function renderAngles() {
     const d = await r.json();
     const angles = d.data || [];
     if (!angles.length) {
-      el.innerHTML = '<div class="empty-state"><h3>No angles yet</h3><p>Create your first activation angle to define outreach approaches.</p></div>';
+      el.innerHTML = '<div class="empty-state"><h3>No angles yet</h3><p>Create your first activation angle.</p></div>';
       return;
     }
     el.innerHTML = angles.map(a => `
@@ -154,11 +158,11 @@ async function renderAngles() {
   }
 }
 
+// ── INITIATIVES MODAL ─────────────────────────────────────────────────────────
 let currentIModal = null;
 async function openIModal(initiativeId) {
   currentIModal = initiativeId;
-  const overlay = document.getElementById('imodal-overlay');
-  overlay.classList.add('open');
+  document.getElementById('imodal-overlay').classList.add('open');
   document.getElementById('imodal-title').textContent = 'Loading...';
   document.getElementById('imodal-goal').textContent = '';
   document.getElementById('imodal-venture').textContent = '';
@@ -424,7 +428,10 @@ async function renderEvents() {
     const r = await fetch(`${API_BASE}/events?type=${encodeURIComponent(currentEventType)}`, { headers: hdrs() });
     const d = await r.json();
     const events = d.data || [];
-    if (!events.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No events yet</h3><p>Create your first event.</p></div>'; return; }
+    if (!events.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No events yet</h3><p>Create your first event.</p></div>';
+      return;
+    }
     grid.innerHTML = events.map(e => {
       const statusCls = { Planning: 'es-planning', Confirmed: 'es-confirmed', Complete: 'es-complete', Cancelled: 'es-cancelled' };
       return `<div class="event-card ${statusCls[e.status]||'es-planning'}" onclick="showToast('Event detail coming soon')">
@@ -435,7 +442,7 @@ async function renderEvents() {
       </div>`;
     }).join('');
   } catch(e) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Error</h3><p>${e.message}</p></div>`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Error loading events</h3><p>${e.message}</p></div>`;
   }
 }
 

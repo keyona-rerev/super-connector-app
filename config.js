@@ -13,6 +13,12 @@ CONFIG.API_KEY   = window.SC_API_KEY;
     injected = true;
     var s = document.createElement('script');
     s.src = 'contacts-crm.js?v=20260407e';
+    s.onload = function() {
+      // Load drawer CSS fix immediately after crm script — fixes .drawer-overlay being nuked
+      var fix = document.createElement('script');
+      fix.src = 'contacts-crm-fix.js?v=20260407a';
+      document.head.appendChild(fix);
+    };
     document.head.appendChild(s);
   }
   if (document.readyState === 'complete' || document.readyState === 'interactive') {

@@ -281,11 +281,11 @@
       <div class="nav-label">Workspace</div>
       <button class="nav-item active" onclick="showPage('board')" id="nav-board"><span class="icon">&#9672;</span> Initiatives</button>
       <button class="nav-item" onclick="showPage('search')" id="nav-search"><span class="icon">&#8889;</span> Search Contacts</button>
-      <button class="nav-item" onclick="showPage('orgs')" id="nav-orgs"><span class="icon">&#9678;</span> Organizations</button>
-      <button class="nav-item" onclick="showPage('queue')" id="nav-queue"><span class="icon">&#9678;</span> Activation Queue</button>
+      <button class="nav-item" onclick="showPage('orgs')" id="nav-orgs"><span class="icon">&#127968;</span> Organizations</button>
+      <button class="nav-item" onclick="showPage('queue')" id="nav-queue"><span class="icon">&#9889;</span> Activation Queue</button>
       <button class="nav-item" onclick="showPage('angles')" id="nav-angles"><span class="icon">&#9671;</span> Activation Angles</button>
-      <button class="nav-item" onclick="showPage('content')" id="nav-content"><span class="icon">&#9643;</span> Content Registry</button>
-      <button class="nav-item" onclick="showPage('events')" id="nav-events"><span class="icon">&#9672;</span> Events</button>
+      <button class="nav-item" onclick="showPage('content')" id="nav-content"><span class="icon">&#9643;</span> Assets</button>
+      <button class="nav-item" onclick="showPage('events')" id="nav-events"><span class="icon">&#128197;</span> Events</button>
     </nav>
     <div class="nav-section">
       <div class="nav-label">Ventures</div>
@@ -327,7 +327,7 @@
         <input class="filter-input" type="text" id="orgs-search" placeholder="Filter organizations..." oninput="orgsFilter(this.value)" style="max-width:340px">
         <span id="orgs-count" style="font-size:12px;color:var(--text3)"></span>
       </div>
-      <div id="orgs-list"><div class="loading-state"><div class="spinner"></div>Loading organizations…</div></div>
+      <div id="orgs-list"><div class="loading-state"><div class="spinner"></div>Loading organizations&#8230;</div></div>
     </div>
     <div class="page" id="page-queue" style="display:none"><div id="queue-list"><div class="loading-state"><div class="spinner"></div>Loading queue...</div></div></div>
     <div class="page" id="page-angles" style="display:none">
@@ -453,25 +453,12 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="field-group" style="grid-column:1/-1"><label>Event Name *</label><input type="text" id="evt-name" placeholder="BTC Networking Mixer"></div>
       <div class="field-group"><label>Type</label><select id="evt-type"><option>Hosting</option><option>Attending</option><option>Workshop</option></select></div>
-      <div class="field-group"><label>Venue / Location</label><select id="evt-venue"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
+      <div class="field-group"><label>Venture</label><select id="evt-venue"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
       <div class="field-group"><label>Date</label><input type="date" id="evt-date"></div>
       <div class="field-group"><label>Status</label><select id="evt-status"><option>Planning</option><option>Confirmed</option><option>Complete</option><option>Cancelled</option></select></div>
       <div class="field-group" style="grid-column:1/-1"><label>Description</label><textarea id="evt-desc" style="min-height:60px" placeholder="What is this event about?"></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Create Event</button></div>
-  </div>
-</div>
-
-<div class="emodal-overlay" id="emodal-overlay" onclick="handleEModalOverlayClick(event)">
-  <div class="emodal" id="emodal">
-    <div class="emodal-header">
-      <div class="emodal-header-top">
-        <div class="emodal-title" id="emodal-title">Event</div>
-        <button class="emodal-close" onclick="closeEModal()">x</button>
-      </div>
-      <div class="emodal-meta" id="emodal-meta"></div>
-    </div>
-    <div class="emodal-body" id="emodal-body"></div>
   </div>
 </div>
 
@@ -577,28 +564,5 @@
 <script src="contact-profile.js"></script>
 <script src="search-patch.js"></script>
 <script src="brain-dump-push.js"></script>
-<script>
-// Patch showPage to handle orgs
-(function() {
-  const _origShowPage = window.showPage;
-  window.showPage = function(page) {
-    if (page === 'orgs') {
-      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-      const pg = document.getElementById('page-orgs');
-      if (pg) pg.style.display = '';
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      const nb = document.getElementById('nav-orgs');
-      if (nb) nb.classList.add('active');
-      const tt = document.getElementById('page-title');
-      if (tt) tt.textContent = 'Organizations';
-      const addBtn = document.getElementById('topbar-add-btn');
-      if (addBtn) { addBtn.textContent = ''; addBtn.onclick = null; }
-      window.orgsLoad();
-      return;
-    }
-    if (_origShowPage) _origShowPage(page);
-  };
-})();
-</script>
 </body>
 </html>

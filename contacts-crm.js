@@ -1,7 +1,7 @@
 /**
- * Contacts CRM + Activation Hub — Super Connector App v20260407d
- * Fix: bucket card names now wrap instead of truncating
- * Fix: crm-bucket-card-header now aligns to flex-start so dot stays top-aligned on wrap
+ * Contacts CRM + Activation Hub — Super Connector App v20260407e
+ * Restore card/list toggle in browse + bucket views
+ * Default stays list; toggle buttons restore grid (card) mode
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
@@ -145,6 +145,10 @@
     .help-field-table td:last-child{color:var(--text2)}
     #help-fab{position:fixed;bottom:28px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-md);color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:998;transition:background .12s,color .12s,box-shadow .12s}
     #help-fab:hover{background:var(--accent);color:#fff;box-shadow:var(--shadow-lg)}
+    .crm-display-toggle{display:flex;gap:4px;margin-bottom:14px}
+    .crm-display-btn{padding:5px 9px;font-size:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text3);cursor:pointer;transition:background .12s,color .12s,border-color .12s;line-height:1}
+    .crm-display-btn.active{background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
+    .crm-display-btn:hover:not(.active){background:var(--surface2);color:var(--text)}
     .crm-bucket-detail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px}
     .crm-bucket-detail-title{display:flex;align-items:center;gap:10px;margin-bottom:4px}
     .crm-bucket-detail-name{font-family:var(--font-serif);font-size:22px;font-weight:400;color:var(--text)}
@@ -166,6 +170,18 @@
   function hasEmail(c) {
     const rx = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
     return rx.test(c.notes||'') || rx.test(c.how_we_met||'') || rx.test(c.what_offer||'');
+  }
+
+  // ── TOGGLE HELPERS ────────────────────────────────────────────────────────────
+  function syncToggleBtns() {
+    ['crm-view-grid-btn','crm-view-grid-btn2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active', crmDisplayMode === 'grid');
+    });
+    ['crm-view-list-btn','crm-view-list-btn2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active', crmDisplayMode === 'list');
+    });
   }
 
   function injectDrawer() {
@@ -392,6 +408,10 @@
                 <button class="btn btn-ghost btn-sm" onclick="crmToggleBucketEdit()">Cancel</button>
               </div>
             </div>
+            <div class="crm-display-toggle">
+              <button class="crm-display-btn" id="crm-view-grid-btn2" onclick="crmSetDisplay('grid')" title="Card view">⊞</button>
+              <button class="crm-display-btn active" id="crm-view-list-btn2" onclick="crmSetDisplay('list')" title="List view">☰</button>
+            </div>
             <div class="crm-grid" id="crm-bucket-grid">
               <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading…</div>
             </div>
@@ -420,6 +440,10 @@
                 <option value="">All Activation</option>
                 <option>High</option><option>Medium</option><option>Low</option><option>None</option>
               </select>
+              <div class="crm-display-toggle" style="margin-bottom:0">
+                <button class="crm-display-btn" id="crm-view-grid-btn" onclick="crmSetDisplay('grid')" title="Card view">⊞</button>
+                <button class="crm-display-btn active" id="crm-view-list-btn" onclick="crmSetDisplay('list')" title="List view">☰</button>
+              </div>
             </div>
             <div class="crm-grid" id="crm-grid">
               <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading contacts…</div>
@@ -510,7 +534,7 @@
     loadDashboard();
   }
 
-  // ── VIEW SWITCHING ───────────────────────────────────────────────────────────
+  // ── VIEW SWITCHING ────────────────────────────────────────────────────────────
   window.crmSwitchView = function (view) {
     crmView = view;
     ['dashboard','browse','bucket'].forEach(v => {
@@ -569,7 +593,7 @@
     grid.innerHTML = cards.join('') + `<div class="crm-new-bucket-card" onclick="crmNewBucketModal()">+ New Bucket</div>`;
   }
 
-  // ── BUCKET DETAIL PAGE ───────────────────────────────────────────────────────
+  // ── BUCKET DETAIL ─────────────────────────────────────────────────────────────
   window.crmOpenBucket = async function (bucketId) {
     _currentBucketId = bucketId;
     const bucket = allBuckets.find(b => b.bucket_id === bucketId) || {};
@@ -595,6 +619,7 @@
     if (ef) ef.classList.remove('open');
 
     crmSwitchView('bucket');
+    syncToggleBtns();
 
     const grid = document.getElementById('crm-bucket-grid');
     if (grid) grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div>Loading…</div>`;
@@ -617,6 +642,7 @@
       grid.innerHTML = `<div class="empty-state"><h3>Empty bucket</h3><p>Add contacts from their drawer.</p></div>`;
       grid._contacts = []; return;
     }
+    if (crmDisplayMode === 'grid') { renderCardGrid(contacts, false, grid); return; }
     renderList(contacts, false, grid);
   }
 
@@ -804,7 +830,7 @@
     });
   };
 
-  // ── CONTACTS LOAD / RENDER ───────────────────────────────────────────────────
+  // ── CONTACTS LOAD / RENDER ────────────────────────────────────────────────────
   window.crmLoad = async function (offset = 0) {
     crmOffset = offset; crmMode = 'browse';
     const grid = document.getElementById('crm-grid');
@@ -827,11 +853,13 @@
       grid.innerHTML = `<div class="empty-state"><h3>No contacts found</h3><p>Try a different search or filter.</p></div>`;
       grid._contacts = []; return;
     }
+    if (crmDisplayMode === 'grid') { renderCardGrid(contacts, true, grid); return; }
     renderList(contacts, true, grid);
   }
 
   window.crmSetDisplay = function (mode) {
     crmDisplayMode = mode;
+    syncToggleBtns();
     if (crmView === 'browse') renderGrid(crmContacts);
     if (crmView === 'bucket') {
       fetch(`${API_BASE}/bucket/${_currentBucketId}/contacts`, { headers: hdrs() })
@@ -839,6 +867,27 @@
     }
   };
 
+  // ── CARD GRID (grid mode) ─────────────────────────────────────────────────────
+  function renderCardGrid(contacts, isPrimary, targetGrid) {
+    const grid = targetGrid || document.getElementById('crm-grid');
+    if (!grid) return;
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(265px,1fr))';
+    grid.innerHTML = contacts.map((c, i) => {
+      const hb = c.relationship_health ? `<span class="crm-hb ${hMap[c.relationship_health]||'crm-hb-neutral'}">${esc(c.relationship_health)}</span>` : '';
+      const ab = c.activation_potential ? `<span class="crm-ab">${esc(c.activation_potential)}</span>` : '';
+      const em = hasEmail(c) ? `<span class="crm-em" title="Email on file">✉</span>` : '';
+      const role = [c.title_role, c.organization].filter(Boolean).join(' · ');
+      return `<div class="crm-card" data-cidx="${i}" onclick="crmCardClick(this)">
+        <div class="crm-card-name">${esc(c.full_name)}</div>
+        <div class="crm-card-role">${esc(role)}</div>
+        <div class="crm-card-footer">${hb}${ab}${em}</div>
+      </div>`;
+    }).join('');
+    grid._contacts = contacts;
+  }
+
+  // ── LIST (table mode) ─────────────────────────────────────────────────────────
   function renderList(contacts, isPrimary, targetGrid) {
     const grid = targetGrid || document.getElementById('crm-grid');
     if (!grid) return;
@@ -893,7 +942,7 @@
     openCrmDrawer(c);
   };
 
-  // ── FILTER / SEARCH ──────────────────────────────────────────────────────────
+  // ── FILTER / SEARCH ───────────────────────────────────────────────────────────
   let _filterTimer = null;
   window.crmInput = function (val) {
     const clearBtn = document.getElementById('crm-clear');
@@ -944,7 +993,7 @@
     crmLoad(0);
   };
 
-  // ── QUICK SAVE ───────────────────────────────────────────────────────────────
+  // ── QUICK SAVE ────────────────────────────────────────────────────────────────
   window.crmQuickSave = async function (field, value) {
     const c = window._crmDrawerContact; if (!c) return;
     c[field] = value;
@@ -957,7 +1006,7 @@
     } catch(e) { toast('Save failed'); }
   };
 
-  // ── CONTACT MODAL ────────────────────────────────────────────────────────────
+  // ── CONTACT MODAL ─────────────────────────────────────────────────────────────
   window.crmOpenModal = function (contact) {
     crmEditing = contact || null;
     const title = document.getElementById('crm-modal-title');
@@ -1011,7 +1060,7 @@
     finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Contact'; } }
   };
 
-  // ── UTILS ────────────────────────────────────────────────────────────────────
+  // ── UTILS ─────────────────────────────────────────────────────────────────────
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function gv(id) { const el = document.getElementById(id); return el ? el.value : ''; }
   function sv(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
@@ -1023,7 +1072,7 @@
     setTimeout(() => t.classList.remove('show'), 2800);
   }
 
-  // ── ACTIVATION TABS ──────────────────────────────────────────────────────────
+  // ── ACTIVATION TABS ───────────────────────────────────────────────────────────
   window.activTab = function (tab) {
     ['queue','angles'].forEach(t => {
       const btn = document.getElementById('activ-tab-'+t); if (btn) btn.classList.toggle('active', t===tab);
@@ -1031,7 +1080,7 @@
     });
   };
 
-  // ── TOPBAR + PAGE INIT ───────────────────────────────────────────────────────
+  // ── PAGE INIT ─────────────────────────────────────────────────────────────────
   function goContacts() {
     document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
     const cp = document.getElementById('page-contacts'); if (cp) cp.style.display = '';

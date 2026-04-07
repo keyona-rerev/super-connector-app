@@ -1,0 +1,7 @@
+      <button class="nav-item active" onclick="showPage('board')" id="nav-board"><span class="icon">&#9672;</span> Initiatives</button>
+      <button class="nav-item" onclick="showPage('search')" id="nav-search"><span class="icon">&#8889;</span> Search Contacts</button>
+      <button class="nav-item" onclick="showPage('orgs')" id="nav-orgs"><span class="icon">&#127968;</span> Organizations</button>
+      <button class="nav-item" onclick="showPage('queue')" id="nav-queue"><span class="icon">&#9889;</span> Activation Queue</button>
+      <button class="nav-item" onclick="showPage('angles')" id="nav-angles"><span class="icon">&#9671;</span> Activation Angles</button>
+      <button class="nav-item" onclick="showPage('content')" id="nav-content"><span class="icon">&#9643;</span> Content Registry</button>
+      <button class="nav-item" onclick="showPage('events')" id="nav-events"><span class="icon">&#128197;</span> Events</button>

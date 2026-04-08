@@ -9,6 +9,9 @@
  *
  * Notes field rendered as bullet points.
  * Activity timeline left unchanged.
+ *
+ * Context tab renders from real Railway fields:
+ *   what_they_offer_me, what_building, what_offer, what_need, notes
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
@@ -53,16 +56,10 @@
     return `${months[d.getMonth()]} ${d.getDate()}`;
   }
 
-  /**
-   * Render a text field as a bullet list.
-   * Splits on newlines, strips leading dashes/bullets, renders each line as <li>.
-   * Falls back to plain text if only one non-empty line.
-   */
   function renderBullets(text) {
     if (!text) return '';
-    // Split on newlines or pipe-separated enrichment parts
     const lines = text
-      .split(/\n|\|\s*(?=Org:|Person:|Recent:)/)
+      .split(/\n/)
       .map(l => l.replace(/^\s*[-•]\s*/, '').trim())
       .filter(Boolean);
     if (lines.length <= 1) return `<div class="cp-field">${esc(lines[0] || text)}</div>`;
@@ -72,27 +69,18 @@
   // ── INJECT STYLES ──────────────────────────────────────────────────────────
   const css = document.createElement('style');
   css.textContent = `
-    /* ── Base overlay ── */
     #cp-overlay{position:fixed;inset:0;background:rgba(26,25,22,0.6);z-index:2000;display:none;align-items:center;justify-content:center;overflow:hidden}
     #cp-overlay.open{display:flex}
-
-    /* ── Panel (default full-screen) ── */
     #cp-panel{background:var(--bg,#F5F4EF);width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;transition:all .2s}
     #cp-overlay.expanded #cp-panel{width:88vw;max-width:1200px;height:90vh;border-radius:14px;box-shadow:0 8px 40px rgba(26,25,22,0.18)}
-
-    /* ── Topbar ── */
     .cp-topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:0.5px solid var(--border,#e5e5e5);flex-shrink:0;background:var(--surface,#FDFCF8)}
     .cp-back{background:none;border:none;font-size:12px;color:#534AB7;cursor:pointer;padding:0;font-family:inherit;display:flex;align-items:center;gap:4px}
     .cp-back:hover{text-decoration:underline}
     .cp-topbar-name{font-size:14px;font-weight:500;color:var(--text,#1a1a1a);flex:1}
     .cp-expand-btn{background:none;border:0.5px solid var(--border,#e5e5e5);border-radius:6px;font-size:11px;color:var(--text-secondary,#888);cursor:pointer;padding:4px 10px;font-family:inherit}
     .cp-expand-btn:hover{background:var(--surface2,#F0EFE9);color:var(--text,#1a1a1a)}
-
-    /* ── Body layout ── */
     .cp-body{display:grid;grid-template-columns:300px 1fr;flex:1;min-height:0;overflow:hidden}
     #cp-overlay.expanded .cp-body{grid-template-columns:320px 1fr}
-
-    /* ── Left panel ── */
     .cp-left{border-right:0.5px solid var(--border,#e5e5e5);overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--surface,#FDFCF8)}
     .cp-avatar{width:52px;height:52px;border-radius:50%;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;color:#3C3489;flex-shrink:0}
     .cp-name{font-size:18px;font-weight:500;color:var(--text,#1a1a1a);line-height:1.2}
@@ -120,16 +108,12 @@
     .cp-btn-danger{color:#A32D2D;border-color:#F7C1C1}
     .cp-btn-danger:hover{background:#FCEBEB}
     .cp-btn-sm{font-size:10px;padding:3px 9px}
-
-    /* ── Tabs ── */
     .cp-right{display:flex;flex-direction:column;overflow:hidden;background:var(--bg,#F5F4EF)}
     .cp-tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border,#e5e5e5);flex-shrink:0;padding:0 20px;background:var(--surface,#FDFCF8);overflow-x:auto}
     .cp-tab{padding:10px 14px;font-size:12px;font-weight:500;color:var(--text-secondary,#888);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:inherit;transition:color .12s,border-color .12s;white-space:nowrap}
     .cp-tab.active{color:#534AB7;border-bottom-color:#534AB7}
     .cp-tab:hover:not(.active){color:var(--text,#1a1a1a)}
     .cp-tab-body{flex:1;overflow-y:auto;padding:20px}
-
-    /* ── Activity timeline ── */
     .cp-timeline{display:flex;flex-direction:column;gap:0}
     .cp-tentry{display:grid;grid-template-columns:64px 24px 1fr;gap:0;align-items:start}
     .cp-tdate{font-size:10px;color:var(--text-secondary,#999);text-align:right;padding-right:10px;padding-top:3px;line-height:1.4}
@@ -147,16 +131,12 @@
     .cp-log-bar button{align-self:flex-end;font-size:11px;padding:7px 16px;border-radius:6px;border:none;background:#534AB7;color:#fff;cursor:pointer;font-family:inherit;white-space:nowrap}
     .cp-log-bar button:hover{background:#3C3489}
     .cp-empty{font-size:12px;color:var(--text-secondary,#aaa);font-style:italic;padding:20px 0}
-
-    /* ── Org profile tab ── */
     .cp-org-card{background:var(--surface,#fafafa);border:0.5px solid var(--border,#e5e5e5);border-radius:8px;padding:16px;margin-bottom:16px}
     .cp-org-name{font-size:14px;font-weight:500;margin-bottom:4px}
     .cp-org-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
     .cp-org-pill{font-size:10px;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489}
     .cp-org-desc{font-size:12px;color:var(--text-secondary,#666);line-height:1.6;margin-bottom:8px}
     .cp-org-hook{font-size:12px;color:#534AB7;line-height:1.5}
-
-    /* ── Initiatives tab ── */
     .cp-ini-row{background:var(--surface,#fafafa);border:0.5px solid var(--border,#e5e5e5);border-radius:8px;padding:12px 16px;margin-bottom:8px}
     .cp-ini-name{font-size:13px;font-weight:500;color:var(--text,#1a1a1a);margin-bottom:3px}
     .cp-ini-meta{font-size:11px;color:var(--text-secondary,#888);display:flex;gap:8px;flex-wrap:wrap}
@@ -166,24 +146,18 @@
     .cp-ini-select-item:hover{border-color:#534AB7;background:#EEEDFE}
     .cp-ini-select-item.selected{border-color:#534AB7;background:#EEEDFE}
     .cp-ini-select-item input[type=checkbox]{accent-color:#534AB7;width:14px;height:14px;flex-shrink:0}
-
-    /* ── Candidacy tab ── */
     .cp-candidacy-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
     .cp-candidacy-option{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:0.5px solid var(--border,#e5e5e5);cursor:pointer;font-size:13px;transition:all .12s}
     .cp-candidacy-option:hover{border-color:#534AB7}
     .cp-candidacy-option.active{border-width:1.5px}
     .cp-candidacy-option input[type=radio]{accent-color:#534AB7;width:14px;height:14px;flex-shrink:0}
-
-    /* ── Context tab ── */
     .cp-context-block{background:var(--surface,#fafafa);border:0.5px solid var(--border,#e5e5e5);border-radius:8px;padding:14px 16px;margin-bottom:12px}
     .cp-context-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
     .cp-context-dot{width:7px;height:7px;border-radius:50%}
-
     #cp-loading{display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:var(--text-secondary,#999)}
   `;
   document.head.appendChild(css);
 
-  // ── INJECT DOM ─────────────────────────────────────────────────────────────
   function injectProfileOverlay() {
     if (document.getElementById('cp-overlay')) return;
     document.body.insertAdjacentHTML('beforeend', `
@@ -213,11 +187,9 @@
           </div>
         </div>
       </div>`);
-
     document.getElementById('cp-back').onclick = closeProfile;
   }
 
-  // ── STATE ──────────────────────────────────────────────────────────────────
   let _cpContact = null;
   let _cpFull = null;
   let _cpNotes = [];
@@ -226,40 +198,28 @@
   let _cpExpanded = false;
   let _cpAllInitiatives = [];
 
-  // ── EXPAND / COLLAPSE ──────────────────────────────────────────────────────
   window.cpToggleExpand = function () {
     _cpExpanded = !_cpExpanded;
     const overlay = document.getElementById('cp-overlay');
     const btn = document.getElementById('cp-expand-btn');
-    if (_cpExpanded) {
-      overlay.classList.add('expanded');
-      btn.textContent = '⤡ Collapse';
-    } else {
-      overlay.classList.remove('expanded');
-      btn.textContent = '⤢ Expand';
-    }
+    if (_cpExpanded) { overlay.classList.add('expanded'); btn.textContent = '⤡ Collapse'; }
+    else { overlay.classList.remove('expanded'); btn.textContent = '⤢ Expand'; }
   };
 
-  // Close on backdrop click only in expanded mode
   window.cpOverlayClick = function (e) {
-    if (_cpExpanded && e.target === document.getElementById('cp-overlay')) {
-      closeProfile();
-    }
+    if (_cpExpanded && e.target === document.getElementById('cp-overlay')) closeProfile();
   };
 
-  // ── OPEN PROFILE ──────────────────────────────────────────────────────────
   window.openContactProfile = async function (contact) {
     if (!contact) return;
     injectProfileOverlay();
     _cpContact = contact;
     _cpTab = 'activity';
     _cpExpanded = false;
-
     const overlay = document.getElementById('cp-overlay');
     overlay.classList.remove('expanded');
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-
     document.getElementById('cp-topbar-name').textContent = contact.full_name || '';
     document.getElementById('cp-expand-btn').textContent = '⤢ Expand';
     document.getElementById('cp-left').innerHTML = '<div id="cp-loading">Loading…</div>';
@@ -276,14 +236,8 @@
     _cpBuckets = fullResp.buckets || [];
     _cpAllInitiatives = (inisResp.data || []).filter(i => i.status !== 'Complete' && i.status !== 'Paused');
 
-    // Seed legacy notes if needed
     if (_cpNotes.length === 0 && _cpFull.notes) {
-      _cpNotes = [{
-        note_id: '_legacy',
-        body: _cpFull.notes,
-        source: 'system',
-        note_date: null,
-      }];
+      _cpNotes = [{ note_id: '_legacy', body: _cpFull.notes, source: 'system', note_date: null }];
     }
 
     renderLeft(_cpFull, fullResp.org_profile, _cpBuckets);
@@ -297,7 +251,6 @@
     _cpContact = null; _cpFull = null; _cpExpanded = false;
   };
 
-  // ── LEFT PANEL ─────────────────────────────────────────────────────────────
   function renderLeft(c, orgProfile, buckets) {
     const left = document.getElementById('cp-left');
     if (!left) return;
@@ -306,12 +259,6 @@
     const hbg = HEALTH_BG[health] || '#f5f5f5';
     const cand = c.outreach_candidacy || '';
     const candStyle = CANDIDACY_COLORS[cand] || null;
-
-    // Value exchange fields (new) — fall back to legacy fields if not yet enriched
-    const canOffer = c.what_i_can_offer || '';
-    const theyOffer = c.what_they_offer_me || '';
-
-    // Notes as bullet points
     const notesText = c.notes || '';
     const notesHtml = notesText ? renderBullets(notesText) : '';
 
@@ -324,14 +271,12 @@
           ${c.organization ? `<button class="cp-org-link" onclick="cpTab('org')">${esc(c.organization)}</button>` : ''}
         </div>
       </div>
-
       <div class="cp-badges">
         ${health ? `<span class="cp-badge" style="background:${hbg};color:${hc}">${esc(health)}</span>` : ''}
         ${c.contact_type ? `<span class="cp-badge" style="background:#F1EFE8;color:#5F5E5A;border:0.5px solid #E5E3DA">${esc(c.contact_type)}</span>` : ''}
         ${c.activation_potential ? `<span class="cp-badge" style="background:#EEEDFE;color:#3C3489;border:0.5px solid #CECBF6">${esc(c.activation_potential)}</span>` : ''}
         ${candStyle ? `<span class="cp-badge" style="background:${candStyle.bg};color:${candStyle.color}">${esc(cand)}</span>` : ''}
       </div>
-
       <div style="display:flex;gap:12px;flex-wrap:wrap">
         <div class="cp-qs">
           <div class="cp-qs-label">Health</div>
@@ -348,37 +293,18 @@
           </select>
         </div>
       </div>
-
       <div class="cp-divider"></div>
-
       <div>
         <div class="cp-section-label">How We Met</div>
         ${c.how_we_met ? `<div class="cp-field">${esc(c.how_we_met)}</div>` : `<div class="cp-field-empty">Not recorded</div>`}
       </div>
-
-      ${canOffer ? `
-      <div>
-        <div class="cp-section-label">What I Can Offer Them</div>
-        ${renderBullets(canOffer)}
-      </div>` : ''}
-
-      ${theyOffer ? `
-      <div>
-        <div class="cp-section-label">What They Offer Me</div>
-        ${renderBullets(theyOffer)}
-      </div>` : ''}
-
-      ${!canOffer && !theyOffer ? `<div class="cp-field-empty">Not yet enriched. Run enrichment to populate value exchange.</div>` : ''}
-
       ${notesHtml ? `
       <div class="cp-divider"></div>
       <div>
         <div class="cp-section-label">Notes</div>
         ${notesHtml}
       </div>` : ''}
-
       <div class="cp-divider"></div>
-
       <div>
         <div class="cp-section-label" style="margin-bottom:8px">Buckets</div>
         <div id="cp-bucket-tags">
@@ -387,19 +313,15 @@
             : '<span style="font-size:11px;color:var(--text-secondary,#aaa);font-style:italic">No buckets</span>'}
         </div>
       </div>
-
       <div class="cp-divider"></div>
-
       <div class="cp-actions">
         <button class="cp-btn cp-btn-primary" onclick="cpOpenFullEdit()">✎ Edit</button>
         <button class="cp-btn" onclick="cpAddToBucket()">+ Bucket</button>
         <button class="cp-btn cp-btn-danger" onclick="cpDeleteContact()">Delete</button>
       </div>
-
       <div style="font-size:10px;color:var(--text-secondary,#bbb);margin-top:auto">${esc(c.contact_id || '')}</div>`;
   }
 
-  // ── TABS ───────────────────────────────────────────────────────────────────
   const ALL_TABS = ['activity','context','org','initiatives','candidacy'];
 
   window.cpTab = function (tab) {
@@ -409,15 +331,8 @@
       if (el) el.classList.toggle('active', t === tab);
     });
     if (!_cpFull) return;
-    if (tab === 'activity') { renderTab(tab, null, []); return; }
-    if (tab === 'context') { renderTab(tab, null, []); return; }
-    if (tab === 'candidacy') { renderTab(tab, null, []); return; }
-    if (tab === 'initiatives') {
-      fetch(`${API_BASE}/contact/${_cpFull.contact_id}`, { headers: hdrs() })
-        .then(r => r.json())
-        .then(d => renderTab(tab, d.org_profile, d.initiative_links || []))
-        .catch(() => renderTab(tab, null, []));
-      return;
+    if (tab === 'activity' || tab === 'context' || tab === 'candidacy') {
+      renderTab(tab, null, []); return;
     }
     fetch(`${API_BASE}/contact/${_cpFull.contact_id}`, { headers: hdrs() })
       .then(r => r.json())
@@ -428,14 +343,13 @@
   function renderTab(tab, orgProfile, initiativeLinks) {
     const body = document.getElementById('cp-tab-body');
     if (!body) return;
-    if (tab === 'activity')    renderActivity(body);
+    if (tab === 'activity')         renderActivity(body);
     else if (tab === 'context')     renderContext(body);
     else if (tab === 'org')         renderOrg(body, orgProfile);
     else if (tab === 'initiatives') renderInitiatives(body, initiativeLinks);
     else if (tab === 'candidacy')   renderCandidacy(body);
   }
 
-  // ── ACTIVITY TAB (unchanged) ───────────────────────────────────────────────
   function renderActivity(body) {
     const entries = _cpNotes;
     body.innerHTML = `
@@ -476,8 +390,7 @@
     inp.value = '';
     try {
       const r = await fetch(`${API_BASE}/contact/${_cpFull.contact_id}/notes`, {
-        method: 'POST', headers: hdrs(),
-        body: JSON.stringify({ body, source: 'manual' })
+        method: 'POST', headers: hdrs(), body: JSON.stringify({ body, source: 'manual' })
       });
       const d = await r.json();
       _cpNotes.unshift({ note_id: d.note_id, body, source: 'manual', note_date: new Date().toISOString(), created_at: new Date().toISOString() });
@@ -496,45 +409,67 @@
     } catch(e) { }
   };
 
-  // ── CONTEXT TAB ───────────────────────────────────────────────────────────
+  // ── CONTEXT TAB ────────────────────────────────────────────────────────────
+  // Renders from real Railway fields only. No invented fields.
   function renderContext(body) {
     const c = _cpFull || {};
-    const canOffer = c.what_i_can_offer || '';
-    const theyOffer = c.what_they_offer_me || '';
-    const hook = c.conversation_hook || '';
-    const summary = c.research_summary || '';
-    const profile = c.person_public_profile || '';
+    const theyOffer  = (c.what_they_offer_me || '').trim();
+    const whatOffer  = (c.what_offer || '').trim();
+    const whatBuild  = (c.what_building || '').trim();
+    const whatNeed   = (c.what_need || '').trim();
+    const canOffer   = (c.what_i_can_offer || '').trim();
+
+    const hasAny = theyOffer || whatOffer || whatBuild || whatNeed || canOffer;
 
     body.innerHTML = `
-      ${!canOffer && !theyOffer && !summary ? `<div class="cp-empty">No enrichment data yet. Run enrichment from the bucket view to populate this contact.</div>` : ''}
+      ${!hasAny ? `<div class="cp-empty">No context data yet for this contact. Open their drawer and run enrichment, or edit the contact to add details.</div>` : ''}
 
-      ${summary ? `
+      ${theyOffer ? `
       <div class="cp-context-block">
-        <div class="cp-context-label"><span class="cp-context-dot" style="background:#888780"></span>Research Summary</div>
-        <div class="cp-field" style="line-height:1.7">${esc(summary)}</div>
+        <div class="cp-context-label">
+          <span class="cp-context-dot" style="background:#2d7a3a"></span>
+          What They Offer
+        </div>
+        ${renderBullets(theyOffer)}
+      </div>` : ''}
+
+      ${whatBuild ? `
+      <div class="cp-context-block">
+        <div class="cp-context-label">
+          <span class="cp-context-dot" style="background:#534AB7"></span>
+          What They're Building
+        </div>
+        <div class="cp-field">${esc(whatBuild)}</div>
+      </div>` : ''}
+
+      ${whatOffer ? `
+      <div class="cp-context-block">
+        <div class="cp-context-label">
+          <span class="cp-context-dot" style="background:#888780"></span>
+          What They Offer (Self-Reported)
+        </div>
+        <div class="cp-field">${esc(whatOffer)}</div>
+      </div>` : ''}
+
+      ${whatNeed ? `
+      <div class="cp-context-block">
+        <div class="cp-context-label">
+          <span class="cp-context-dot" style="background:#D97757"></span>
+          What They Need
+        </div>
+        <div class="cp-field">${esc(whatNeed)}</div>
       </div>` : ''}
 
       ${canOffer ? `
       <div class="cp-context-block">
-        <div class="cp-context-label"><span class="cp-context-dot" style="background:#534AB7"></span>What I Can Offer Them</div>
+        <div class="cp-context-label">
+          <span class="cp-context-dot" style="background:#185FA5"></span>
+          What I Can Offer Them
+        </div>
         ${renderBullets(canOffer)}
       </div>` : ''}
 
-      ${theyOffer ? `
-      <div class="cp-context-block">
-        <div class="cp-context-label"><span class="cp-context-dot" style="background:#2d7a3a"></span>What They Offer Me</div>
-        ${renderBullets(theyOffer)}
-      </div>` : ''}
-
-      ${hook ? `
-      <div class="cp-context-block">
-        <div class="cp-context-label"><span class="cp-context-dot" style="background:#D97757"></span>Conversation Hook</div>
-        <div class="cp-field" style="color:#534AB7;line-height:1.6">${esc(hook)}</div>
-      </div>` : ''}
-
-      ${profile ? `<div style="margin-top:4px"><a href="${esc(profile)}" target="_blank" style="font-size:11px;color:#534AB7">LinkedIn / Public Profile →</a></div>` : ''}
-
-      <div style="margin-top:16px;padding-top:16px;border-top:0.5px solid var(--border,#e5e5e5)">
+      <div style="margin-top:${hasAny ? '16px' : '0'};padding-top:16px;border-top:0.5px solid var(--border,#e5e5e5)">
         <button class="cp-btn cp-btn-primary" onclick="cpGenerateDraft()">Generate outreach draft</button>
       </div>`;
   }
@@ -571,7 +506,6 @@
     } catch(e) { if (window.showToast) window.showToast('Draft failed'); }
   };
 
-  // ── ORG PROFILE TAB ────────────────────────────────────────────────────────
   function renderOrg(body, orgProfile) {
     if (!orgProfile) {
       body.innerHTML = `
@@ -591,16 +525,8 @@
           ${orgProfile.last_enriched ? `<span class="cp-org-pill" style="background:#F1EFE8;color:#5F5E5A">Enriched ${esc(orgProfile.last_enriched)}</span>` : ''}
         </div>
         ${orgProfile.description ? `<div class="cp-org-desc">${esc(orgProfile.description)}</div>` : ''}
-        ${orgProfile.recent_activity ? `
-          <div style="margin-bottom:8px">
-            <div class="cp-section-label" style="margin-bottom:3px">Recent activity</div>
-            <div class="cp-field">${esc(orgProfile.recent_activity)}</div>
-          </div>` : ''}
-        ${orgProfile.conversation_hook ? `
-          <div>
-            <div class="cp-section-label" style="margin-bottom:3px">Conversation hook</div>
-            <div class="cp-org-hook">${esc(orgProfile.conversation_hook)}</div>
-          </div>` : ''}
+        ${orgProfile.recent_activity ? `<div style="margin-bottom:8px"><div class="cp-section-label" style="margin-bottom:3px">Recent activity</div><div class="cp-field">${esc(orgProfile.recent_activity)}</div></div>` : ''}
+        ${orgProfile.conversation_hook ? `<div><div class="cp-section-label" style="margin-bottom:3px">Conversation hook</div><div class="cp-org-hook">${esc(orgProfile.conversation_hook)}</div></div>` : ''}
         ${orgProfile.website ? `<div style="margin-top:10px"><a href="${esc(orgProfile.website)}" style="font-size:11px;color:#534AB7" target="_blank">${esc(orgProfile.website)}</a></div>` : ''}
       </div>
       <button class="cp-btn" onclick="cpResearchOrg('${esc(orgProfile.org_id)}')">↻ Re-research org</button>`;
@@ -608,17 +534,12 @@
 
   window.cpCreateOrg = async function () {
     if (!_cpFull?.organization) return;
-    const name = _cpFull.organization;
     try {
       const r = await fetch(`${API_BASE}/organization`, {
-        method: 'POST', headers: hdrs(),
-        body: JSON.stringify({ name })
+        method: 'POST', headers: hdrs(), body: JSON.stringify({ name: _cpFull.organization })
       });
       const d = await r.json();
-      if (d.org_id) {
-        if (window.showToast) window.showToast(`Org profile created for ${name}`);
-        await cpResearchOrg(d.org_id);
-      }
+      if (d.org_id) { if (window.showToast) window.showToast(`Org profile created`); await cpResearchOrg(d.org_id); }
     } catch(e) { if (window.showToast) window.showToast('Failed to create org'); }
   };
 
@@ -631,11 +552,9 @@
     } catch(e) { if (window.showToast) window.showToast('Research failed'); }
   };
 
-  // ── INITIATIVES TAB ───────────────────────────────────────────────────────
   function renderInitiatives(body, links) {
     const linkedIds = new Set((links || []).map(l => l.initiative_id));
     const available = _cpAllInitiatives.filter(i => !linkedIds.has(i.initiative_id));
-
     body.innerHTML = `
       ${links && links.length ? `
         <div class="cp-section-label" style="margin-bottom:10px">Linked initiatives</div>
@@ -649,7 +568,6 @@
             </div>
           </div>`).join('')}
         <div class="cp-divider" style="margin:16px 0"></div>` : ''}
-
       <div class="cp-section-label" style="margin-bottom:10px">Link to initiatives</div>
       ${available.length === 0
         ? `<div class="cp-empty">All active initiatives are already linked.</div>`
@@ -681,8 +599,7 @@
     if (!_cpFull || _cpSelectedInis.size === 0) return;
     try {
       const r = await fetch(`${API_BASE}/contact/${_cpFull.contact_id}/link-initiatives`, {
-        method: 'POST', headers: hdrs(),
-        body: JSON.stringify({ initiative_ids: [..._cpSelectedInis] })
+        method: 'POST', headers: hdrs(), body: JSON.stringify({ initiative_ids: [..._cpSelectedInis] })
       });
       const d = await r.json();
       _cpSelectedInis.clear();
@@ -691,7 +608,6 @@
     } catch(e) { if (window.showToast) window.showToast('Link failed'); }
   };
 
-  // ── CANDIDACY TAB ─────────────────────────────────────────────────────────
   function renderCandidacy(body) {
     const current = _cpFull?.outreach_candidacy || '';
     body.innerHTML = `
@@ -720,21 +636,16 @@
     if (statusEl) statusEl.textContent = 'Saving…';
     try {
       await fetch(`${API_BASE}/contact/${_cpFull.contact_id}/candidacy`, {
-        method: 'PATCH', headers: hdrs(),
-        body: JSON.stringify({ outreach_candidacy: value })
+        method: 'PATCH', headers: hdrs(), body: JSON.stringify({ outreach_candidacy: value })
       });
       _cpFull.outreach_candidacy = value;
       if (statusEl) statusEl.textContent = 'Saved.';
       setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2000);
-      // Refresh left panel badge
       renderLeft(_cpFull, null, _cpBuckets);
       if (window.showToast) window.showToast(value ? `Set to: ${value}` : 'Candidacy cleared');
-    } catch(e) {
-      if (statusEl) statusEl.textContent = 'Save failed.';
-    }
+    } catch(e) { if (statusEl) statusEl.textContent = 'Save failed.'; }
   };
 
-  // ── QUICK SAVE ─────────────────────────────────────────────────────────────
   window.cpQuickSave = async function (field, value) {
     if (!_cpFull) return;
     _cpFull[field] = value;
@@ -746,19 +657,16 @@
     } catch(e) { if (window.showToast) window.showToast('Save error'); }
   };
 
-  // ── FULL EDIT ──────────────────────────────────────────────────────────────
   window.cpOpenFullEdit = function () {
     if (!_cpFull) return;
     if (window.crmOpenModal) window.crmOpenModal(_cpFull);
   };
 
-  // ── ADD TO BUCKET ──────────────────────────────────────────────────────────
   window.cpAddToBucket = function () {
     if (_cpFull && window.openCrmDrawer) window.openCrmDrawer(_cpFull);
     else if (_cpFull && window.openContactDrawer) window.openContactDrawer(_cpFull);
   };
 
-  // ── DELETE ─────────────────────────────────────────────────────────────────
   window.cpDeleteContact = async function () {
     if (!_cpFull) return;
     if (!confirm(`Delete ${_cpFull.full_name}? This cannot be undone.`)) return;
@@ -770,7 +678,6 @@
     } catch(e) { if (window.showToast) window.showToast('Delete failed'); }
   };
 
-  // ── WIRE CARD CLICKS ───────────────────────────────────────────────────────
   function patchCardClicks() {
     const origCard = window.crmCardClick;
     window.crmCardClick = function (el) {
@@ -781,7 +688,6 @@
       }
       if (origCard) origCard(el);
     };
-
     const origBucketCard = window.crmBucketCardClick;
     window.crmBucketCardClick = function (el) {
       const grid = document.getElementById('crm-bucket-grid');
@@ -791,7 +697,6 @@
       }
       if (origBucketCard) origBucketCard(el);
     };
-
     const origFU = window.crmFollowUpClick;
     window.crmFollowUpClick = async function (contactId) {
       if (!contactId) return;
@@ -806,11 +711,7 @@
 
   let patchAttempts = 0;
   (function tryPatch() {
-    if (window.crmCardClick || patchAttempts > 50) {
-      patchCardClicks();
-    } else {
-      patchAttempts++;
-      setTimeout(tryPatch, 100);
-    }
+    if (window.crmCardClick || patchAttempts > 50) { patchCardClicks(); }
+    else { patchAttempts++; setTimeout(tryPatch, 100); }
   })();
 })();

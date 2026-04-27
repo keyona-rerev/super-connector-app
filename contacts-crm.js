@@ -79,6 +79,7 @@
     .crm-hb-neutral{background:var(--medium-bg);color:var(--medium)}
     .crm-hb-dormant{background:var(--surface2);color:var(--text3)}
     .crm-hb-cold{background:var(--critical-bg);color:var(--critical)}
+    .crm-hb-lukewarm{background:#FFF3E0;color:#E65100}
     .crm-ab{display:inline-flex;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border-soft)}
     .crm-sb{display:inline-flex;font-size:10px;padding:2px 8px;border-radius:20px;background:var(--medium-bg);color:var(--medium)}
     .crm-score{display:inline-flex;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--accent-dim);color:var(--accent)}
@@ -165,7 +166,7 @@
 
   const BUCKET_COLORS = ['#6B7FF0','#F06B9D','#F0A06B','#6BC47F','#A06BF0','#6BC4C4','#F0D06B'];
   function bucketColor(b) { return (b && b.color) ? b.color : BUCKET_COLORS[(b && b.bucket_id ? b.bucket_id.charCodeAt(4) : 0) % BUCKET_COLORS.length]; }
-  const hMap = {Warm:'crm-hb-good',Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
+  const hMap = {Warm:'crm-hb-good',Lukewarm:'crm-hb-lukewarm',Strong:'crm-hb-strong',Good:'crm-hb-good',Neutral:'crm-hb-neutral',Dormant:'crm-hb-dormant',Cold:'crm-hb-cold'};
 
   function hasEmail(c) {
     const rx = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
@@ -230,7 +231,7 @@
           <select id="crm-quick-health" onchange="crmQuickSave('relationship_health',this.value)"
             style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font-sans);cursor:pointer;outline:none">
             <option value="">— unknown —</option>
-            <option>Warm</option><option>Strong</option><option>Neutral</option><option>Dormant</option><option>Cold</option>
+            <option>Warm</option><option>Lukewarm</option><option>Strong</option><option>Neutral</option><option>Dormant</option><option>Cold</option>
           </select>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px">
@@ -433,7 +434,7 @@
               </select>
               <select class="filter-select" id="crm-fh" onchange="crmFilter()">
                 <option value="">All Health</option>
-                <option>Warm</option><option>Strong</option><option>Neutral</option><option>Dormant</option><option>Cold</option>
+                <option>Warm</option><option>Lukewarm</option><option>Strong</option><option>Neutral</option><option>Dormant</option><option>Cold</option>
               </select>
               <select class="filter-select" id="crm-fa" onchange="crmFilter()">
                 <option value="">All Activation</option>
@@ -492,7 +493,7 @@
       <div class="field-group"><label>Venture</label><select id="cm-ven"><option value="">None</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>DO GOOD X</option><option>NYC PIVOT</option><option>Personal</option></select></div>
       <div class="field-group"><label>Source — where we met</label><input id="cm-src" type="text" placeholder="SXSW 2026, BTC Summit…"></div>
       <div class="field-group"><label>How We Met</label><input id="cm-hwm" type="text" placeholder="Panel intro, warm referral…"></div>
-      <div class="field-group"><label>Relationship Health</label><select id="cm-hlth"><option value="">Unknown</option><option>Warm</option><option>Strong</option><option>Neutral</option><option>Dormant</option><option>Cold</option></select></div>
+      <div class="field-group"><label>Relationship Health</label><select id="cm-hlth"><option value="">Unknown</option><option>Warm</option><option>Lukewarm</option><option>Strong</option><option>Neutral</option><option>Dormant</option><option>Cold</option></select></div>
       <div class="field-group"><label>Activation Potential</label><select id="cm-act"><option value="">Unknown</option><option>High</option><option>Medium</option><option>Low</option><option>None</option></select></div>
       <div class="field-group" style="grid-column:1/-1"><label>What They're Building</label><input id="cm-bld" type="text"></div>
       <div class="field-group" style="grid-column:1/-1"><label>What They Need</label><input id="cm-need" type="text"></div>
@@ -795,7 +796,7 @@
               <tr><td>How We Met</td><td>Context on the connection origin.</td></tr>
               <tr><td>What I Can Offer</td><td>Enriched field: what Keyona can bring to this person.</td></tr>
               <tr><td>What They Offer Me</td><td>Enriched field: what this person brings to the network.</td></tr>
-              <tr><td>Relationship Health</td><td>Warm / Strong / Neutral / Dormant / Cold</td></tr>
+              <tr><td>Relationship Health</td><td>Warm / Lukewarm / Cold (also: Strong, Neutral, Dormant)</td></tr>
               <tr><td>Activation Potential</td><td>High / Medium / Low / None</td></tr>
             </table>
             <h4>Buckets</h4>

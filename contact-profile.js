@@ -11,7 +11,8 @@
  * Activity timeline left unchanged.
  *
  * Context tab renders from real Railway fields:
- *   what_they_offer_me, what_building, what_offer, what_need, notes
+ *   what_they_offer_me, what_building, what_offer, what_need,
+ *   piper_initiatives, piper_seeking, piper_activated, piper_replied_at
  */
 (function () {
   const API_BASE = 'https://super-connector-api-production.up.railway.app';
@@ -154,6 +155,7 @@
     .cp-context-block{background:var(--surface,#fafafa);border:0.5px solid var(--border,#e5e5e5);border-radius:8px;padding:14px 16px;margin-bottom:12px}
     .cp-context-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
     .cp-context-dot{width:7px;height:7px;border-radius:50%}
+    .cp-piper-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#E1F5EE;color:#0F6E56;margin-bottom:12px}
     #cp-loading{display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:var(--text-secondary,#999)}
   `;
   document.head.appendChild(css);
@@ -276,6 +278,7 @@
         ${c.contact_type ? `<span class="cp-badge" style="background:#F1EFE8;color:#5F5E5A;border:0.5px solid #E5E3DA">${esc(c.contact_type)}</span>` : ''}
         ${c.activation_potential ? `<span class="cp-badge" style="background:#EEEDFE;color:#3C3489;border:0.5px solid #CECBF6">${esc(c.activation_potential)}</span>` : ''}
         ${candStyle ? `<span class="cp-badge" style="background:${candStyle.bg};color:${candStyle.color}">${esc(cand)}</span>` : ''}
+        ${c.piper_activated ? `<span class="cp-badge" style="background:#E1F5EE;color:#0F6E56;border:0.5px solid #A8DFC8">Piper</span>` : ''}
       </div>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
         <div class="cp-qs">
@@ -409,20 +412,45 @@
     } catch(e) { }
   };
 
-  // ── CONTEXT TAB ────────────────────────────────────────────────────────────
-  // Renders from real Railway fields only. No invented fields.
+  // ── CONTEXT TAB ─────────────────────────────────────────────────────────────
   function renderContext(body) {
     const c = _cpFull || {};
-    const theyOffer  = (c.what_they_offer_me || '').trim();
-    const whatOffer  = (c.what_offer || '').trim();
-    const whatBuild  = (c.what_building || '').trim();
-    const whatNeed   = (c.what_need || '').trim();
-    const canOffer   = (c.what_i_can_offer || '').trim();
+    const theyOffer        = (c.what_they_offer_me  || '').trim();
+    const whatOffer        = (c.what_offer          || '').trim();
+    const whatBuild        = (c.what_building       || '').trim();
+    const whatNeed         = (c.what_need           || '').trim();
+    const piperInitiatives = (c.piper_initiatives   || '').trim();
+    const piperSeeking     = (c.piper_seeking        || '').trim();
+    const piperRepliedAt   = c.piper_replied_at || null;
 
-    const hasAny = theyOffer || whatOffer || whatBuild || whatNeed || canOffer;
+    const hasAny = theyOffer || whatOffer || whatBuild || whatNeed || piperInitiatives || piperSeeking;
+
+    const piperDate = piperRepliedAt
+      ? 'Piper reply ' + formatDate(piperRepliedAt)
+      : null;
 
     body.innerHTML = `
-      ${!hasAny ? `<div class="cp-empty">No context data yet for this contact. Open their drawer and run enrichment, or edit the contact to add details.</div>` : ''}
+      ${!hasAny ? `<div class="cp-empty">No context data yet. Add notes manually or wait for a Piper reply.</div>` : ''}
+
+      ${piperDate ? `<div class="cp-piper-badge">⚡ ${esc(piperDate)}</div>` : ''}
+
+      ${piperInitiatives ? `
+      <div class="cp-context-block">
+        <div class="cp-context-label">
+          <span class="cp-context-dot" style="background:#0F6E56"></span>
+          Piper — Current Initiatives
+        </div>
+        ${renderBullets(piperInitiatives)}
+      </div>` : ''}
+
+      ${piperSeeking ? `
+      <div class="cp-context-block">
+        <div class="cp-context-label">
+          <span class="cp-context-dot" style="background:#185FA5"></span>
+          Piper — Seeking Introductions To
+        </div>
+        <div class="cp-field">${esc(piperSeeking)}</div>
+      </div>` : ''}
 
       ${theyOffer ? `
       <div class="cp-context-block">
@@ -458,15 +486,6 @@
           What They Need
         </div>
         <div class="cp-field">${esc(whatNeed)}</div>
-      </div>` : ''}
-
-      ${canOffer ? `
-      <div class="cp-context-block">
-        <div class="cp-context-label">
-          <span class="cp-context-dot" style="background:#185FA5"></span>
-          What I Can Offer Them
-        </div>
-        ${renderBullets(canOffer)}
       </div>` : ''}
 
       <div style="margin-top:${hasAny ? '16px' : '0'};padding-top:16px;border-top:0.5px solid var(--border,#e5e5e5)">

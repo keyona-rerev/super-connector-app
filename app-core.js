@@ -71,10 +71,8 @@ function filterVenture(v) {
 }
 
 function showPage(page) {
-  // Hide all pages
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  // Show the target page — use explicit 'block' so removal of display:none actually works
   const pg = document.getElementById('page-' + page);
   if (pg) pg.style.display = 'block';
   const nav = document.getElementById('nav-' + page);
@@ -90,7 +88,6 @@ function showPage(page) {
   else if (page === 'content') { addBtn.textContent = '+ New Asset'; addBtn.onclick = openContentModal; }
   else if (page === 'events')  { addBtn.textContent = '+ New Event'; addBtn.onclick = openEventModal; }
   else { addBtn.textContent = ''; addBtn.onclick = null; }
-  // Per-page loaders
   if (page === 'orgs'    && typeof window.orgsLoad === 'function') window.orgsLoad();
   if (page === 'content') renderContent();
   if (page === 'events')  renderEvents();
@@ -445,4 +442,36 @@ async function renderEvents() {
   }
 }
 
+// ── DEEP LINK: ?contact=C123 ──────────────────────────────────────────────────
+async function handleDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const contactId = params.get('contact');
+  if (!contactId) return;
+
+  try {
+    showToast('Loading contact...');
+    const r = await fetch(`${API_BASE}/contact/${contactId}`, { headers: hdrs() });
+    if (!r.ok) { showToast('Contact not found: ' + contactId); return; }
+    const d = await r.json();
+    const contact = d.data || d;
+    if (!contact || !contact.contact_id) { showToast('Contact not found: ' + contactId); return; }
+
+    // Navigate to search page so the contact profile has a page to sit on
+    showPage('search');
+
+    // Wait a tick for the page to render, then open the profile
+    setTimeout(() => {
+      if (window.openContactProfile) {
+        window.openContactProfile(contact);
+      } else {
+        openContactDrawer(contact);
+      }
+    }, 150);
+
+  } catch(e) {
+    showToast('Error loading contact: ' + e.message);
+  }
+}
+
 loadBoard();
+handleDeepLink();

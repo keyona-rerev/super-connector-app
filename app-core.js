@@ -1,5 +1,5 @@
 // Super Connector — Core page logic
-// v20260407e — showPage uses display:block not '' to fix blank pages
+// v20260407f — deep link polls for openContactProfile instead of fixed timeout
 const API_BASE = window.SC_API_BASE || 'https://super-connector-api-production.up.railway.app';
 const API_KEY = window.SC_API_KEY || 'sc_live_k3y_2026_scak';
 const hdrs = () => ({ 'Content-Type': 'application/json', 'X-API-Key': API_KEY });
@@ -456,17 +456,22 @@ async function handleDeepLink() {
     const contact = d.data || d;
     if (!contact || !contact.contact_id) { showToast('Contact not found: ' + contactId); return; }
 
-    // Navigate to search page so the contact profile has a page to sit on
     showPage('search');
 
-    // Wait a tick for the page to render, then open the profile
-    setTimeout(() => {
+    // Poll until openContactProfile is available (contact-profile.js IIFE may not have run yet)
+    let attempts = 0;
+    const tryOpen = () => {
       if (window.openContactProfile) {
         window.openContactProfile(contact);
+      } else if (attempts < 40) {
+        attempts++;
+        setTimeout(tryOpen, 100);
       } else {
+        // Fallback to basic drawer if profile never loaded
         openContactDrawer(contact);
       }
-    }, 150);
+    };
+    tryOpen();
 
   } catch(e) {
     showToast('Error loading contact: ' + e.message);

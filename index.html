@@ -456,113 +456,23 @@
       <div class="field-group"><label>Venture</label><select id="evt-venue"><option value="">Select...</option><option>ReRev Labs</option><option>Prismm</option><option>Black Tech Capital</option><option>Sekhmetic</option><option>Personal</option></select></div>
       <div class="field-group"><label>Date</label><input type="date" id="evt-date"></div>
       <div class="field-group"><label>Status</label><select id="evt-status"><option>Planning</option><option>Confirmed</option><option>Complete</option><option>Cancelled</option></select></div>
-      <div class="field-group" style="grid-column:1/-1"><label>Description</label><textarea id="evt-desc" style="min-height:60px" placeholder="What is this event about?"></textarea></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Description</label><textarea id="evt-desc" placeholder="Event details, goals, notes..."></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Create Event</button></div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div id="toast" class="toast"></div>
 
-<script>
-// ── ORGANIZATIONS PAGE ────────────────────────────────────────────────────────
-(function() {
-  const API_BASE = 'https://super-connector-api-production.up.railway.app';
-  const _KEY = 'sc_live_k3y_2026_scak';
-  const hdrs = () => ({ 'Content-Type': 'application/json', 'X-API-Key': _KEY });
-
-  let _allOrgs = [];
-
-  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  window.orgsLoad = async function() {
-    const el = document.getElementById('orgs-list');
-    if (!el) return;
-    el.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading organizations&#8230;</div>';
-    try {
-      const r = await fetch(`${API_BASE}/organizations`, { headers: hdrs() });
-      const d = await r.json();
-      _allOrgs = d.data || [];
-      orgsRender(_allOrgs);
-    } catch(e) {
-      el.innerHTML = `<div class="empty-state"><h3>Could not load organizations</h3><p>${e.message}</p></div>`;
-    }
-  };
-
-  window.orgsFilter = function(q) {
-    const lower = (q||'').toLowerCase();
-    const filtered = lower
-      ? _allOrgs.filter(o => (o.name||'').toLowerCase().includes(lower) || (o.org_type||'').toLowerCase().includes(lower) || (o.org_focus||'').toLowerCase().includes(lower))
-      : _allOrgs;
-    orgsRender(filtered);
-  };
-
-  function orgsRender(orgs) {
-    const el = document.getElementById('orgs-list');
-    const countEl = document.getElementById('orgs-count');
-    if (countEl) countEl.textContent = `${orgs.length} organization${orgs.length !== 1 ? 's' : ''}`;
-    if (!el) return;
-    if (!orgs.length) {
-      el.innerHTML = '<div class="empty-state"><h3>No organizations yet</h3><p>Organizations are created when contacts are enriched.</p></div>';
-      return;
-    }
-    el.style.display = 'block';
-    el.innerHTML = `
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr style="border-bottom:1px solid var(--border)">
-            <th style="text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:0 12px 10px 0">Organization</th>
-            <th style="text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:0 12px 10px 0">Type</th>
-            <th style="text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:0 12px 10px 0">Focus</th>
-            <th style="text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:0 0 10px 0">Enriched</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${orgs.map(o => `
-            <tr style="border-bottom:0.5px solid var(--border-soft);cursor:pointer;transition:background .1s"
-              onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''"
-              onclick="orgsOpenDrawer(${JSON.stringify(JSON.stringify(o))})">
-              <td style="padding:11px 12px 11px 0;font-size:13px;font-weight:500;color:var(--text)">${esc(o.name||'&#8212;')}</td>
-              <td style="padding:11px 12px 11px 0">
-                ${o.org_type ? `<span style="font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489">${esc(o.org_type)}</span>` : '<span style="color:var(--text3);font-size:12px">&#8212;</span>'}
-              </td>
-              <td style="padding:11px 12px 11px 0;font-size:12px;color:var(--text2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.org_focus||'&#8212;')}</td>
-              <td style="padding:11px 0;font-size:11px;color:var(--text3)">${o.last_enriched ? esc(o.last_enriched) : '&#8212;'}</td>
-            </tr>`).join('')}
-        </tbody>
-      </table>`;
-  }
-
-  window.orgsOpenDrawer = function(orgJson) {
-    const o = JSON.parse(orgJson);
-    const drawer = document.getElementById('contact-drawer');
-    const overlay = document.getElementById('drawer-overlay');
-    const title = document.getElementById('contact-drawer-title');
-    const sub = document.getElementById('contact-drawer-sub');
-    const body = document.getElementById('contact-drawer-body');
-    if (!drawer) return;
-    if (title) title.textContent = o.name || '&#8212;';
-    if (sub) sub.innerHTML = o.org_type ? `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489">${esc(o.org_type)}</span>` : '';
-    if (body) body.innerHTML = `
-      ${o.description ? `<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Description</div><div style="font-size:13px;color:var(--text);line-height:1.6">${esc(o.description)}</div></div>` : ''}
-      ${o.org_focus ? `<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Focus</div><div style="font-size:13px;color:var(--text)">${esc(o.org_focus)}</div></div>` : ''}
-      ${o.recent_activity ? `<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Recent Activity</div><div style="font-size:13px;color:var(--text);line-height:1.6">${esc(o.recent_activity)}</div></div>` : ''}
-      ${o.conversation_hook ? `<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Conversation Hook</div><div style="font-size:13px;color:#534AB7;line-height:1.5">${esc(o.conversation_hook)}</div></div>` : ''}
-      ${o.website ? `<div style="margin-bottom:20px"><a href="${esc(o.website)}" target="_blank" style="font-size:13px;color:var(--accent)">${esc(o.website)}</a></div>` : ''}
-      ${o.last_enriched ? `<div style="font-size:11px;color:var(--text3)">Last enriched: ${esc(o.last_enriched)}</div>` : ''}
-      ${!o.description && !o.org_focus && !o.recent_activity ? `<div style="font-size:13px;color:var(--text3);font-style:italic">No enrichment data yet. Open a contact from this org and click "Create org profile" on the Org Profile tab.</div>` : ''}`;
-    drawer.style.removeProperty('display');
-    drawer.classList.add('open');
-    if (overlay) { overlay.style.removeProperty('display'); overlay.classList.add('open'); }
-    document.body.style.overflow = 'hidden';
-  };
-})();
-</script>
-
+<script src="config.js"></script>
+<script src="app-core.js"></script>
 <script src="load-info.js"></script>
 <script src="load-crm.js"></script>
-<script src="contact-profile.js"></script>
+<script src="contacts-crm.js"></script>
+<script src="contacts-crm-fix.js"></script>
 <script src="search-patch.js"></script>
 <script src="brain-dump-push.js"></script>
+<script src="contact-profile.js"></script>
+<script src="deep-link.js"></script>
 </body>
 </html>
